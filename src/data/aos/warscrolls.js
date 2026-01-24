@@ -214,6 +214,20 @@ export const WARSCROLLS_AOS = [
       "Skull Altar",
     ],
   },
+  {
+    name: "Scourge of Ghyran Mighty Lord of Khorne",
+    faction: "Blades of Khorne",
+    aliases: [
+      "Scourge of Ghyran Mighty Lord of Khorne",
+    ],
+  },
+  {
+    name: "Scourge of Ghyran Bloodcrushers",
+    faction: "Blades of Khorne",
+    aliases: [
+      "Scourge of Ghyran Bloodcrushers",
+    ],
+  },
 ];
 
 
