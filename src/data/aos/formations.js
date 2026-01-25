@@ -3,69 +3,69 @@
 // PURPOSE: Canonical formation names + aliases
 // ==================================================
 
+// ==================================================
+// FORMATION DEFINITIONS
+// ==================================================
+
 export const FORMATIONS_AOS = [
   {
     name: "Bloodbound Warhorde",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodbound Warhorde",
+      "bloodbound warhorde",
     ],
   },
   {
     name: "Brass Stampede",
     faction: "Blades of Khorne",
     aliases: [
-      "Brass Stampede",
+      "brass stampede",
     ],
   },
   {
     name: "Khornate Legion",
     faction: "Blades of Khorne",
     aliases: [
-      "Khornate Legion",
+      "khornate legion",
     ],
   },
   {
     name: "Murderhost",
     faction: "Blades of Khorne",
     aliases: [
-      "Murderhost",
-      "Murder Host",
+      "murderhost",
+      "murder host",
     ],
   },
   {
     name: "The Goretide",
     faction: "Blades of Khorne",
     aliases: [
-      "The Goretide",
+      "the goretide",
     ],
   },
   {
     name: "Tournament of Skulls",
     faction: "Blades of Khorne",
     aliases: [
-      "Tournament of Skulls",
+      "tournament of skulls",
     ],
   },
   {
     name: "Gorechosen Champions",
     faction: "Blades of Khorne",
     aliases: [
-      "Gorechosen Champions",
+      "gorechosen champions",
     ],
   },
   {
     name: "The Baleful Lords",
     faction: "Blades of Khorne",
     aliases: [
-      "The Baleful Lords",
+      "the baleful lords",
     ],
   },
 ];
-
-// ==================================================
-// FORMATION DEFINITIONS
-// ==================================================
 
 // ==================================================
 // EXPORTS
