@@ -3,237 +3,236 @@
 // PURPOSE: Canonical warscroll names + alias definitions
 // ==================================================
 
+// ==================================================
+// WARSCROLL DEFINITIONS
+// ==================================================
+
 export const WARSCROLLS_AOS = [
   {
     name: "Lord of Khorne on Juggernaut",
     faction: "Blades of Khorne",
     aliases: [
-      "Lord of Khorne on Juggernaut",
+      "lord of khorne on juggernaut",
     ],
   },
   {
     name: "Skarr Bloodwrath",
     faction: "Blades of Khorne",
     aliases: [
-      "Skarr Bloodwrath",
+      "skarr bloodwrath",
     ],
   },
   {
     name: "Skullmaster, Herald of Khorne",
     faction: "Blades of Khorne",
     aliases: [
-      "Skullmaster, Herald of Khorne",
+      "skullmaster, herald of khorne",
     ],
   },
   {
     name: "Bloodmaster, Herald of Khorne",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodmaster, Herald of Khorne",
+      "bloodmaster, herald of khorne",
     ],
   },
   {
     name: "Bloodsecrator",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodsecrator",
+      "bloodsecrator",
     ],
   },
   {
     name: "Bloodstoker",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodstoker",
+      "bloodstoker",
     ],
   },
   {
     name: "Bloodthirster of Insensate Rage",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodthirster of Insensate Rage",
+      "bloodthirster of insensate rage",
     ],
   },
   {
     name: "Bloodthirster of Unfettered Fury",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodthirster of Unfettered Fury",
+      "bloodthirster of unfettered fury",
     ],
   },
   {
     name: "Deathbringer",
     faction: "Blades of Khorne",
     aliases: [
-      "Deathbringer",
+      "deathbringer",
     ],
   },
   {
     name: "Herald of Khorne on Blood Throne",
     faction: "Blades of Khorne",
     aliases: [
-      "Herald of Khorne on Blood Throne",
+      "herald of khorne on blood throne",
     ],
   },
    {
     name: "Karanak",
     faction: "Blades of Khorne",
     aliases: [
-      "Karanak",
+      "karanak",
     ],
   },
    {
     name: "Mighty Lord of Khorne",
     faction: "Blades of Khorne",
     aliases: [
-      "Mighty Lord of Khorne",
+      "mighty lord of khorne",
     ],
   },
    {
     name: "Realmgore Ritualist",
     faction: "Blades of Khorne",
     aliases: [
-      "Realmgore Ritualist",
+      "realmgore ritualist",
     ],
   },
     {
     name: "Skarbrand",
     faction: "Blades of Khorne",
     aliases: [
-      "Skarbrand",
+      "skarbrand",
     ],
   },
     {
     name: "Skullgrinder",
     faction: "Blades of Khorne",
     aliases: [
-      "Skullgrinder",
+      "skullgrinder",
     ],
   },
     {
     name: "Skulltaker",
     faction: "Blades of Khorne",
     aliases: [
-      "Skulltaker",
+      "skulltaker",
     ],
   },
     {
     name: "Slaughterpriest",
     faction: "Blades of Khorne",
     aliases: [
-      "Slaughterpriest",
+      "slaughterpriest",
     ],
   },
     {
     name: "Wrath of Khorne Bloothirster",
     faction: "Blades of Khorne",
     aliases: [
-      "Wrath of Khorne Bloodthirster",
+      "wrath of khorne bloodthirster",
     ],
   },
     {
     name: "Blood Warriors",
     faction: "Blades of Khorne",
     aliases: [
-      "Blood Warriors",
+      "blood warriors",
     ],
   },
     {
     name: "Bloodletters",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodletters",
+      "bloodletters",
     ],
   },
     {
     name: "Bloodreavers",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodreavers",
+      "bloodreavers",
     ],
   },
     {
     name: "Claws of Karanak",
     faction: "Blades of Khorne",
     aliases: [
-      "Claws of Karanak",
+      "claws of karanak",
     ],
   },
     {
     name: "Skullreapers",
     faction: "Blades of Khorne",
     aliases: [
-      "Skullreapers",
+      "skullreapers",
     ],
   },
     {
     name: "Wrathmongers",
     faction: "Blades of Khorne",
     aliases: [
-      "Wrathmongers",
+      "wrathmongers",
     ],
   },
     {
     name: "Bloodcrushers",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodcrushers",
+      "bloodcrushers",
     ],
   },
     {
     name: "Mighty Skullcrushers",
     faction: "Blades of Khorne",
     aliases: [
-      "Mighty Skullcrushers",
+      "mighty skullcrushers",
     ],
   },
     {
     name: "flesh Hounds",
     faction: "Blades of Khorne",
     aliases: [
-      "Flesh Hounds",
+      "flesh hounds",
     ],
   },
     {
     name: "Khorgorath",
     faction: "Blades of Khorne",
     aliases: [
-      "Khorgorath",
+      "khorgorath",
     ],
   },
     {
     name: "Skull Cannon",
     faction: "Blades of Khorne",
     aliases: [
-      "Skull Cannon",
+      "skull cannon",
     ],
   },
     {
     name: "Skull Altar",
     faction: "Blades of Khorne",
     aliases: [
-      "Skull Altar",
+      "skull altar",
     ],
   },
   {
     name: "Scourge of Ghyran Mighty Lord of Khorne",
     faction: "Blades of Khorne",
     aliases: [
-      "Scourge of Ghyran Mighty Lord of Khorne",
+      "scourge of ghyran mighty lord of khorne",
     ],
   },
   {
     name: "Scourge of Ghyran Bloodcrushers",
     faction: "Blades of Khorne",
     aliases: [
-      "Scourge of Ghyran Bloodcrushers",
+      "scourge of ghyran bloodcrushers",
     ],
   },
 ];
-
-
-// ==================================================
-// WARSCROLL DEFINITIONS
-// ==================================================
 
 // ==================================================
 // EXPORTS
