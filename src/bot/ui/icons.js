@@ -4,6 +4,7 @@
 // ==================================================
 
 import bladesOfKhorne from "../../assets/factions/blades_of_khorne.png";
+import citiesOfSigmar from "../../assets/factions/cities_of_sigmar.png";
 
 // ==================================================
 // ICON DEFINITIONS
@@ -11,6 +12,7 @@ import bladesOfKhorne from "../../assets/factions/blades_of_khorne.png";
 
 export const FACTION_ICONS = {
   blades_of_khorne: bladesOfKhorne,
+  cities_of_sigmar: citiesOfSigmar,
 };
 
 // ==================================================
