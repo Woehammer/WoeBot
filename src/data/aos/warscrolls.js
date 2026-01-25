@@ -232,6 +232,41 @@ export const WARSCROLLS_AOS = [
       "scourge of ghyran bloodcrushers",
     ],
   },
+  {
+    name: "Alchemite Warforger",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "alchemite warforger",
+    ],
+  },
+  {
+    name: "Battlemage",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "battlemage",
+    ],
+  },
+  {
+    name: "Assassin",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "assassin",
+    ],
+  },
+  {
+    name: "Battlemage on Celestial Hurricanum",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "Battlemage on celestial hurricanum",
+    ],
+  },
+  {
+    name: "Battlemage on Griffon",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "battlemage on griffon",
+    ],
+  },
 ];
 
 // ==================================================
