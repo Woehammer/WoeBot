@@ -261,10 +261,45 @@ export const WARSCROLLS_AOS = [
     ],
   },
   {
+    name: "Battlemage on Luminark of Hysh",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "battlemage on luminark of hysh",
+    ],
+  },
+  {
+    name: "Black Ark Fleetmaster",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "black ark fleetmaster",
+    ],
+  },
+  {
     name: "Battlemage on Griffon",
     faction: "Cities of Sigmar",
     aliases: [
       "battlemage on griffon",
+    ],
+  },
+  {
+    name: "Callis and Toll",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "callis and toll",
+    ],
+  },
+  {
+    name: "Cogsmith",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "cogsmith",
+    ],
+  },
+  {
+    name: "Doralia ven Denst",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "doralia ve denst",
     ],
   },
 ];
