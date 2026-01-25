@@ -3,32 +3,33 @@
 // PURPOSE: Canonical manifestation names + aliases
 // ==================================================
 
+// ==================================================
+// MANIFESTATION DEFINITIONS
+// ==================================================
+
 export const MANIFESTATIONS_AOS = [
   {
     name: "Bleeding Icon",
     aliases: [
-      "Bleeding Icon",
+      "bleeding icon",
     ],
   },
   {
     name: "Hexgorger Skulls",
     aliases: [
-      "Hexgorger Skulls",
+      "hexgorger skulls",
     ],
   },
   {
     name: "Wrath-Axe",
     aliases: [
-      "Wrath-Axe",
+      "wrath-axe",
     ],
   },
 ];
 
 // ==================================================
-// MANIFESTATION DEFINITIONS
+// EXPORTS
 // ==================================================
 
 export default MANIFESTATIONS_AOS;
-// ==================================================
-// EXPORTS
-// ==================================================
