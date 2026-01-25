@@ -21,6 +21,7 @@ export const FACTIONS_AOS = [
     aliases: [
       "blades of khorne",
     ],
+    iconkey: "blades_of_khorne",
   },
   {
     key: "cities_of_sigmar",
@@ -29,6 +30,7 @@ export const FACTIONS_AOS = [
     aliases: [
       "cities of sigmar",
     ],
+    iconkey: "cities_of_sigmar",
   },
   {
     key: "gloomspite_gitz",
@@ -37,6 +39,7 @@ export const FACTIONS_AOS = [
     aliases: [
       "gloomspite gitz",
     ],
+    iconkey: "gloomspite_gitz",
   },
 ];
 
