@@ -13,6 +13,7 @@ lookups: {
   manifestations: MANIFESTATIONS_AOS,
   artefacts: ARTEFACTS_AOS,
   heroicTraits: HEROIC_TRAITS_AOS,
+  terrain: TERRAIN_AOS,
 }
 
 // ==================================================
