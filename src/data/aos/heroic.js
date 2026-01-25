@@ -3,54 +3,54 @@
 // PURPOSE: Canonical heroic trait names + aliases
 // ==================================================
 
+// ==================================================
+// HEROIC TRAIT DEFINITIONS
+// ==================================================
+
 export const HEROIC_AOS = [
   {
     name: "Unrivalled Battlelust",
     faction: "Blades of Khorne",
     aliases: [
-      "Unrivalled Battlelust",
+      "unrivalled battlelust",
     ],
   },
   {
     name: "Crowned in Butchery",
     faction: "Blades of Khorne",
     aliases: [
-      "Crowned in Butchery",
+      "crowned in butchery",
     ],
   },
   {
     name: "Magical Scorn",
     faction: "Blades of Khorne",
     aliases: [
-      "Magical Scorn",
+      "magical scorn",
     ],
   },
   {
     name: "Frenzied Taskmaster",
     faction: "Blades of Khorne",
     aliases: [
-      "Frenzied Taskmaster",
+      "frenzied taskmaster",
     ],
   },
   {
     name: "The Goretide",
     faction: "Blades of Khorne",
     aliases: [
-      "The Goretide",
+      "the goretide",
     ],
   },
   {
     name: "Skull Collector",
     faction: "Blades of Khorne",
     aliases: [
-      "Skull Collector",
+      "skull collector",
     ],
   },
 ];
-
-// ==================================================
-// HEROIC TRAIT DEFINITIONS
-// ==================================================
 
 // ==================================================
 // EXPORTS
