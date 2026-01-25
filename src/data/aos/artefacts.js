@@ -3,68 +3,68 @@
 // PURPOSE: Canonical artefacts of power names + aliases
 // ==================================================
 
+// ==================================================
+// ARTEFACTS DEFINITIONS
+// ==================================================
+
 export const ARTEFACTS_AOS = [
   {
     name: "Ar'Gath, The King of Blades",
     faction: "Blades of Khorne",
     aliases: [
-      "Ar'Gath, The King of Blades",
+      "ar'gath, the king of blades",
     ],
   },
   {
     name: "Collar of Contempt",
     faction: "Blades of Khorne",
     aliases: [
-      "Collar of Contempt",
+      "collar of contempt",
     ],
   },
   {
     name: "Butcher's Blade",
     faction: "Blades of Khorne",
     aliases: [
-      "Butcher's Blade",
+      "butcher's blade",
     ],
   },
   {
     name: "Warmonger's Icon",
     faction: "Blades of Khorne",
     aliases: [
-      "Warmonger's Icon",
+      "warmonger's icon",
     ],
   },
   {
     name: "The Goretide",
     faction: "Blades of Khorne",
     aliases: [
-      "The Goretide",
+      "the goretide",
     ],
   },
   {
     name: "The Scarring Blade",
     faction: "Blades of Khorne",
     aliases: [
-      "The Scarring Blade",
+      "the scarring blade",
     ],
   },
   {
     name: "Bloodmist Skull",
     faction: "Blades of Khorne",
     aliases: [
-      "Bloodmist Skull",
+      "bloodmist skull",
     ],
   },
   {
     name: "Crown of the Slaughterborn",
     faction: "Blades of Khorne",
     aliases: [
-      "Crown of the Slaughterborn",
+      "crown of the slaughterborn",
     ],
   },
 ];
-
-// ==================================================
-// ARTEFACTS DEFINITIONS
-// ==================================================
 
 // ==================================================
 // EXPORTS
