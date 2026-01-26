@@ -302,6 +302,106 @@ export const WARSCROLLS_AOS = [
       "doralia ve denst",
     ],
   },
+{
+    name: "Dreadlord on Black Dragon",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "dreadlord on black dragon",
+    ],
+  },
+{
+    name: "Freeguild Cavalier-Marshal",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild cavalier-marshal",
+    ],
+  },
+{
+    name: "Freeguild Marshal and Relic Envoy",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild marshal and relic envoy",
+    ],
+  },
+{
+    name: "Freeguild Marshal on Griffon",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild marshal on griffon",
+    ],
+  },
+{
+    name: "Fusil-Major on Ogor Warhulk",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "fusil-major on ogor warhulk",
+    ],
+  },
+{
+    name: "Galen ven Denst",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "galen ve denst",
+    ],
+  },
+{
+    name: "Pontifex Zenestra, Matriarch of the Great Wheel",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "pontifex zenestra, matriarch of the great wheel",
+"pontifex zenestra",
+    ],
+  },
+{
+    name: "Runelord",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "runelord",
+    ],
+  },
+{
+    name: "Sorceress",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "sorceress",
+    ],
+  },
+{
+    name: "Sorceress on Black Dragon",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "sorceress on black dragon",
+    ],
+  },
+{
+    name: "Steam Tank Commander",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "steam tank commander",
+    ],
+  },
+{
+    name: "Tahlia Vedra, Lioness of the Parch",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "tahlia vedra, lioness of the parch",
+"tahlia vedra",
+    ],
+  },
+{
+    name: "Warden King",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "warden king",
+    ],
+  },
+{
+    name: "Black Ark Corsairs",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "black ark corsairs",
+    ],
+  },
 ];
 
 // ==================================================
