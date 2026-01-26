@@ -128,7 +128,7 @@ export const WARSCROLLS_AOS = [
     ],
   },
     {
-    name: "Wrath of Khorne Bloothirster",
+    name: "Wrath of Khorne Bloodthirster",
     faction: "Blades of Khorne",
     aliases: [
       "wrath of khorne bloodthirster",
@@ -191,7 +191,7 @@ export const WARSCROLLS_AOS = [
     ],
   },
     {
-    name: "flesh Hounds",
+    name: "Flesh Hounds",
     faction: "Blades of Khorne",
     aliases: [
       "flesh hounds",
@@ -257,7 +257,7 @@ export const WARSCROLLS_AOS = [
     name: "Battlemage on Celestial Hurricanum",
     faction: "Cities of Sigmar",
     aliases: [
-      "Battlemage on celestial hurricanum",
+      "battlemage on celestial hurricanum",
     ],
   },
   {
@@ -299,7 +299,7 @@ export const WARSCROLLS_AOS = [
     name: "Doralia ven Denst",
     faction: "Cities of Sigmar",
     aliases: [
-      "doralia ve denst",
+      "doralia ven denst",
     ],
   },
 {
@@ -341,7 +341,7 @@ export const WARSCROLLS_AOS = [
     name: "Galen ven Denst",
     faction: "Cities of Sigmar",
     aliases: [
-      "galen ve denst",
+      "galen ven denst",
     ],
   },
 {
@@ -400,6 +400,216 @@ export const WARSCROLLS_AOS = [
     faction: "Cities of Sigmar",
     aliases: [
       "black ark corsairs",
+    ],
+  },
+{
+    name: "Black Guard",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "black guard",
+    ],
+  },
+{
+    name: "Bleakswords",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "bleakswords",
+    ],
+  },
+{
+    name: "Darkshards",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "darkshards",
+    ],
+  },
+{
+    name: "Dreadspears",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "dreadspears",
+    ],
+  },
+{
+    name: "Executioners",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "executioners",
+    ],
+  },
+{
+    name: "Flagellants",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "flagellants",
+    ],
+  },
+{
+    name: "Freeguild Command Corps",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild command corps",
+    ],
+  },
+{
+    name: "Freeguild Fusiliers",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild fusiliers",
+    ],
+  },
+{
+    name: "Freeguild Steelhelms",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild steelhelms",
+    ],
+  },
+{
+    name: "Hammerers",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "hammerers",
+    ],
+  },
+{
+    name: "Ironbreakers",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "ironbreakers",
+    ],
+  },
+{
+    name: "Irondrakes",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "irondrakes",
+    ],
+  },
+{
+    name: "Longbeards",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "longbeards",
+    ],
+  },
+{
+    name: "Toll's Companions",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "toll's companions",
+    ],
+  },
+{
+    name: "Wildercorps Hunters",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "wildercorps hunters",
+    ],
+  },
+{
+    name: "Dark Riders",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "dark riders",
+    ],
+  },
+{
+    name: "Drakespawn Knights",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "drakespawn knights",
+    ],
+  },
+{
+    name: "Freeguild Cavaliers",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild cavaliers",
+    ],
+  },
+{
+    name: "Kharibdyss",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "kharibdyss",
+    ],
+  },
+{
+    name: "War Hydra",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "war hydra",
+    ],
+  },
+{
+    name: "Celestial Hurricanum",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "celestial hurricanum",
+    ],
+  },
+{
+    name: "Drakespawn Chariot",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "drakespawn chariot",
+    ],
+  },
+{
+    name: "Gyrobomber",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "gyrobomber",
+    ],
+  },
+{
+    name: "Gyrocopter",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "gyrocopter",
+    ],
+  },
+{
+    name: "Ironweld Great Cannon",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "ironweld great cannon",
+    ],
+  },
+{
+    name: "Luminark of Hysh",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "luminark of hysh",
+    ],
+  },
+{
+    name: "Scourgerunner Chariot",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "scourgerunner chariot",
+    ],
+  },
+{
+    name: "Steam Tanks",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "steam tank",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Pontifex Zenestra, Matriach of the Great Wheel",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "scourge of ghyran pontifex zenestra, matriarch of the grear wheel",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Freeguild Cavaliers",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "scourge of ghyran freeguild cavaliers",
     ],
   },
 ];
