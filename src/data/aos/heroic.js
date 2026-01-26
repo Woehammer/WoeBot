@@ -37,13 +37,6 @@ export const HEROIC_AOS = [
     ],
   },
   {
-    name: "The Goretide",
-    faction: "Blades of Khorne",
-    aliases: [
-      "the goretide",
-    ],
-  },
-  {
     name: "Skull Collector",
     faction: "Blades of Khorne",
     aliases: [
