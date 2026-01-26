@@ -592,17 +592,17 @@ export const WARSCROLLS_AOS = [
     ],
   },
 {
-    name: "Steam Tanks",
+    name: "Steam Tank",
     faction: "Cities of Sigmar",
     aliases: [
       "steam tank",
     ],
   },
 {
-    name: "Scourge of Ghyran Pontifex Zenestra, Matriach of the Great Wheel",
+    name: "Scourge of Ghyran Pontifex Zenestra, Matriarch of the Great Wheel",
     faction: "Cities of Sigmar",
     aliases: [
-      "scourge of ghyran pontifex zenestra, matriarch of the grear wheel",
+      "scourge of ghyran pontifex zenestra, matriarch of the great wheel",
     ],
   },
 {
