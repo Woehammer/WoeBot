@@ -50,6 +50,48 @@ export const HEROIC_AOS = [
       "skull collector",
     ],
   },
+  {
+    name: "Fiery Temper",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "fiery temper",
+    ],
+  },
+{
+    name: "Grizzled Veteran",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "grizzled veteran",
+    ],
+  },
+{
+    name: "Master of Ballistics",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "master of ballistics",
+    ],
+  },
+{
+    name: "Astute Tactician",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "astute tactician",
+    ],
+  },
+{
+    name: "Cosmopolitan Leader",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "cosmopolitan leader",
+    ],
+  },
+{
+    name: "Draw Steel!",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "draw steel!",
+    ],
+  },
 ];
 
 // ==================================================
