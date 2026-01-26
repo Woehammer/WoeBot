@@ -65,6 +65,48 @@ export const FORMATIONS_AOS = [
       "the baleful lords",
     ],
   },
+{
+    name: "Collegiate Arcane Expedition",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "collegiate arcane expedition",
+    ],
+  },
+{
+    name: "Dawnbringer Crusade",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "dawnbringer crusade",
+    ],
+  },
+{
+    name: "Fortess-city Defenders",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "fortress-city defenders",
+    ],
+  },
+{
+    name: "Ironweld Guild Army",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "ironweld guild army",
+    ],
+  },
+{
+    name: "Fearless Exemplars",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "fearless exemplars",
+    ],
+  },
+{
+    name: "Veteran Cannoneers",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "veteran cannoneers",
+    ],
+  },
 ];
 
 // ==================================================
