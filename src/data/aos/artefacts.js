@@ -37,13 +37,6 @@ export const ARTEFACTS_AOS = [
     ],
   },
   {
-    name: "The Goretide",
-    faction: "Blades of Khorne",
-    aliases: [
-      "the goretide",
-    ],
-  },
-  {
     name: "The Scarring Blade",
     faction: "Blades of Khorne",
     aliases: [
@@ -62,6 +55,27 @@ export const ARTEFACTS_AOS = [
     faction: "Blades of Khorne",
     aliases: [
       "crown of the slaughterborn",
+    ],
+  },
+{
+    name: "Brazier of Holy Flame",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "brazier of holy flame",
+    ],
+  },
+{
+    name: "Glimmering",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "glimmering",
+    ],
+  },
+{
+    name: "Sacred Tome",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "sacred tome",
     ],
   },
 ];
