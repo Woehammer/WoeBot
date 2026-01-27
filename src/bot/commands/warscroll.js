@@ -1,6 +1,7 @@
 // ==================================================
 // COMMAND: /warscroll
 // PURPOSE: Stats for a single warscroll
+//          (WITH/WITHOUT scoped to the warscroll's faction)
 // ==================================================
 
 // ==================================================
@@ -13,6 +14,7 @@ import {
 } from "discord.js";
 
 import { getFactionIconPath } from "../ui/icons.js";
+import { computeWithWithout } from "../../engine/stats/withWithout.js";
 
 // ==================================================
 // COMMAND DEFINITION
@@ -31,6 +33,10 @@ function norm(s) {
   return String(s ?? "").trim().toLowerCase();
 }
 
+function snake(s) {
+  return norm(s).replace(/\s+/g, "_");
+}
+
 function pct(x) {
   if (!Number.isFinite(x)) return "—";
   return `${(x * 100).toFixed(1)}%`;
@@ -41,36 +47,16 @@ function fmt(x, dp = 1) {
   return x.toFixed(dp);
 }
 
-function pickTopFactionFromIncludedRows(rows) {
-  const counts = new Map();
-  for (const r of rows || []) {
-    const f = r.Faction ?? r.faction;
-    if (!f) continue;
-
-    // icons use snake_case keys
-    const key = norm(f).replace(/\s+/g, "_");
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-
-  let best = null;
-  let bestN = -1;
-  for (const [k, v] of counts.entries()) {
-    if (v > bestN) {
-      bestN = v;
-      best = k;
-    }
-  }
-  return best; // snake_case faction key
-}
-
 function findWarscrollCanonical(system, inputName) {
   const ws = system?.lookups?.warscrolls ?? [];
   const q = norm(inputName);
 
+  // Direct name match
   for (const w of ws) {
     if (norm(w.name) === q) return w;
   }
 
+  // Alias match
   for (const w of ws) {
     for (const a of w.aliases ?? []) {
       if (norm(a) === q) return w;
@@ -78,6 +64,26 @@ function findWarscrollCanonical(system, inputName) {
   }
 
   return null;
+}
+
+function pickTopFactionNameFromRows(rows) {
+  // Returns the most common faction *name* as it appears in rows (e.g. "Blades of Khorne")
+  const counts = new Map();
+
+  for (const r of rows || []) {
+    const f = r.Faction ?? r.faction;
+    if (!f) continue;
+
+    const key = norm(f);
+    counts.set(key, { name: String(f), n: (counts.get(key)?.n ?? 0) + 1 });
+  }
+
+  let best = null;
+  for (const v of counts.values()) {
+    if (!best || v.n > best.n) best = v;
+  }
+
+  return best?.name ?? null;
 }
 
 // ==================================================
@@ -95,18 +101,44 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  const summary = engine.indexes.warscrollSummary(warscroll.name, 3);
+  // --------------------------------------------------
+  // FACTION RESOLUTION
+  // --------------------------------------------------
+  // Prefer lookup faction, otherwise infer from rows that include it.
+  const allRows = engine?.dataset?.getRows?.() ?? [];
+  const wsRows = allRows.filter((r) => (r.__unitCounts?.[warscroll.name] ?? 0) > 0);
 
-  const factionKey = warscroll.faction
-    ? norm(warscroll.faction).replace(/\s+/g, "_")
-    : pickTopFactionFromIncludedRows(engine.indexes.warscrollRows(warscroll.name));
+  const factionName =
+    warscroll.faction ?? pickTopFactionNameFromRows(wsRows);
 
-  const iconPath = factionKey ? getFactionIconPath(factionKey) : null;
+  if (!factionName) {
+    await interaction.reply({
+      content: `Couldn't infer a faction for **${warscroll.name}** (lookup has none, and no rows include it).`,
+      ephemeral: true,
+    });
+    return;
+  }
+
+  // Pull only rows for that faction via indexes (fast)
+  const idx = engine.indexes.get();
+  const factionRows = idx.byFaction.get(norm(factionName)) ?? [];
+
+  // --------------------------------------------------
+  // STATS (FACTION-SCOPED)
+  // --------------------------------------------------
+  const summary = computeWithWithout({
+    rows: factionRows,
+    warscrollName: warscroll.name,
+    faction: factionName,
+    topN: 3,
+  });
 
   const includedGames = summary.included.games;
   const includedWR = summary.included.winRate;
+
   const withoutGames = summary.without.games;
   const withoutWR = summary.without.winRate;
+
   const avgOcc = summary.included.avgOccurrencesPerList;
 
   const co = summary.included.topCoIncludes || [];
@@ -115,9 +147,18 @@ export async function run(interaction, { system, engine }) {
       ? co.map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`).join("\n")
       : "—";
 
+  // --------------------------------------------------
+  // ICON / THUMBNAIL
+  // --------------------------------------------------
+  const factionKey = snake(factionName);
+  const iconPath = getFactionIconPath(factionKey);
+
+  // --------------------------------------------------
+  // EMBED
+  // --------------------------------------------------
   const embed = new EmbedBuilder()
     .setTitle(warscroll.name)
-    .setDescription("Stats from Woehammer GT Database")
+    .setDescription(`Stats from Woehammer GT Database\nFaction: **${factionName}**`)
     .addFields(
       {
         name: "Included",
@@ -128,8 +169,10 @@ export async function run(interaction, { system, engine }) {
         inline: true,
       },
       {
-        name: "Without",
-        value: `Games: **${withoutGames}**\nWin rate: **${pct(withoutWR)}**`,
+        name: "Without (same faction)",
+        value:
+          `Games: **${withoutGames}**\n` +
+          `Win rate: **${pct(withoutWR)}**`,
         inline: true,
       },
       {
@@ -140,9 +183,7 @@ export async function run(interaction, { system, engine }) {
     )
     .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
 
-  // --------------------------------------------------
-  // THUMBNAIL ATTACHMENT (local PNG)
-  // --------------------------------------------------
+  // Local thumbnail attachment
   const files = [];
   if (iconPath) {
     const fileName = `${factionKey}.png`;
