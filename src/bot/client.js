@@ -6,7 +6,6 @@
 // ==================================================
 // IMPORTS
 // ==================================================
-
 import { Client, GatewayIntentBits, Collection } from "discord.js";
 
 import ping from "./commands/ping.js";
@@ -15,46 +14,39 @@ import warscroll from "./commands/warscroll.js";
 // ==================================================
 // COMMAND REGISTRY
 // ==================================================
-
-const COMMANDS = [ping, warscroll];
-
-// ==================================================
-// CONSTANTS / CONFIG
-// ==================================================
-
-// ==================================================
-// TYPES / SHAPES (JSDoc)
-// ==================================================
-
-// ==================================================
-// INTERNAL STATE
-// ==================================================
+export const COMMANDS = [ping, warscroll];
 
 // ==================================================
 // HELPERS
 // ==================================================
-
-// ==================================================
-// CORE LOGIC
-// ==================================================
-
 function buildClient() {
-  const client = new Client({
+  return new Client({
     intents: [GatewayIntentBits.Guilds],
   });
+}
 
+// ==================================================
+// PUBLIC API
+// ==================================================
+export function createDiscordClient({ system, engine }) {
+  const client = buildClient();
+
+  // --------------------------------------------------
+  // COMMAND COLLECTION
+  // --------------------------------------------------
   client.commands = new Collection();
   for (const cmd of COMMANDS) {
     client.commands.set(cmd.data.name, cmd);
   }
 
-  return client;
-}
+  // --------------------------------------------------
+  // SHARED CONTEXT
+  // --------------------------------------------------
+  client.woebot = { system, engine };
 
-// --------------------------------------------------
+  // --------------------------------------------------
   // INTERACTION ROUTER
   // --------------------------------------------------
-
   client.on("interactionCreate", async (interaction) => {
     if (!interaction.isChatInputCommand()) return;
 
@@ -79,19 +71,3 @@ function buildClient() {
 
   return client;
 }
-
-// ==================================================
-// PUBLIC API
-// ==================================================
-
-export function createDiscordClient({ system, engine }) {
-  const client = buildClient();
-
-  // Stash references so commands can access engine/system cleanly
-  client.woebot = { system, engine };
-
-// ==================================================
-// EXPORTS
-// ==================================================
-
-export { COMMANDS };
