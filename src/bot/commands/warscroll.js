@@ -7,8 +7,8 @@
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { getFactionIcon } from "../ui/icons.js";
-
+import { AttachmentBuilder } from "discord.js";
+import { getFactionIconPath } from "../ui/icons.js";
 // ==================================================
 // COMMAND DEFINITION
 // ==================================================
