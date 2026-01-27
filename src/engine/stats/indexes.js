@@ -1,6 +1,7 @@
 // ==================================================
 // FILE: indexes.js
 // PURPOSE: Build and cache fast lookup indexes over dataset rows
+//          + provide common summary helpers (faction + warscroll)
 // ==================================================
 
 // ==================================================
@@ -22,22 +23,37 @@ import { computeWithWithout } from "./withWithout.js";
  * @property {Function} get
  * @property {Function} warscrollRows
  * @property {Function} warscrollSummary
+ * @property {Function} factionRows
+ * @property {Function} factionSummary
+ * @property {Function} warscrollSummaryInFaction
  */
 
 // ==================================================
-// HELPERS
+// HELPERS: BASIC NORMALISATION
 // ==================================================
 function safeKey(value) {
   return (value ?? "").toString().trim().toLowerCase();
 }
 
+function n(x) {
+  const v = Number(x);
+  return Number.isFinite(v) ? v : 0;
+}
+
+function safeRate(num, den) {
+  return den > 0 ? num / den : 0;
+}
+
+// ==================================================
+// HELPERS: INDEX BUILDERS
+// ==================================================
 function buildIndexes(rows) {
   // Minimal starter indexes (expand later)
   const byFaction = new Map();
   const byPlayer = new Map();
   const byEvent = new Map();
 
-  // Warscroll index (canonical name lowercased -> rows that include it)
+  // Warscroll index (name lowercased -> rows that include it)
   const byWarscroll = new Map();
 
   for (const row of rows || []) {
@@ -45,22 +61,33 @@ function buildIndexes(rows) {
     const player = safeKey(row.Player ?? row.player);
     const eventName = safeKey(row["Event Name"] ?? row.eventName ?? row.event);
 
+    // ------------------------------
+    // INDEX: FACTION
+    // ------------------------------
     if (faction) {
       if (!byFaction.has(faction)) byFaction.set(faction, []);
       byFaction.get(faction).push(row);
     }
 
+    // ------------------------------
+    // INDEX: PLAYER
+    // ------------------------------
     if (player) {
       if (!byPlayer.has(player)) byPlayer.set(player, []);
       byPlayer.get(player).push(row);
     }
 
+    // ------------------------------
+    // INDEX: EVENT
+    // ------------------------------
     if (eventName) {
       if (!byEvent.has(eventName)) byEvent.set(eventName, []);
       byEvent.get(eventName).push(row);
     }
 
-    // Build warscroll index from parsed list units
+    // ------------------------------
+    // INDEX: WARSCROLL (from parsed list units)
+    // ------------------------------
     const units = row.__units || [];
     for (const u of units) {
       const key = safeKey(u);
@@ -74,7 +101,7 @@ function buildIndexes(rows) {
 }
 
 // ==================================================
-// CORE LOGIC
+// CORE LOGIC: SERVICE FACTORY
 // ==================================================
 function createService({ dataset }) {
   let rowsCache = [];
@@ -85,15 +112,25 @@ function createService({ dataset }) {
     byWarscroll: new Map(),
   };
 
+  // --------------------------------------------------
+  // REFRESH
+  // --------------------------------------------------
   async function refresh() {
     rowsCache = dataset.getRows ? dataset.getRows() : [];
     indexes = buildIndexes(rowsCache);
     return indexes;
   }
 
+  // --------------------------------------------------
+  // GET (RAW INDEX ACCESS)
+  // --------------------------------------------------
   function get() {
     return indexes;
   }
+
+  // --------------------------------------------------
+  // ROW LOOKUPS
+  // --------------------------------------------------
 
   /**
    * Return rows that include a given warscroll (canonical name).
@@ -102,6 +139,18 @@ function createService({ dataset }) {
     const key = safeKey(warscrollName);
     return indexes.byWarscroll.get(key) || [];
   }
+
+  /**
+   * Return rows for a given faction name.
+   */
+  function factionRows(factionName) {
+    const key = safeKey(factionName);
+    return indexes.byFaction.get(key) || [];
+  }
+
+  // --------------------------------------------------
+  // SUMMARIES
+  // --------------------------------------------------
 
   /**
    * Full with/without summary for a warscroll, using ALL rows.
@@ -115,7 +164,54 @@ function createService({ dataset }) {
     });
   }
 
-  return { refresh, get, warscrollRows, warscrollSummary };
+  /**
+   * Summary for a faction baseline (games + wins + winRate).
+   * Uses Played/Won totals across ALL rows for that faction.
+   */
+  function factionSummary(factionName) {
+    const rows = factionRows(factionName);
+
+    let games = 0;
+    let wins = 0;
+    let lists = 0;
+
+    for (const r of rows) {
+      lists += 1;
+      games += n(r.Played);
+      wins += n(r.Won);
+    }
+
+    return {
+      faction: factionName,
+      lists,
+      games,
+      wins,
+      winRate: safeRate(wins, games),
+    };
+  }
+
+  /**
+   * With/without summary for a warscroll scoped to a faction only.
+   * (This is the one you want for /warscroll.)
+   */
+  function warscrollSummaryInFaction(warscrollName, factionName, topN = 3) {
+    const rows = factionRows(factionName);
+    return computeWithWithout({
+      rows,
+      warscrollName,
+      topN,
+    });
+  }
+
+  return {
+    refresh,
+    get,
+    warscrollRows,
+    warscrollSummary,
+    factionRows,
+    factionSummary,
+    warscrollSummaryInFaction,
+  };
 }
 
 // ==================================================
