@@ -80,9 +80,6 @@ function pickTopFactionNameFromRows(rows) {
   return best?.name ?? null;
 }
 
-// Discord embed spacing hack (blank line between sections)
-const SPACER = { name: "\u200B", value: "\u200B", inline: false };
-
 // ==================================================
 // EXECUTION LOGIC
 // ==================================================
@@ -101,7 +98,6 @@ export async function run(interaction, { system, engine }) {
   // --------------------------------------------------
   // FACTION RESOLUTION
   // --------------------------------------------------
-  // Prefer lookup faction; only infer if missing.
   let factionName = warscroll.faction ?? null;
 
   if (!factionName) {
@@ -157,32 +153,42 @@ export async function run(interaction, { system, engine }) {
   const iconPath = getFactionIconPath(factionKey);
 
   // --------------------------------------------------
-  // EMBED
+  // EMBED (single-field layout to avoid huge spacing)
   // --------------------------------------------------
-  
-const statsText =
-  `**Included**\n` +
-  `Games: **${includedGames}**\n` +
-  `Win rate: **${pct(includedWR)}**\n` +
-  `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n\n` +
+  const statsText =
+    `**Included**\n` +
+    `Games: **${includedGames}**\n` +
+    `Win rate: **${pct(includedWR)}**\n` +
+    `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n\n` +
+    `**Faction baseline**\n` +
+    `Games: **${factionGames}**\n` +
+    `Win rate: **${pct(factionWR)}**\n` +
+    `Impact (vs faction): **${impactText}**\n\n` +
+    `**Without (same faction)**\n` +
+    `Games: **${withoutGames}**\n` +
+    `Win rate: **${pct(withoutWR)}**`;
 
-  `**Faction baseline**\n` +
-  `Games: **${factionGames}**\n` +
-  `Win rate: **${pct(factionWR)}**\n` +
-  `Impact (vs faction): **${impactText}**\n\n` +
+  const embed = new EmbedBuilder()
+    .setTitle(warscroll.name)
+    .setDescription(`Stats from Woehammer GT Database\nFaction: **${factionName}**`)
+    .addFields(
+      { name: "\u200B", value: statsText, inline: false },
+      { name: "**Commonly included with (Top 3)**", value: coText || "—", inline: false }
+    )
+    .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
 
-  `**Without (same faction)**\n` +
-  `Games: **${withoutGames}**\n` +
-  `Win rate: **${pct(withoutWR)}**`;
+  // --------------------------------------------------
+  // THUMBNAIL ATTACHMENT (local PNG)
+  // --------------------------------------------------
+  const files = [];
+  if (iconPath) {
+    const fileName = `${factionKey}.png`;
+    files.push(new AttachmentBuilder(iconPath, { name: fileName }));
+    embed.setThumbnail(`attachment://${fileName}`);
+  }
 
-const embed = new EmbedBuilder()
-  .setTitle(warscroll.name)
-  .setDescription(`Stats from Woehammer GT Database\nFaction: **${factionName}**`)
-  .addFields(
-    { name: "\u200B", value: statsText, inline: false },
-    { name: "**Commonly included with (Top 3)**", value: coText || "—", inline: false }
-  )
-  .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
+  await interaction.reply({ embeds: [embed], files });
+}
 
 // ==================================================
 // EXPORTS
