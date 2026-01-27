@@ -163,36 +163,35 @@ export async function run(interaction, { system, engine }) {
     .setTitle(warscroll.name)
     .setDescription(`Stats from Woehammer GT Database\nFaction: **${factionName}**`)
     .addFields(
-      {
-        name: "**Included**",
-        value:
-          `Games: **${includedGames}**\n` +
-          `Win rate: **${pct(includedWR)}**\n` +
-          `Avg occurrences (per list): **${fmt(avgOcc, 2)}**`,
-        inline: false,
-      },
-      SPACER,
-      {
-        name: "**Faction baseline**",
-        value:
-          `Games: **${factionGames}**\n` +
-          `Win rate: **${pct(factionWR)}**\n` +
-          `Impact (vs faction): **${impactText}**`,
-        inline: false,
-      },
-      SPACER,
-      {
-        name: "**Without (same faction)**",
-        value: `Games: **${withoutGames}**\nWin rate: **${pct(withoutWR)}**`,
-        inline: false,
-      },
-      SPACER,
-      {
-        name: "**Commonly included with (Top 3)**",
-        value: coText,
-        inline: false,
-      }
-    )
+  {
+    name: "**Included**",
+    value:
+      `Games: **${includedGames}**\n` +
+      `Win rate: **${pct(includedWR)}**\n` +
+      `Avg occurrences (per list): **${fmt(avgOcc, 2)}**`,
+    inline: false,
+  },
+  {
+    name: "**Faction baseline**",
+    value:
+      `Games: **${factionGames}**\n` +
+      `Win rate: **${pct(factionWR)}**\n` +
+      `Impact (vs faction): **${impactText}**`,
+    inline: false,
+  },
+  SPACER,
+  {
+    name: "**Without (same faction)**",
+    value: `Games: **${withoutGames}**\nWin rate: **${pct(withoutWR)}**`,
+    inline: false,
+  },
+  SPACER,
+  {
+    name: "**Commonly included with (Top 3)**",
+    value: coText,
+    inline: false,
+  }
+)
     .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
 
   // Local thumbnail attachment
