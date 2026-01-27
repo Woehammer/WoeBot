@@ -200,6 +200,11 @@ const embed = new EmbedBuilder()
     text: "Co-includes weighted by lists • Avg occurrences per list",
   });
 
+// Add unit image if present
+if (warscroll.image) {
+  embed.setImage(warscroll.image);
+}
+
   // --------------------------------------------------
   // THUMBNAIL ATTACHMENT (local PNG)
   // --------------------------------------------------
