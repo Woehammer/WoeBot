@@ -31,15 +31,10 @@ function pickSystem() {
 // ==================================================
 // ENGINE INITIALISATION
 // ==================================================
+
 async function initEngine(system, env) {
-  const bs = String(env.AOS_BATTLESCROLL_ID ?? "").trim().toUpperCase();
-  const csvKey = `AOS_DB_SHEET_${bs}_CSV_URL`;
-  const csvUrl = env[csvKey];
-
-  if (!csvUrl) throw new Error(`[boot] Missing env var: ${csvKey}`);
-
   const dataset = createDatasetService({
-    csvUrl,
+    csvUrl: env.AOS_DB_SHEET_CSV_URL,
     ttlSeconds: Number(env.CACHE_TTL_SECONDS ?? 900),
     system,
   });
