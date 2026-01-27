@@ -7,7 +7,7 @@
 // IMPORTS
 // ==================================================
 import Papa from "papaparse";
-import { enrichRowsWithParsedLists } from "../parse/parseLists.js";
+import { enrichRowsWithParsedLists } from "../parse/parseList.js";
 
 // ==================================================
 // CONSTANTS / CONFIG
