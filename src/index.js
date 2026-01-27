@@ -84,6 +84,8 @@ async function initCommands(system, env) {
 // STARTUP / BOOT
 // ==================================================
 
+console.log("[WoeBot] env check AOS_BATTLESCROLL_ID =", JSON.stringify(process.env.AOS_BATTLESCROLL_ID));
+
 (async function boot() {
   const env = loadEnv();
   const system = pickSystem();
