@@ -86,6 +86,14 @@ function pickTopFactionNameFromRows(rows) {
   return best?.name ?? null;
 }
 
+const factionName = warscroll.faction; // "Blades of Khorne"
+const faction = engine.indexes.factionSummary(factionName);
+
+const factionWR = faction?.winRate ?? 0;
+const impactBps = Math.round((summary.included.winRate - factionWR) * 10000);
+const impactText =
+  impactBps === 0 ? "0 bps" : `${impactBps > 0 ? "+" : ""}${impactBps} bps`;
+
 // ==================================================
 // EXECUTION LOGIC
 // ==================================================
