@@ -166,11 +166,11 @@ export async function run(interaction, { system, engine }) {
   `Win rate: **${pct(factionWR)}**\n` +
   `Impact (vs faction): **${impactText}**\n\n` +
 
+  `────────────\n\n` +
+
   `**Without (same faction)**\n` +
   `Games: **${withoutGames}**\n` +
-  `Win rate: **${pct(withoutWR)}**`
-
-`---\n\n` +;
+  `Win rate: **${pct(withoutWR)}**`;
 
   const embed = new EmbedBuilder()
     .setTitle(warscroll.name)
