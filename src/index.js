@@ -35,9 +35,10 @@ function pickSystem() {
 async function initEngine(system, env) {
   // Dataset service handles CSV fetch + parse + cache
   const dataset = createDatasetService({
-    csvUrl: env.AOS_DB_SHEET_CSV_URL,
-    ttlSeconds: env.CACHE_TTL_SECONDS ?? 900,
-  });
+  csvUrl: env.AOS_DB_SHEET_CSV_URL,
+  ttlSeconds: env.CACHE_TTL_SECONDS ?? 900,
+  system,
+});
 
   // Prebuild indexes for fast queries (player/faction/event/etc.)
   const indexes = createIndexService({ dataset });
