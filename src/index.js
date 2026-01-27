@@ -88,6 +88,12 @@ async function initCommands(system, env) {
   const env = loadEnv();
   const system = pickSystem();
 
+  // --------------------------------------------------
+  // PLATFORM HEALTH (Railway)
+  // --------------------------------------------------
+  
+  startHealthServer();
+
   const engine = await initEngine(system, env);
   const client = await initDiscord(system, env, engine);
 
@@ -99,3 +105,4 @@ async function initCommands(system, env) {
   console.error("[WoeBot] boot failed:", err);
   process.exit(1);
 });
+
