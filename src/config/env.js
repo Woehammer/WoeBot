@@ -19,8 +19,9 @@ const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
 /**
  * @typedef {Object} Env
  * @property {string} DISCORD_TOKEN
- * @property {string} DISCORD_CLIENT_ID
+ * @property {string} [DISCORD_CLIENT_ID]
  * @property {string} [DISCORD_GUILD_ID]
+ * @property {string} AOS_BATTLESCROLL_ID
  * @property {string} AOS_DB_SHEET_CSV_URL
  * @property {number} [CACHE_TTL_SECONDS]
  * @property {boolean} [REGISTER_COMMANDS_ON_BOOT]
@@ -33,6 +34,7 @@ const TRUE_VALUES = new Set(["1", "true", "yes", "on"]);
 // ==================================================
 // HELPERS
 // ==================================================
+
 function required(name) {
   const v = process.env[name];
   if (!v || !String(v).trim()) throw new Error(`[env] Missing required var: ${name}`);
@@ -56,15 +58,36 @@ function toBool(value, fallback = false) {
   return TRUE_VALUES.has(String(value).trim().toLowerCase());
 }
 
+function resolveAoSCsvUrl(battlescrollId) {
+  const id = String(battlescrollId || "").trim().toUpperCase();
+  if (!id) throw new Error("[env] Missing required var: AOS_BATTLESCROLL_ID");
+
+  const key = `AOS_DB_SHEET_${id}_CSV_URL`;
+  const url = process.env[key];
+
+  if (!url || !String(url).trim()) {
+    throw new Error(`[env] Missing required var: ${key}`);
+  }
+
+  return String(url).trim();
+}
+
 // ==================================================
 // CORE LOGIC
 // ==================================================
+
 function buildEnv() {
+  const AOS_BATTLESCROLL_ID = required("AOS_BATTLESCROLL_ID");
+  const AOS_DB_SHEET_CSV_URL = resolveAoSCsvUrl(AOS_BATTLESCROLL_ID);
+
   return {
     DISCORD_TOKEN: required("DISCORD_TOKEN"),
     DISCORD_CLIENT_ID: optional("DISCORD_CLIENT_ID"),
     DISCORD_GUILD_ID: optional("DISCORD_GUILD_ID"),
-    AOS_DB_SHEET_CSV_URL: required("AOS_DB_SHEET_CSV_URL"),
+
+    AOS_BATTLESCROLL_ID,
+    AOS_DB_SHEET_CSV_URL,
+
     CACHE_TTL_SECONDS: toInt(optional("CACHE_TTL_SECONDS"), undefined),
     REGISTER_COMMANDS_ON_BOOT: toBool(optional("REGISTER_COMMANDS_ON_BOOT"), false),
   };
@@ -73,7 +96,7 @@ function buildEnv() {
 // ==================================================
 // PUBLIC API
 // ==================================================
-/** @returns {Env} */
+
 export function loadEnv() {
   return buildEnv();
 }
