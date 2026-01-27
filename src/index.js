@@ -32,6 +32,8 @@ function pickSystem() {
 // ENGINE INITIALISATION
 // ==================================================
 
+const bs = String(env.AOS_BATTLESCROLL_ID ?? "").trim().toUpperCase();
+
 async function initEngine(system, env) {
   const bs = env.AOS_BATTLESCROLL_ID; // e.g. "DEC25"
   const csvKey = `AOS_DB_SHEET_${bs}_CSV_URL`; // -> "AOS_DB_SHEET_DEC25_CSV_URL"
