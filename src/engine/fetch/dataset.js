@@ -7,6 +7,8 @@
 // IMPORTS
 // ==================================================
 
+import Papa from "papaparse";
+
 // ==================================================
 // CONSTANTS / CONFIG
 // ==================================================
@@ -34,9 +36,21 @@
 // CORE LOGIC
 // ==================================================
 
+function createService({ csvUrl, ttlSeconds }) {
+  // stub for now
+  return {
+    refresh: async () => {},
+    getRows: () => [],
+  };
+}
+
 // ==================================================
 // PUBLIC API
 // ==================================================
+
+export function createDatasetService(options) {
+  return createService(options);
+}
 
 // ==================================================
 // EXPORTS
