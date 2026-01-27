@@ -8,9 +8,7 @@
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from "discord.js";
-
 import { getFactionIconPath } from "../ui/icons.js";
-import { computeWithWithout } from "../../engine/stats/withWithout.js";
 
 // ==================================================
 // COMMAND DEFINITION
@@ -41,11 +39,6 @@ function pct(x) {
 function fmt(x, dp = 1) {
   if (!Number.isFinite(x)) return "—";
   return x.toFixed(dp);
-}
-
-function n(x) {
-  const v = Number(x);
-  return Number.isFinite(v) ? v : 0;
 }
 
 function findWarscrollCanonical(system, inputName) {
@@ -87,7 +80,7 @@ function pickTopFactionNameFromRows(rows) {
   return best?.name ?? null;
 }
 
-// Discord embed spacing hack
+// Discord embed spacing hack (blank line between sections)
 const SPACER = { name: "\u200B", value: "\u200B", inline: false };
 
 // ==================================================
@@ -108,24 +101,13 @@ export async function run(interaction, { system, engine }) {
   // --------------------------------------------------
   // FACTION RESOLUTION
   // --------------------------------------------------
-  // Prefer lookup faction, otherwise infer from rows that include it.
-  const allRows = engine?.dataset?.getRows?.() ?? [];
+  // Prefer lookup faction; only infer if missing.
+  let factionName = warscroll.faction ?? null;
 
-  // NOTE: __unitCounts might be keyed by canonical name. If not, this still works because
-  // computeWithWithout() uses case-insensitive matching later.
-  const wsRows = allRows.filter((r) => {
-    const c = r.__unitCounts || {};
-    // direct key hit
-    if (c[warscroll.name] > 0) return true;
-    // fallback: scan keys case-insensitively
-    const targetKey = norm(warscroll.name);
-    for (const [k, v] of Object.entries(c)) {
-      if (norm(k) === targetKey && n(v) > 0) return true;
-    }
-    return false;
-  });
-
-  const factionName = warscroll.faction ?? pickTopFactionNameFromRows(wsRows);
+  if (!factionName) {
+    const wsRows = engine.indexes.warscrollRows(warscroll.name);
+    factionName = pickTopFactionNameFromRows(wsRows);
+  }
 
   if (!factionName) {
     await interaction.reply({
@@ -135,18 +117,16 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  // Pull only rows for that faction via indexes (fast)
-  const idx = engine.indexes.get();
-  const factionRows = idx.byFaction.get(norm(factionName)) ?? [];
+  // --------------------------------------------------
+  // STATS (FACTION SCOPED)
+  // --------------------------------------------------
+  const summary = engine.indexes.warscrollSummaryInFaction(
+    warscroll.name,
+    factionName,
+    3
+  );
 
-  // --------------------------------------------------
-  // STATS (FACTION-SCOPED WITH/WITHOUT)
-  // --------------------------------------------------
-  const summary = computeWithWithout({
-    rows: factionRows,
-    warscrollName: warscroll.name,
-    topN: 3,
-  });
+  const faction = engine.indexes.factionSummary(factionName);
 
   const includedGames = summary.included.games;
   const includedWR = summary.included.winRate;
@@ -154,20 +134,10 @@ export async function run(interaction, { system, engine }) {
   const withoutWR = summary.without.winRate;
   const avgOcc = summary.included.avgOccurrencesPerList;
 
-  // --------------------------------------------------
-  // FACTION BASELINE + IMPACT (PP)
-  // --------------------------------------------------
-  let factionGames = 0;
-  let factionWins = 0;
+  const factionGames = faction?.games ?? 0;
+  const factionWR = faction?.winRate ?? 0;
 
-  for (const r of factionRows) {
-    factionGames += n(r.Played);
-    factionWins += n(r.Won);
-  }
-
-  const factionWR = factionGames > 0 ? factionWins / factionGames : 0;
-
-  // Impact in percentage points (pp), NOT bps
+  // Impact in percentage points (pp)
   const impactPP = (includedWR - factionWR) * 100;
   const impactText = `${impactPP >= 0 ? "+" : ""}${impactPP.toFixed(1)} pp`;
 
