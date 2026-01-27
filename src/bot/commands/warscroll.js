@@ -6,9 +6,14 @@
 // ==================================================
 // IMPORTS
 // ==================================================
-import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { AttachmentBuilder } from "discord.js";
+import {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  AttachmentBuilder,
+} from "discord.js";
+
 import { getFactionIconPath } from "../ui/icons.js";
+
 // ==================================================
 // COMMAND DEFINITION
 // ==================================================
@@ -41,9 +46,12 @@ function pickTopFactionFromIncludedRows(rows) {
   for (const r of rows || []) {
     const f = r.Faction ?? r.faction;
     if (!f) continue;
-    const key = norm(f);
+
+    // icons use snake_case keys
+    const key = norm(f).replace(/\s+/g, "_");
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
+
   let best = null;
   let bestN = -1;
   for (const [k, v] of counts.entries()) {
@@ -52,19 +60,17 @@ function pickTopFactionFromIncludedRows(rows) {
       best = k;
     }
   }
-  return best; // normalised faction key
+  return best; // snake_case faction key
 }
 
 function findWarscrollCanonical(system, inputName) {
   const ws = system?.lookups?.warscrolls ?? [];
   const q = norm(inputName);
 
-  // Direct name match
   for (const w of ws) {
     if (norm(w.name) === q) return w;
   }
 
-  // Alias match
   for (const w of ws) {
     for (const a of w.aliases ?? []) {
       if (norm(a) === q) return w;
@@ -89,42 +95,36 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  // Stats
   const summary = engine.indexes.warscrollSummary(warscroll.name, 3);
 
-  // Faction icon choice:
-  // - prefer warscroll.faction if present
-  // - else infer from included rows
-  const factionKey =
-    warscroll.faction
-      ? norm(warscroll.faction).replace(/\s+/g, "_")
-      : pickTopFactionFromIncludedRows(engine.indexes.warscrollRows(warscroll.name));
+  const factionKey = warscroll.faction
+    ? norm(warscroll.faction).replace(/\s+/g, "_")
+    : pickTopFactionFromIncludedRows(engine.indexes.warscrollRows(warscroll.name));
 
-  const iconPath = factionKey ? getFactionIcon(factionKey) : null;
+  const iconPath = factionKey ? getFactionIconPath(factionKey) : null;
 
   const includedGames = summary.included.games;
   const includedWR = summary.included.winRate;
-
   const withoutGames = summary.without.games;
   const withoutWR = summary.without.winRate;
-
   const avgOcc = summary.included.avgOccurrencesPerList;
 
   const co = summary.included.topCoIncludes || [];
   const coText =
     co.length > 0
-      ? co
-          .map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`)
-          .join("\n")
+      ? co.map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`).join("\n")
       : "—";
 
   const embed = new EmbedBuilder()
     .setTitle(warscroll.name)
-    .setDescription(`Stats from Woehammer GT Database`)
+    .setDescription("Stats from Woehammer GT Database")
     .addFields(
       {
         name: "Included",
-        value: `Games: **${includedGames}**\nWin rate: **${pct(includedWR)}**\nAvg occurrences (per list): **${fmt(avgOcc, 2)}**`,
+        value:
+          `Games: **${includedGames}**\n` +
+          `Win rate: **${pct(includedWR)}**\n` +
+          `Avg occurrences (per list): **${fmt(avgOcc, 2)}**`,
         inline: true,
       },
       {
@@ -138,15 +138,19 @@ export async function run(interaction, { system, engine }) {
         inline: false,
       }
     )
-    .setFooter({ text: `Co-includes weighted by lists • Avg occurrences per list` });
+    .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
 
-  // Note: local file thumbnails in embeds can be awkward depending on how icons.js is implemented.
-  // If getFactionIcon returns a URL, this is fine. If it returns a local path, we need attachments.
-  if (iconPath && typeof iconPath === "string" && iconPath.startsWith("http")) {
-    embed.setThumbnail(iconPath);
+  // --------------------------------------------------
+  // THUMBNAIL ATTACHMENT (local PNG)
+  // --------------------------------------------------
+  const files = [];
+  if (iconPath) {
+    const fileName = `${factionKey}.png`;
+    files.push(new AttachmentBuilder(iconPath, { name: fileName }));
+    embed.setThumbnail(`attachment://${fileName}`);
   }
 
-  await interaction.reply({ embeds: [embed] });
+  await interaction.reply({ embeds: [embed], files });
 }
 
 // ==================================================
