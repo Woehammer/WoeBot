@@ -9,31 +9,19 @@
 import { REST, Routes } from "discord.js";
 
 // ==================================================
-// CONSTANTS / CONFIG
+// COMMAND IMPORTS
+// NOTE: Keep this list in sync with src/bot/client.js
 // ==================================================
-
-// ==================================================
-// TYPES / SHAPES (JSDoc)
-// ==================================================
-
-/**
- * @typedef {Object} RegisterCommandsOptions
- * @property {string} token
- * @property {string} clientId
- * @property {string} [guildId]
- * @property {Object} system
- */
-
-// ==================================================
-// INTERNAL STATE
-// ==================================================
+import ping from "../src/bot/commands/ping.js";
+import warscroll from "../src/bot/commands/warscroll.js";
 
 // ==================================================
 // HELPERS
 // ==================================================
 function buildCommandPayload(system) {
-  // Placeholder – later this will pull from system.commandDefinitions
-  return [];
+  // v1: register explicit command modules
+  // later: system.commandDefinitions
+  return [ping.data.toJSON(), warscroll.data.toJSON()];
 }
 
 // ==================================================
@@ -51,6 +39,11 @@ async function register({ token, clientId, guildId, system }) {
     : Routes.applicationCommands(clientId);
 
   await rest.put(route, { body: commands });
+  console.log(
+    `[registerCommands] registered ${commands.length} command(s) ${
+      guildId ? "(guild)" : "(global)"
+    }`
+  );
 }
 
 // ==================================================
