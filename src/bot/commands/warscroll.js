@@ -176,6 +176,14 @@ export async function run(interaction, { system, engine }) {
           `Avg occurrences (per list): **${fmt(avgOcc, 2)}**`,
         inline: false,
       },
+{
+  name: "Faction baseline",
+  value:
+    `Games: **${faction.games}**\n` +
+    `Win rate: **${pct(factionWR)}**\n` +
+    `Impact (vs faction): **${impactText}**`,
+  inline: false,
+},
       {
         name: "Without (same faction)",
         value:
