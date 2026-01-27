@@ -1,4 +1,4 @@
-8// ==================================================
+// ==================================================
 // COMMAND: /warscroll
 // PURPOSE: Stats for a single warscroll
 //          (WITH/WITHOUT scoped to the warscroll's faction)
@@ -152,59 +152,43 @@ export async function run(interaction, { system, engine }) {
   const factionKey = snake(factionName);
   const iconPath = getFactionIconPath(factionKey);
 
+// --------------------------------------------------
+  // EMBED (single-field layout = predictable spacing)
   // --------------------------------------------------
-  // EMBED (single-field layout to avoid huge spacing)
-  // --------------------------------------------------
-  
-const statsText =
-  `Stats from Woehammer GT Database\n` +
-  `Faction: **${factionName}**\n\n` +
+  const divider = "────────────";
 
-  `**Included**\n` +
-  `Games: **${includedGames}**\n` +
-  `Win rate: **${pct(includedWR)}**\n` +
-  `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n\n` +
+  const statsText =
+    `Stats from Woehammer GT Database\n` +
+    `Faction: **${factionName}**\n\n` +
 
-  `**Faction baseline**\n` +
-  `Games: **${factionGames}**\n` +
-  `Win rate: **${pct(factionWR)}**\n` +
-  `Impact (vs faction): **${impactText}**\n\n` +
+    `**Included**\n` +
+    `Games: **${includedGames}**\n` +
+    `Win rate: **${pct(includedWR)}**\n` +
+    `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n\n` +
 
-  `────────────\n\n` +
+    `**Faction baseline**\n` +
+    `Games: **${factionGames}**\n` +
+    `Win rate: **${pct(factionWR)}**\n` +
+    `Impact (vs faction): **${impactText}**\n\n` +
 
-  `**Without (same faction)**\n` +
-  `Games: **${withoutGames}**\n` +
-  `Win rate: **${pct(withoutWR)}**`;
+    `${divider}\n\n` +
 
-const embed = new EmbedBuilder()
-  .setTitle(warscroll.name)
-  // IMPORTANT: no setDescription() — it causes unavoidable spacing
-  .addFields(
-    {
-      name: "\u200B",
-      value: statsText,
-      inline: false,
-    },
-    {
-      name: "\u200B", // subtle separation before co-includes
-      value: "\u200B",
-      inline: false,
-    },
-    {
-      name: "**Commonly included with (Top 3)**",
-      value: coText || "—",
-      inline: false,
-    }
-  )
-  .setFooter({
-    text: "Co-includes weighted by lists • Avg occurrences per list",
-  });
+    `**Without (same faction)**\n` +
+    `Games: **${withoutGames}**\n` +
+    `Win rate: **${pct(withoutWR)}**\n\n` +
 
-// Add unit image if present
-if (warscroll.image) {
-  embed.setImage(warscroll.image);
-}
+    `**Commonly included with (Top 3)**\n` +
+    `${coText || "—"}`;
 
+  const embed = new EmbedBuilder()
+    .setTitle(warscroll.name)
+    .addFields({ name: "\u200B", value: statsText, inline: false })
+    .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
+
+  // Add unit image if present
+  if (warscroll.image) {
+    embed.setImage(warscroll.image);
+  }
   // --------------------------------------------------
   // THUMBNAIL ATTACHMENT (local PNG)
   // --------------------------------------------------
