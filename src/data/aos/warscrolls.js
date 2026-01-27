@@ -137,7 +137,7 @@ export const WARSCROLLS_AOS = [
     {
     name: "Blood Warriors",
     faction: "Blades of Khorne",
-    image: "https://www.warhammer.com/en-WW/shop/Khorne-Bloodbound-Blood-Warriors?srsltid=AfmBOop-b9Ktr7iz0r4nVvSHLj7pJuJfb0tnKkhUzONr2gNrROWzbE47",
+    image: "https://www.warhammer.com/app/resources/catalog/product/920x950/99120201036_KhorneBloodWarriors01.jpg",
     aliases: [
       "blood warriors",
     ],
