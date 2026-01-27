@@ -159,51 +159,30 @@ export async function run(interaction, { system, engine }) {
   // --------------------------------------------------
   // EMBED
   // --------------------------------------------------
-  const embed = new EmbedBuilder()
-    .setTitle(warscroll.name)
-    .setDescription(`Stats from Woehammer GT Database\nFaction: **${factionName}**`)
-    .addFields(
-  {
-    name: "**Included**",
-    value:
-      `Games: **${includedGames}**\n` +
-      `Win rate: **${pct(includedWR)}**\n` +
-      `Avg occurrences (per list): **${fmt(avgOcc, 2)}**`,
-    inline: false,
-  },
-  {
-    name: "**Faction baseline**",
-    value:
-      `Games: **${factionGames}**\n` +
-      `Win rate: **${pct(factionWR)}**\n` +
-      `Impact (vs faction): **${impactText}**`,
-    inline: false,
-  },
-  SPACER,
-  {
-    name: "**Without (same faction)**",
-    value: `Games: **${withoutGames}**\nWin rate: **${pct(withoutWR)}**`,
-    inline: false,
-  },
-  SPACER,
-  {
-    name: "**Commonly included with (Top 3)**",
-    value: coText,
-    inline: false,
-  }
-)
-    .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
+  
+const statsText =
+  `**Included**\n` +
+  `Games: **${includedGames}**\n` +
+  `Win rate: **${pct(includedWR)}**\n` +
+  `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n\n` +
 
-  // Local thumbnail attachment
-  const files = [];
-  if (iconPath) {
-    const fileName = `${factionKey}.png`;
-    files.push(new AttachmentBuilder(iconPath, { name: fileName }));
-    embed.setThumbnail(`attachment://${fileName}`);
-  }
+  `**Faction baseline**\n` +
+  `Games: **${factionGames}**\n` +
+  `Win rate: **${pct(factionWR)}**\n` +
+  `Impact (vs faction): **${impactText}**\n\n` +
 
-  await interaction.reply({ embeds: [embed], files });
-}
+  `**Without (same faction)**\n` +
+  `Games: **${withoutGames}**\n` +
+  `Win rate: **${pct(withoutWR)}**`;
+
+const embed = new EmbedBuilder()
+  .setTitle(warscroll.name)
+  .setDescription(`Stats from Woehammer GT Database\nFaction: **${factionName}**`)
+  .addFields(
+    { name: "\u200B", value: statsText, inline: false },
+    { name: "**Commonly included with (Top 3)**", value: coText || "—", inline: false }
+  )
+  .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
 
 // ==================================================
 // EXPORTS
