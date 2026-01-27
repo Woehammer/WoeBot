@@ -1,0 +1,39 @@
+{
+  "_FILE": "package.json",
+  "_PURPOSE": "Project definition and runtime configuration for WoeBot",
+
+  "_SECTION_METADATA": "==================================================",
+
+  "name": "woebot",
+  "version": "0.1.0",
+  "description": "WoeBot – Discord stats bot for Age of Sigmar",
+  "private": true,
+
+  "_SECTION_MODULE_SYSTEM": "==================================================",
+
+  "type": "module",
+  "main": "src/index.js",
+
+  "_SECTION_SCRIPTS": "==================================================",
+
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node src/index.js",
+    "register:commands": "node scripts/register-commands.js",
+    "test": "node --test"
+  },
+
+  "_SECTION_DEPENDENCIES": "==================================================",
+
+  "dependencies": {
+    "discord.js": "^14.15.3",
+    "papaparse": "^5.4.1",
+    "node-fetch": "^3.3.2"
+  },
+
+  "_SECTION_RUNTIME": "==================================================",
+
+  "engines": {
+    "node": ">=18"
+  }
+}
