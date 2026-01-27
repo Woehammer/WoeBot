@@ -1,15 +1,54 @@
 // ==================================================
-// DISCORD CLIENT
-// PURPOSE: Initialise and configure Discord.js client
+// FILE: client.js
+// PURPOSE: Create and configure the Discord client instance
 // ==================================================
 
 // ==================================================
-// CLIENT SETUP
+// IMPORTS
+// ==================================================
+import { Client, GatewayIntentBits, Collection } from "discord.js";
+
+// ==================================================
+// CONSTANTS / CONFIG
 // ==================================================
 
 // ==================================================
-// EVENT HANDLERS
+// TYPES / SHAPES (JSDoc)
 // ==================================================
+
+// ==================================================
+// INTERNAL STATE
+// ==================================================
+
+// ==================================================
+// HELPERS
+// ==================================================
+
+// ==================================================
+// CORE LOGIC
+// ==================================================
+function buildClient() {
+  const client = new Client({
+    intents: [GatewayIntentBits.Guilds],
+  });
+
+  // Optional: command collection (handy later)
+  client.commands = new Collection();
+
+  return client;
+}
+
+// ==================================================
+// PUBLIC API
+// ==================================================
+export function createDiscordClient({ system, engine }) {
+  const client = buildClient();
+
+  // Stash references so commands can access engine/system cleanly
+  client.woebot = { system, engine };
+
+  return client;
+}
 
 // ==================================================
 // EXPORTS
