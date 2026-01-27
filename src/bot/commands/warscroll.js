@@ -156,17 +156,21 @@ export async function run(interaction, { system, engine }) {
   // EMBED (single-field layout to avoid huge spacing)
   // --------------------------------------------------
   const statsText =
-    `**Included**\n` +
-    `Games: **${includedGames}**\n` +
-    `Win rate: **${pct(includedWR)}**\n` +
-    `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n\n` +
-    `**Faction baseline**\n` +
-    `Games: **${factionGames}**\n` +
-    `Win rate: **${pct(factionWR)}**\n` +
-    `Impact (vs faction): **${impactText}**\n\n` +
-    `**Without (same faction)**\n` +
-    `Games: **${withoutGames}**\n` +
-    `Win rate: **${pct(withoutWR)}**`;
+  `**Included**\n` +
+  `Games: **${includedGames}**\n` +
+  `Win rate: **${pct(includedWR)}**\n` +
+  `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n\n` +
+
+  `**Faction baseline**\n` +
+  `Games: **${factionGames}**\n` +
+  `Win rate: **${pct(factionWR)}**\n` +
+  `Impact (vs faction): **${impactText}**\n\n` +
+
+  `— — —\n\n` +
+
+  `**Without (same faction)**\n` +
+  `Games: **${withoutGames}**\n` +
+  `Win rate: **${pct(withoutWR)}**`;
 
   const embed = new EmbedBuilder()
     .setTitle(warscroll.name)
