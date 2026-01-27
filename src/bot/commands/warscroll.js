@@ -7,11 +7,7 @@
 // ==================================================
 // IMPORTS
 // ==================================================
-import {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  AttachmentBuilder,
-} from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from "discord.js";
 
 import { getFactionIconPath } from "../ui/icons.js";
 import { computeWithWithout } from "../../engine/stats/withWithout.js";
@@ -45,6 +41,11 @@ function pct(x) {
 function fmt(x, dp = 1) {
   if (!Number.isFinite(x)) return "—";
   return x.toFixed(dp);
+}
+
+function n(x) {
+  const v = Number(x);
+  return Number.isFinite(v) ? v : 0;
 }
 
 function findWarscrollCanonical(system, inputName) {
@@ -86,13 +87,8 @@ function pickTopFactionNameFromRows(rows) {
   return best?.name ?? null;
 }
 
-const factionName = warscroll.faction; // "Blades of Khorne"
-const faction = engine.indexes.factionSummary(factionName);
-
-const factionWR = faction?.winRate ?? 0;
-const impactBps = Math.round((summary.included.winRate - factionWR) * 10000);
-const impactText =
-  impactBps === 0 ? "0 bps" : `${impactBps > 0 ? "+" : ""}${impactBps} bps`;
+// Discord embed spacing hack
+const SPACER = { name: "\u200B", value: "\u200B", inline: false };
 
 // ==================================================
 // EXECUTION LOGIC
@@ -114,10 +110,22 @@ export async function run(interaction, { system, engine }) {
   // --------------------------------------------------
   // Prefer lookup faction, otherwise infer from rows that include it.
   const allRows = engine?.dataset?.getRows?.() ?? [];
-  const wsRows = allRows.filter((r) => (r.__unitCounts?.[warscroll.name] ?? 0) > 0);
 
-  const factionName =
-    warscroll.faction ?? pickTopFactionNameFromRows(wsRows);
+  // NOTE: __unitCounts might be keyed by canonical name. If not, this still works because
+  // computeWithWithout() uses case-insensitive matching later.
+  const wsRows = allRows.filter((r) => {
+    const c = r.__unitCounts || {};
+    // direct key hit
+    if (c[warscroll.name] > 0) return true;
+    // fallback: scan keys case-insensitively
+    const targetKey = norm(warscroll.name);
+    for (const [k, v] of Object.entries(c)) {
+      if (norm(k) === targetKey && n(v) > 0) return true;
+    }
+    return false;
+  });
+
+  const factionName = warscroll.faction ?? pickTopFactionNameFromRows(wsRows);
 
   if (!factionName) {
     await interaction.reply({
@@ -132,23 +140,40 @@ export async function run(interaction, { system, engine }) {
   const factionRows = idx.byFaction.get(norm(factionName)) ?? [];
 
   // --------------------------------------------------
-  // STATS (FACTION-SCOPED)
+  // STATS (FACTION-SCOPED WITH/WITHOUT)
   // --------------------------------------------------
   const summary = computeWithWithout({
     rows: factionRows,
     warscrollName: warscroll.name,
-    faction: factionName,
     topN: 3,
   });
 
   const includedGames = summary.included.games;
   const includedWR = summary.included.winRate;
-
   const withoutGames = summary.without.games;
   const withoutWR = summary.without.winRate;
-
   const avgOcc = summary.included.avgOccurrencesPerList;
 
+  // --------------------------------------------------
+  // FACTION BASELINE + IMPACT (PP)
+  // --------------------------------------------------
+  let factionGames = 0;
+  let factionWins = 0;
+
+  for (const r of factionRows) {
+    factionGames += n(r.Played);
+    factionWins += n(r.Won);
+  }
+
+  const factionWR = factionGames > 0 ? factionWins / factionGames : 0;
+
+  // Impact in percentage points (pp), NOT bps
+  const impactPP = (includedWR - factionWR) * 100;
+  const impactText = `${impactPP >= 0 ? "+" : ""}${impactPP.toFixed(1)} pp`;
+
+  // --------------------------------------------------
+  // CO-INCLUDES
+  // --------------------------------------------------
   const co = summary.included.topCoIncludes || [];
   const coText =
     co.length > 0
@@ -169,30 +194,31 @@ export async function run(interaction, { system, engine }) {
     .setDescription(`Stats from Woehammer GT Database\nFaction: **${factionName}**`)
     .addFields(
       {
-        name: "Included",
+        name: "**Included**",
         value:
           `Games: **${includedGames}**\n` +
           `Win rate: **${pct(includedWR)}**\n` +
           `Avg occurrences (per list): **${fmt(avgOcc, 2)}**`,
         inline: false,
       },
-{
-  name: "Faction baseline",
-  value:
-    `Games: **${faction.games}**\n` +
-    `Win rate: **${pct(factionWR)}**\n` +
-    `Impact (vs faction): **${impactText}**`,
-  inline: false,
-},
+      SPACER,
       {
-        name: "Without (same faction)",
+        name: "**Faction baseline**",
         value:
-          `Games: **${withoutGames}**\n` +
-          `Win rate: **${pct(withoutWR)}**`,
+          `Games: **${factionGames}**\n` +
+          `Win rate: **${pct(factionWR)}**\n` +
+          `Impact (vs faction): **${impactText}**`,
         inline: false,
       },
+      SPACER,
       {
-        name: "Commonly included with (Top 3)",
+        name: "**Without (same faction)**",
+        value: `Games: **${withoutGames}**\nWin rate: **${pct(withoutWR)}**`,
+        inline: false,
+      },
+      SPACER,
+      {
+        name: "**Commonly included with (Top 3)**",
         value: coText,
         inline: false,
       }
