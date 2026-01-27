@@ -7,7 +7,7 @@
 // HEROIC TRAIT DEFINITIONS
 // ==================================================
 
-export const HEROIC_AOS = [
+export const HEROIC_TRAITS_AOS = [
   {
     name: "Unrivalled Battlelust",
     faction: "Blades of Khorne",
@@ -91,4 +91,4 @@ export const HEROIC_AOS = [
 // EXPORTS
 // ==================================================
 
-export default HEROIC_AOS;
+export default HEROIC_TRAITS_AOS;
