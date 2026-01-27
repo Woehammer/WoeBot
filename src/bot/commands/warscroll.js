@@ -155,7 +155,11 @@ export async function run(interaction, { system, engine }) {
   // --------------------------------------------------
   // EMBED (single-field layout to avoid huge spacing)
   // --------------------------------------------------
-  const statsText =
+  
+const statsText =
+  `Stats from Woehammer GT Database\n` +
+  `Faction: **${factionName}**\n\n` +
+
   `**Included**\n` +
   `Games: **${includedGames}**\n` +
   `Win rate: **${pct(includedWR)}**\n` +
@@ -172,27 +176,42 @@ export async function run(interaction, { system, engine }) {
   `Games: **${withoutGames}**\n` +
   `Win rate: **${pct(withoutWR)}**`;
 
-  const embed = new EmbedBuilder()
-    .setTitle(warscroll.name)
-    .setDescription(`Stats from Woehammer GT Database\nFaction: **${factionName}**`)
-    .addFields(
-      { name: "\u200B", value: statsText, inline: false },
-      { name: "**Commonly included with (Top 3)**", value: coText || "—", inline: false }
-    )
-    .setFooter({ text: "Co-includes weighted by lists • Avg occurrences per list" });
+const embed = new EmbedBuilder()
+  .setTitle(warscroll.name)
+  // IMPORTANT: no setDescription() — it causes unavoidable spacing
+  .addFields(
+    {
+      name: "\u200B",
+      value: statsText,
+      inline: false,
+    },
+    {
+      name: "\u200B", // subtle separation before co-includes
+      value: "\u200B",
+      inline: false,
+    },
+    {
+      name: "**Commonly included with (Top 3)**",
+      value: coText || "—",
+      inline: false,
+    }
+  )
+  .setFooter({
+    text: "Co-includes weighted by lists • Avg occurrences per list",
+  });
 
   // --------------------------------------------------
   // THUMBNAIL ATTACHMENT (local PNG)
   // --------------------------------------------------
-  const files = [];
-  if (iconPath) {
-    const fileName = `${factionKey}.png`;
-    files.push(new AttachmentBuilder(iconPath, { name: fileName }));
-    embed.setThumbnail(`attachment://${fileName}`);
-  }
 
-  await interaction.reply({ embeds: [embed], files });
+ const files = [];
+if (iconPath) {
+  const fileName = `${factionKey}.png`;
+  files.push(new AttachmentBuilder(iconPath, { name: fileName }));
+  embed.setThumbnail(`attachment://${fileName}`);
 }
+
+await interaction.reply({ embeds: [embed], files });
 
 // ==================================================
 // EXPORTS
