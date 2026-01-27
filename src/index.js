@@ -17,6 +17,8 @@ import { registerCommands } from "../scripts/register-commands.js";
 import { createDatasetService } from "./engine/fetch/dataset.js";
 import { createIndexService } from "./engine/stats/indexes.js";
 
+import { startHealthServer } from "./engine/fetch/health.js";
+
 // ==================================================
 // SYSTEM SELECTION
 // ==================================================
