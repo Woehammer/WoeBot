@@ -33,18 +33,22 @@ function pickSystem() {
 // ==================================================
 
 async function initEngine(system, env) {
-  // Dataset service handles CSV fetch + parse + cache
-  const dataset = createDatasetService({
-  csvUrl: env.AOS_DB_SHEET_CSV_URL,
-  ttlSeconds: env.CACHE_TTL_SECONDS ?? 900,
-  system,
-});
+  const bs = env.AOS_BATTLESCROLL_ID; // e.g. "DEC25"
+  const csvKey = `AOS_DB_SHEET_${bs}_CSV_URL`; // -> "AOS_DB_SHEET_DEC25_CSV_URL"
+  const csvUrl = env[csvKey];
 
-  // Prebuild indexes for fast queries (player/faction/event/etc.)
+  if (!csvUrl) throw new Error(`[boot] Missing env var: ${csvKey}`);
+
+  const dataset = createDatasetService({
+    csvUrl,
+    ttlSeconds: Number(env.CACHE_TTL_SECONDS ?? 900),
+    system,
+    battlescrollId: bs, // only if you added this param in dataset.js
+  });
+
   const indexes = createIndexService({ dataset });
 
-  // Warm cache at boot so first command isn't "loading... 💀"
-  await dataset.refresh();
+  await dataset.refresh(true); // force warm on boot
   await indexes.refresh();
 
   return { dataset, indexes };
