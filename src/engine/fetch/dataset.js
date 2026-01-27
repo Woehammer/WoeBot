@@ -8,30 +8,11 @@
 // ==================================================
 import Papa from "papaparse";
 import { enrichRowsWithParsedLists } from "../parse/parseLists.js";
+
 // ==================================================
 // CONSTANTS / CONFIG
 // ==================================================
 const DEFAULT_TTL_SECONDS = 900;
-
-// ==================================================
-// TYPES / SHAPES (JSDoc)
-// ==================================================
-
-/**
- * @typedef {Object} DatasetMeta
- * @property {string} csvUrl
- * @property {number} ttlSeconds
- * @property {number|null} lastFetchedAtMs
- * @property {number|null} rowCount
- */
-
-/**
- * @typedef {Object.<string, any>} DatasetRow
- */
-
-// ==================================================
-// INTERNAL STATE
-// ==================================================
 
 // ==================================================
 // HELPERS
@@ -46,18 +27,20 @@ function isStale(lastFetchedAtMs, ttlSeconds) {
 }
 
 async function fetchCsvText(csvUrl) {
-  const res = await fetch(csvUrl, { method: "GET" });
+  const res = await fetch(csvUrl, { method: "GET", cache: "no-store" });
   if (!res.ok) {
     throw new Error(`[dataset] CSV fetch failed: ${res.status} ${res.statusText}`);
   }
-  return await res.text();
+  // Strip UTF-8 BOM if present
+  const text = await res.text();
+  return text.replace(/^\uFEFF/, "");
 }
 
 function parseCsvToRows(csvText) {
   const parsed = Papa.parse(csvText, {
     header: true,
     skipEmptyLines: true,
-    dynamicTyping: true, // numeric columns become numbers (Played/Won/etc.)
+    dynamicTyping: true,
   });
 
   if (parsed.errors?.length) {
@@ -68,19 +51,36 @@ function parseCsvToRows(csvText) {
   return parsed.data || [];
 }
 
+function safeKey(v) {
+  return String(v ?? "").trim();
+}
+
+function filterByBattlescroll(rows, battlescrollId) {
+  if (!battlescrollId) return rows;
+
+  return (rows || []).filter((r) => {
+    const bs = safeKey(r.Battlescroll ?? r.battlescroll ?? r["BattleScroll"]);
+    return bs === battlescrollId;
+  });
+}
+
 // ==================================================
 // CORE LOGIC
 // ==================================================
-function createService({ csvUrl, ttlSeconds = DEFAULT_TTL_SECONDS, system }) {
+function createService({
+  csvUrl,
+  ttlSeconds = DEFAULT_TTL_SECONDS,
+  system,
+  battlescrollId, // OPTIONAL but recommended
+}) {
   if (!csvUrl) throw new Error("[dataset] csvUrl is required");
   if (!system) throw new Error("[dataset] system is required");
 
-  /** @type {DatasetRow[]} */
   let rows = [];
-  /** @type {DatasetMeta} */
   let meta = {
     csvUrl,
     ttlSeconds,
+    battlescrollId: battlescrollId ?? null,
     lastFetchedAtMs: null,
     rowCount: null,
   };
@@ -91,8 +91,10 @@ function createService({ csvUrl, ttlSeconds = DEFAULT_TTL_SECONDS, system }) {
     const csvText = await fetchCsvText(csvUrl);
     const rawRows = parseCsvToRows(csvText);
 
+    const filtered = filterByBattlescroll(rawRows, battlescrollId);
+
     // Attach __units / __unitCounts once here (so stats are fast)
-    rows = enrichRowsWithParsedLists(rawRows, system);
+    rows = enrichRowsWithParsedLists(filtered, system);
 
     meta.lastFetchedAtMs = nowMs();
     meta.rowCount = rows.length;
@@ -116,7 +118,4 @@ export function createDatasetService(options) {
   return createService(options);
 }
 
-// ==================================================
-// EXPORTS
-// ==================================================
 export default { createDatasetService };
