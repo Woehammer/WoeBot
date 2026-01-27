@@ -166,14 +166,14 @@ export async function run(interaction, { system, engine }) {
           `Games: **${includedGames}**\n` +
           `Win rate: **${pct(includedWR)}**\n` +
           `Avg occurrences (per list): **${fmt(avgOcc, 2)}**`,
-        inline: true,
+        inline: false,
       },
       {
         name: "Without (same faction)",
         value:
           `Games: **${withoutGames}**\n` +
           `Win rate: **${pct(withoutWR)}**`,
-        inline: true,
+        inline: false,
       },
       {
         name: "Commonly included with (Top 3)",
