@@ -1,4 +1,4 @@
-// ==================================================
+8// ==================================================
 // COMMAND: /warscroll
 // PURPOSE: Stats for a single warscroll
 //          (WITH/WITHOUT scoped to the warscroll's faction)
@@ -212,6 +212,7 @@ if (iconPath) {
 }
 
 await interaction.reply({ embeds: [embed], files });
+}
 
 // ==================================================
 // EXPORTS
