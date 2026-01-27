@@ -32,11 +32,12 @@ function pickSystem() {
 // ENGINE INITIALISATION
 // ==================================================
 
-const bs = String(env.AOS_BATTLESCROLL_ID ?? "").trim().toUpperCase();
-
 async function initEngine(system, env) {
-  const bs = env.AOS_BATTLESCROLL_ID; // e.g. "DEC25"
-  const csvKey = `AOS_DB_SHEET_${bs}_CSV_URL`; // -> "AOS_DB_SHEET_DEC25_CSV_URL"
+  const bs = String(env.AOS_BATTLESCROLL_ID ?? "")
+    .trim()
+    .toUpperCase();
+
+  const csvKey = `AOS_DB_SHEET_${bs}_CSV_URL`;
   const csvUrl = env[csvKey];
 
   if (!csvUrl) throw new Error(`[boot] Missing env var: ${csvKey}`);
@@ -45,12 +46,11 @@ async function initEngine(system, env) {
     csvUrl,
     ttlSeconds: Number(env.CACHE_TTL_SECONDS ?? 900),
     system,
-    battlescrollId: bs, // only if you added this param in dataset.js
   });
 
   const indexes = createIndexService({ dataset });
 
-  await dataset.refresh(true); // force warm on boot
+  await dataset.refresh(true);
   await indexes.refresh();
 
   return { dataset, indexes };
