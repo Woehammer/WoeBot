@@ -6,6 +6,7 @@
 // ==================================================
 // IMPORTS
 // ==================================================
+
 import http from "node:http";
 
 // ==================================================
@@ -20,17 +21,14 @@ import http from "node:http";
 // INTERNAL STATE
 // ==================================================
 
+let server = null;
+
 // ==================================================
 // HELPERS
 // ==================================================
 
-// ==================================================
-// CORE LOGIC
-// ==================================================
-function startServer() {
-  const port = process.env.PORT || 3000;
-
-  const server = http.createServer((req, res) => {
+function createServer() {
+  return http.createServer((req, res) => {
     if (req.url === "/health") {
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end("ok");
@@ -40,6 +38,17 @@ function startServer() {
     res.writeHead(404);
     res.end();
   });
+}
+
+// ==================================================
+// CORE LOGIC
+// ==================================================
+
+function startServer() {
+  if (server) return;
+
+  const port = process.env.PORT || DEFAULT_PORT;
+  server = createServer();
 
   server.listen(port, "0.0.0.0", () => {
     console.log(`[health] listening on ${port}`);
@@ -49,6 +58,7 @@ function startServer() {
 // ==================================================
 // PUBLIC API
 // ==================================================
+
 export function startHealthServer() {
   startServer();
 }
