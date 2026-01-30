@@ -64,6 +64,13 @@ const DAUGHTERS_OF_KHAINE = [
       "morathi-khaine",
     ],
   },
+{
+    name: "Slaughter Queen",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "slaughter queen",
+    ],
+  },
 ];
 
 // ==================================================
