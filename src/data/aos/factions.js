@@ -33,6 +33,15 @@ export const FACTIONS_AOS = [
     iconkey: "cities_of_sigmar",
   },
   {
+    key: "daughters_of_khaine",
+    name: "Daughters of Khaine",
+    grandAlliance: "Order",
+    aliases: [
+      "daughters of khaine",
+    ],
+    iconkey: "gloomspite_gitz",
+  },
+{
     key: "gloomspite_gitz",
     name: "Gloomspite Gitz",
     grandAlliance: "Destruction",
