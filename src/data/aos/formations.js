@@ -107,6 +107,57 @@ export const FORMATIONS_AOS = [
       "veteran cannoneers",
     ],
   },
+{
+    name: "Cauldron Guard",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "cauldron guard",
+    ],
+  },
+{
+    name: "Scáthcoven",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "scáthcoven",
+      "scathcoven",
+    ],
+  },
+{
+    name: "Shadow Patrol",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "shadow patrol",
+    ],
+  },
+{
+    name: "Slaughter Troupe",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "slaughter troupe",
+    ],
+  },
+{
+    name: "Arena Veterans",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "arena veterans",
+    ],
+  },
+{
+    name: "Coven Zealots",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "coven zealots",
+    ],
+  },
+{
+    name: "The Croneseer's Pariahs",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "the croneseer's pariahs",
+      "the croneseers pariahs",
+    ],
+  },
 ];
 
 // ==================================================
