@@ -613,6 +613,13 @@ export const WARSCROLLS_AOS = [
       "scourge of ghyran freeguild cavaliers",
     ],
   },
+{
+    name: "Bloodwrack Medusa",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "bloodwrack medusa",
+    ],
+  },
 ];
 
 // ==================================================
