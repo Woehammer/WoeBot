@@ -21,9 +21,27 @@ export const MANIFESTATIONS_AOS = [
     ],
   },
   {
+    name: "Bladewind",
+    aliases: [
+      "bladewind",
+    ],
+  },
+{
+    name: "Bloodwrack Viper",
+    aliases: [
+      "bloodwrack viper",
+    ],
+  },
+{
     name: "Wrath-Axe",
     aliases: [
       "wrath-axe",
+    ],
+  },
+{
+    name: "Heart of Fury",
+    aliases: [
+      "heart of fury",
     ],
   },
 ];
