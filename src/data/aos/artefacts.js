@@ -78,6 +78,34 @@ export const ARTEFACTS_AOS = [
       "sacred tome",
     ],
   },
+{
+    name: "Blade of Prophetic Doom",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "blade of prophetic doom",
+    ],
+  },
+{
+    name: "Crown of Woe",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "crown of woe",
+    ],
+  },
+{
+    name: "Khainite Pendant",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "khainite pendant",
+    ],
+  },
+{
+    name: "Sevenfold Shadow",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "sevenfold shadow",
+    ],
+  },
 ];
 
 // ==================================================
