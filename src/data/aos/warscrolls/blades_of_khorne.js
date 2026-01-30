@@ -137,7 +137,6 @@ const BLADES_OF_KHORNE = [
     {
     name: "Blood Warriors",
     faction: "Blades of Khorne",
-    image: "https://www.warhammer.com/app/resources/catalog/product/920x950/99120201036_KhorneBloodWarriors01.jpg",
     aliases: [
       "blood warriors",
     ],
