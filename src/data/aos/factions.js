@@ -39,7 +39,7 @@ export const FACTIONS_AOS = [
     aliases: [
       "daughters of khaine",
     ],
-    iconkey: "gloomspite_gitz",
+    iconkey: "daughters_of_khaine",
   },
 {
     key: "gloomspite_gitz",
