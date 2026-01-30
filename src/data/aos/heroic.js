@@ -85,6 +85,27 @@ export const HEROIC_TRAITS_AOS = [
       "draw steel!",
     ],
   },
+{
+    name: "Bathed in Blood",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "bathed in blood",
+    ],
+  },
+{
+    name: "Master of Poisons",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "master of poisons",
+    ],
+  },
+{
+    name: "Zealous Orator",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "zealous orator",
+    ],
+  },
 ];
 
 // ==================================================
