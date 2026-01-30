@@ -1,5 +1,5 @@
 // ==================================================
-// LOOKUP: AOS WARSCROLLS — CITIES OF SIGMAR
+// LOOKUP: AOS WARSCROLLS — DAUGHTERS OF KHAINE
 // PURPOSE: Canonical warscroll names + alias definitions
 // ==================================================
 
@@ -7,12 +7,12 @@
 // WARSCROLL DEFINITIONS
 // ==================================================
 
-const CITIES_OF_SIGMAR = [
+const DAUGHTERS_OF_KHAINE = [
           {
-    name: "Alchemite Warforger",
-    faction: "Cities of Sigmar",
+    name: "Bloodwrack Medusa",
+    faction: "Daughters of Khaine",
     aliases: [
-      "alchemite warforger",
+      "bloodwrack medusa",
     ],
   },
   {
@@ -394,4 +394,4 @@ const CITIES_OF_SIGMAR = [
 // EXPORTS
 // ==================================================
 
-export default CITIES_OF_SIGMAR;
+export default DAUGHTERS_OF_KHAINE;
