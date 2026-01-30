@@ -106,6 +106,14 @@ export const HEROIC_TRAITS_AOS = [
       "zealous orator",
     ],
   },
+{
+    name: "Proselyte of Morai-Heg",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "proselyte of morai-heg",
+      "proselyte of morning heg",
+    ],
+  },
 ];
 
 // ==================================================
