@@ -2,6 +2,7 @@
 // COMMAND: /faction
 // PURPOSE: Faction-level stats + top players (Closing Elo)
 //          + player performance distribution (5-round results)
+//          + faction image as a FOLLOW-UP message (prevents "slit" layout)
 // ==================================================
 
 // ==================================================
@@ -149,7 +150,7 @@ function performanceBuckets(rows) {
   ]);
 
   let considered = 0; // rows used for % (clean 5-round no-draw)
-  let other = 0;      // everything else (non-5-round or has draws)
+  let other = 0; // everything else (non-5-round or has draws)
 
   for (const r of rows || []) {
     const played = Number(r.Played ?? r.played ?? 0) || 0;
@@ -164,7 +165,6 @@ function performanceBuckets(rows) {
         buckets.set(key, (buckets.get(key) ?? 0) + 1);
         considered += 1;
       } else {
-        // weird data: still avoid lying
         other += 1;
       }
     } else {
@@ -206,7 +206,6 @@ export async function autocomplete(interaction, { system, engine }) {
     const idx = engine?.indexes?.get?.();
     const byFaction = idx?.byFaction;
     if (byFaction instanceof Map) {
-      // display names from first row of each faction
       choices = [];
       for (const rows of byFaction.values()) {
         const any = rows?.[0];
@@ -283,52 +282,44 @@ export async function run(interaction, { system, engine }) {
   // FORMATTING
   // --------------------------------------------------
   const playersText =
-  topPlayers.length > 0
-    ? topPlayers
-        .map((p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo, 0)}**`)
-        .join("\n")
-    : "—";
+    topPlayers.length > 0
+      ? topPlayers
+          .map(
+            (p, i) =>
+              `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo, 0)}**`
+          )
+          .join("\n")
+      : "—";
 
   const perfHeader =
     perf.considered > 0
       ? `Based on **${perf.considered}** 5-round results`
       : `No clean 5-round results found`;
 
-  const perfNote =
-  perf.other > 0
-    ? `\n*Other/unknown results: (${perf.other})*`
-    : "";
+  const perfNote = perf.other > 0 ? `\n*Other/unknown results: (${perf.other})*` : "";
 
   const statsText =
     `**Win Rate**\n` +
     `Games: **${summary.games}**\n` +
     `Win rate: **${pct(summary.winRate)}**\n\n` +
-
     `**Closing Elo**\n` +
     `Average: **${fmt(elo.average, 1)}**\n` +
     `Median: **${fmt(elo.median, 1)}**\n` +
     `Gap: **${fmt(elo.gap, 1)}**\n\n` +
-
     `**Player Performance**\n` +
     `${perfHeader}\n` +
     `${perf.text}` +
     `${perfNote}\n\n` +
-
     `**Top Players (Current Battlescroll)**\n` +
     `${playersText}`;
 
   // --------------------------------------------------
-  // EMBED
+  // EMBED (MAIN)
   // --------------------------------------------------
   const embed = new EmbedBuilder()
     .setTitle(`${factionName} — Overall`)
     .addFields({ name: "\u200B", value: statsText, inline: false })
     .setFooter({ text: "Woehammer GT Database" });
-
-  // Large faction image (only if provided in lookup)
-  if (factionObj?.image) {
-    embed.setImage(factionObj.image);
-  }
 
   // --------------------------------------------------
   // FACTION ICON (thumbnail attachment)
@@ -344,6 +335,14 @@ export async function run(interaction, { system, engine }) {
   }
 
   await interaction.reply({ embeds: [embed], files });
+
+  // --------------------------------------------------
+  // FOLLOW-UP: FACTION IMAGE (separate message to avoid layout "slit")
+  // --------------------------------------------------
+  if (factionObj?.image) {
+    const imageEmbed = new EmbedBuilder().setImage(factionObj.image);
+    await interaction.followUp({ embeds: [imageEmbed] });
+  }
 }
 
 // ==================================================
