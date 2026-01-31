@@ -14,14 +14,17 @@ import { REST, Routes } from "discord.js";
 // ==================================================
 import ping from "../src/bot/commands/ping.js";
 import warscroll from "../src/bot/commands/warscroll.js";
+import faction from "../src/bot/commands/faction.js";
 
 // ==================================================
 // HELPERS
 // ==================================================
 function buildCommandPayload(system) {
-  // v1: register explicit command modules
-  // later: system.commandDefinitions
-  return [ping.data.toJSON(), warscroll.data.toJSON()];
+  return [
+    ping.data.toJSON(),
+    warscroll.data.toJSON(),
+    faction.data.toJSON(),
+  ];
 }
 
 // ==================================================
