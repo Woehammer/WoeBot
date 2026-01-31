@@ -15,6 +15,7 @@ import { REST, Routes } from "discord.js";
 import ping from "../src/bot/commands/ping.js";
 import warscroll from "../src/bot/commands/warscroll.js";
 import faction from "../src/bot/commands/faction.js";
+import topplayers from "../src/bot/commands/topplayers.js"; // ✅ add
 
 // ==================================================
 // HELPERS
@@ -24,6 +25,7 @@ function buildCommandPayload(system) {
     ping.data.toJSON(),
     warscroll.data.toJSON(),
     faction.data.toJSON(),
+    topplayers.data.toJSON(), // ✅ add
   ];
 }
 
@@ -59,3 +61,4 @@ export async function registerCommands(options) {
 // ==================================================
 // EXPORTS
 // ==================================================
+export default { registerCommands };
