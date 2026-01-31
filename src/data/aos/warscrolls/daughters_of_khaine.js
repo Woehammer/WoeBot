@@ -71,6 +71,98 @@ const DAUGHTERS_OF_KHAINE = [
       "slaughter queen",
     ],
   },
+{
+    name: "Slaughter Queen on Cauldron of Blood",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "slaughter queen on cauldron of blood",
+    ],
+  },
+{
+    name: "The Shadow Queen",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "the shadow queen",
+    ],
+  },
+{
+    name: "Blood Sisters",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "blood sisters",
+    ],
+  },
+{
+    name: "Blood Stalkers",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "blood stalkers",
+    ],
+  },
+{
+    name: "Khainite Shadowstalkers",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "khainite shadowstalkers",
+    ],
+  },
+{
+    name: "Khinerai Heartrenders",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "khinerai heartrenders",
+    ],
+  },
+{
+    name: "Khinerai Lifetakers",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "khinerai lifetakers",
+    ],
+  },
+{
+    name: "Sisters of Slaughter with Bladed Bucklers",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "sisters of slaughter with bladed bucklers",
+    ],
+  },
+{
+    name: "Sisters of Slaughter with Sacrificial Knives",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "sisters of slaughter with aacrificial knives",
+    ],
+  },
+{
+    name: "Witch Aelves with Bladed Bucklers",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "witch aelves with bladed bucklers",
+    ],
+  },
+{
+    name: "Witch Aelves with Paired Sciansá",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "witch aelves with paired sciansá",
+      "witch aelves with paired sciansa",
+    ],
+  },
+{
+    name: "Doomfire Warlocks",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "doomfire warlocks",
+    ],
+  },
+{
+    name: "Avatar of Khaine",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "avatar of khaine",
+    ],
+  },
 ];
 
 // ==================================================
