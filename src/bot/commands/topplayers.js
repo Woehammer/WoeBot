@@ -266,14 +266,14 @@ export async function run(interaction, { engine }) {
   const title = country ? `Top Players — ${country}` : "Top Players — Global";
 
   const body = top.length
-    ? top
-        .map(
-          (p, i) =>
-            `${i + 1}) **${p.player}** — **${fmt(p.elo)}**\n` +
-            `Most used: *${p.mostUsedFaction}* • Rows: **${p.rows}**\n${HR}`
-        )
-        .join("\n")
-    : "—";
+  ? top
+      .map(
+        (p, i) =>
+          `${i + 1}) **${p.player}** — **${fmt(p.elo)}**\n` +
+          `Most used: *${p.mostUsedFaction}*\n${HR}`
+      )
+      .join("\n")
+  : "—";
 
   const embed = new EmbedBuilder()
     .setTitle(title)
