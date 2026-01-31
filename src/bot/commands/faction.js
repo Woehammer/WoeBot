@@ -1,19 +1,15 @@
 // ==================================================
 // COMMAND: /faction
-// PURPOSE: Faction-level stats + top players
+// PURPOSE: Faction-level stats + top players (Closing Elo)
 // ==================================================
 
 // ==================================================
 // IMPORTS
 // ==================================================
-import {
-  SlashCommandBuilder,
-  EmbedBuilder,
-  AttachmentBuilder,
-} from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from "discord.js";
 
 import { getFactionIconPath } from "../ui/icons.js";
-import { eloSummary, topEloPlayers } from "../../engine/stats/eloSummary.js";
+import { rankPlayersInFaction } from "../../engine/stats/playerRankings.js";
 
 // ==================================================
 // COMMAND DEFINITION
@@ -44,6 +40,51 @@ function pct(x) {
 function fmt(x, dp = 0) {
   if (!Number.isFinite(x)) return "—";
   return x.toFixed(dp);
+}
+
+function n(x) {
+  const v = Number(x);
+  return Number.isFinite(v) ? v : 0;
+}
+
+function median(arr) {
+  if (!arr.length) return 0;
+  const a = [...arr].sort((x, y) => x - y);
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+
+function getClosingElo(row) {
+  const candidates = [
+    row["Closing Elo"],
+    row.ClosingElo,
+    row.closingElo,
+    row["ClosingElo"],
+  ];
+  for (const c of candidates) {
+    const v = Number(c);
+    if (Number.isFinite(v)) return v;
+  }
+  return null;
+}
+
+function closingEloSummary(rows) {
+  const elos = [];
+  for (const r of rows || []) {
+    const e = getClosingElo(r);
+    if (e !== null) elos.push(e);
+  }
+
+  if (!elos.length) return { count: 0, average: 0, median: 0, gap: 0 };
+
+  const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
+  const med = median(elos);
+  return {
+    count: elos.length,
+    average: avg,
+    median: med,
+    gap: Math.abs(avg - med),
+  };
 }
 
 function findFaction(system, inputName) {
@@ -85,8 +126,18 @@ export async function run(interaction, { system, engine }) {
   }
 
   const summary = engine.indexes.factionSummary(faction.name);
-  const elo = eloSummary(rows);
-  const topPlayers = topEloPlayers(rows, 3);
+
+  // Elo profile based on Closing Elo (consistent with rankings)
+  const elo = closingEloSummary(rows);
+
+  // Top players by LATEST Closing Elo within this faction slice
+  const topPlayers = rankPlayersInFaction({
+    rows,
+    topN: 3,
+    minGames: 0,
+    minEvents: 0,
+    mode: "latest",
+  });
 
   // --------------------------------------------------
   // FORMATTING
@@ -96,7 +147,10 @@ export async function run(interaction, { system, engine }) {
       ? topPlayers
           .map(
             (p, i) =>
-              `${i + 1}) **${p.player}** — Elo **${fmt(p.elo)}** (${p.lists} lists)`
+              `${i + 1}) **${p.player}** — Closing Elo **${fmt(
+                p.latestClosingElo,
+                0
+              )}** (${p.events} events, ${p.games} games)`
           )
           .join("\n")
       : "—";
@@ -104,8 +158,7 @@ export async function run(interaction, { system, engine }) {
   const statsText =
     `**Games:** ${summary.games}\n` +
     `**Win rate:** ${pct(summary.winRate)}\n\n` +
-
-    `**Elo profile**\n` +
+    `**Closing Elo profile**\n` +
     `Average: **${fmt(elo.average)}**\n` +
     `Median: **${fmt(elo.median)}**\n` +
     `Avg ↔ Median gap: **${fmt(elo.gap, 1)}**`;
@@ -117,24 +170,16 @@ export async function run(interaction, { system, engine }) {
     .setTitle(faction.name)
     .addFields(
       { name: "\u200B", value: statsText, inline: false },
-      {
-        name: "**Top Elo players**",
-        value: playersText,
-        inline: false,
-      }
+      { name: "**Top players (Closing Elo)**", value: playersText, inline: false }
     )
     .setFooter({ text: "Woehammer GT Database" });
 
-  // --------------------------------------------------
-  // FACTION IMAGE (large)
-  // --------------------------------------------------
+  // Optional: big faction image if you stored it on the faction lookup
   if (faction.image) {
     embed.setImage(faction.image);
   }
 
-  // --------------------------------------------------
-  // FACTION ICON (thumbnail)
-  // --------------------------------------------------
+  // Thumbnail icon (local PNG attachment)
   const files = [];
   const factionKey = snake(faction.name);
   const iconPath = getFactionIconPath(factionKey);
