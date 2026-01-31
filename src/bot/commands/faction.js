@@ -104,14 +104,16 @@ function findFaction(system, inputName) {
 export async function run(interaction, { system, engine }) {
   const input = interaction.options.getString("name", true);
 
-  const faction = findFaction(system, input);
-  if (!faction) {
-    await interaction.reply({
-      content: `Couldn't match **${input}** to a known faction.`,
-      ephemeral: true,
-    });
-    return;
-  }
+  const factionName = input.trim();
+const rows = engine.indexes.factionRows(factionName);
+
+if (!rows.length) {
+  await interaction.reply({
+    content: `Couldn't find any data for **${input}**.`,
+    ephemeral: true,
+  });
+  return;
+}
 
   // --------------------------------------------------
   // ROWS + SUMMARIES
