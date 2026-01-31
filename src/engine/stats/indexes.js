@@ -26,6 +26,7 @@ import { rankPlayersInFaction } from "./playerRankings.js";
  * @property {Function} warscrollSummary
  * @property {Function} factionRows
  * @property {Function} factionSummary
+ * @property {Function} factionPlayerRankings
  * @property {Function} warscrollSummaryInFaction
  */
 
