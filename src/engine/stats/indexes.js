@@ -1,7 +1,7 @@
 // ==================================================
 // FILE: indexes.js
 // PURPOSE: Build and cache fast lookup indexes over dataset rows
-//          + provide common summary helpers (faction + warscroll)
+//          + provide common summary helpers (faction + warscroll + players)
 // ==================================================
 
 // ==================================================
@@ -27,6 +27,7 @@ import { rankPlayersInFaction } from "./playerRankings.js";
  * @property {Function} factionRows
  * @property {Function} factionSummary
  * @property {Function} factionPlayerRankings
+ * @property {Function} factionTopEloPlayers
  * @property {Function} warscrollSummaryInFaction
  */
 
@@ -50,7 +51,6 @@ function safeRate(num, den) {
 // HELPERS: INDEX BUILDERS
 // ==================================================
 function buildIndexes(rows) {
-  // Minimal starter indexes (expand later)
   const byFaction = new Map();
   const byPlayer = new Map();
   const byEvent = new Map();
@@ -193,6 +193,22 @@ function createService({ dataset }) {
   }
 
   /**
+   * Player rankings inside a faction (based on Closing Elo).
+   * No minimums: anyone appearing in this battlescroll slice is included.
+   */
+  function factionPlayerRankings(factionName, topN = 50) {
+    const rows = factionRows(factionName);
+    return rankPlayersInFaction({ rows, topN });
+  }
+
+  /**
+   * Convenience: top N Elo players in faction.
+   */
+  function factionTopEloPlayers(factionName, topN = 3) {
+    return factionPlayerRankings(factionName, topN);
+  }
+
+  /**
    * With/without summary for a warscroll scoped to a faction only.
    * (This is the one you want for /warscroll.)
    */
@@ -212,6 +228,8 @@ function createService({ dataset }) {
     warscrollSummary,
     factionRows,
     factionSummary,
+    factionPlayerRankings,
+    factionTopEloPlayers,
     warscrollSummaryInFaction,
   };
 }
