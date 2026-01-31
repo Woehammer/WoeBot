@@ -29,33 +29,27 @@ function norm(s) {
  *
  * Weighting rules:
  * - Win rates + games: weighted by games (Played)
- * - "Wins" is treated as: Won + 0.5 * Drawn (draws count half)
- * - Avg occurrences: per-list average (not weighted by Played)
- * - Co-includes: weighted by lists (each list counts once)
- *
- * Required row fields:
- * - Played, Won, Drawn
- * - __units: string[]
- * - __unitCounts: Record<string, number>
- *
- * @param {Object} params
- * @param {Array<Object>} params.rows
- * @param {string} params.warscrollName   canonical warscroll name
- * @param {number} [params.topN=3]
+ * - "Wins" = Won + 0.5 * Drawn
+ * - Avg occurrences: per-list average
+ * - Co-includes: weighted by lists
+ * - Reinforced %: % of included lists containing the word "Reinforced"
  */
 export function computeWithWithout({ rows, warscrollName, topN = 3 }) {
   const target = String(warscrollName ?? "").trim();
   const targetKey = norm(target);
 
   let includedGames = 0;
-  let includedWins = 0;     // effective wins (won + 0.5*draw)
+  let includedWins = 0;
   let includedLists = 0;
 
   let withoutGames = 0;
-  let withoutWins = 0;      // effective wins (won + 0.5*draw)
+  let withoutWins = 0;
   let withoutLists = 0;
 
   let occurrencesSum = 0;
+
+  // NEW: reinforced tracking
+  let reinforcedLists = 0;
 
   /** @type {Map<string, number>} */
   const coListCounts = new Map();
@@ -65,7 +59,6 @@ export function computeWithWithout({ rows, warscrollName, topN = 3 }) {
     const won = n(row.Won);
     const drawn = n(row.Drawn);
 
-    // treat draws as half
     const effWins = won + 0.5 * drawn;
 
     const counts = row.__unitCounts || {};
@@ -85,9 +78,23 @@ export function computeWithWithout({ rows, warscrollName, topN = 3 }) {
       includedLists += 1;
       includedGames += played;
       includedWins += effWins;
-
       occurrencesSum += occ;
 
+      // ----------------------------------------------
+      // NEW: Reinforced detection (text-based, honest)
+      // ----------------------------------------------
+      const listText = String(
+        row.List ?? row["Refined List"] ?? ""
+      ).toLowerCase();
+
+      if (
+        listText.includes(targetKey) &&
+        listText.includes("reinforced")
+      ) {
+        reinforcedLists += 1;
+      }
+
+      // co-includes (list-weighted)
       for (const u of units) {
         if (!u) continue;
         if (norm(u) === targetKey) continue;
@@ -106,6 +113,9 @@ export function computeWithWithout({ rows, warscrollName, topN = 3 }) {
   const avgOccurrencesPerList =
     includedLists > 0 ? occurrencesSum / includedLists : 0;
 
+  const reinforcedPct =
+    includedLists > 0 ? reinforcedLists / includedLists : 0;
+
   const topCoIncludes = Array.from(coListCounts.entries())
     .map(([name, listsTogether]) => ({ name, listsTogether }))
     .sort((a, b) => b.listsTogether - a.listsTogether)
@@ -117,16 +127,17 @@ export function computeWithWithout({ rows, warscrollName, topN = 3 }) {
     included: {
       lists: includedLists,
       games: includedGames,
-      wins: includedWins, // effective wins
+      wins: includedWins,
       winRate: includedWinRate,
       avgOccurrencesPerList,
+      reinforcedPct,          // 👈 NEW
       topCoIncludes,
     },
 
     without: {
       lists: withoutLists,
       games: withoutGames,
-      wins: withoutWins, // effective wins
+      wins: withoutWins,
       winRate: withoutWinRate,
     },
   };
