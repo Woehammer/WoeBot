@@ -1,7 +1,8 @@
 // ==================================================
 // COMMAND: /topplayers
-// PURPOSE: Top 10 players (global or by region)
-//          + most-used faction + latest Closing Elo
+// PURPOSE: Top 10 players by latest Closing Elo
+//          (global or filtered by Country)
+//          + most-used faction
 // ==================================================
 
 // ==================================================
@@ -14,18 +15,28 @@ import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("topplayers")
-  .setDescription("Shows top players by Closing Elo (global or by region)")
+  .setDescription("Shows top players by latest Closing Elo (global or by country)")
   .addStringOption((opt) =>
     opt
-      .setName("region")
-      .setDescription("Region/country filter (optional)")
+      .setName("country")
+      .setDescription("Country filter (optional)")
       .setRequired(false)
       .setAutocomplete(true)
+  )
+  .addIntegerOption((opt) =>
+    opt
+      .setName("limit")
+      .setDescription("How many players to show (default 10, max 25)")
+      .setRequired(false)
+      .setMinValue(1)
+      .setMaxValue(25)
   );
 
 // ==================================================
 // HELPERS
 // ==================================================
+const HR = "──────────────";
+
 function norm(s) {
   return String(s ?? "").trim().toLowerCase();
 }
@@ -35,16 +46,38 @@ function fmt(x, dp = 0) {
   return Number(x).toFixed(dp);
 }
 
-function getPlayerName(r) {
-  return r.Player ?? r.player ?? r.Name ?? r.name ?? null;
+function parseUKDateToTime(dateStr) {
+  // Expects dd/mm/yyyy (like "28/12/2025")
+  if (!dateStr) return null;
+
+  const s = String(dateStr).trim();
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!m) return null;
+
+  const dd = Number(m[1]);
+  const mm = Number(m[2]);
+  const yyyy = Number(m[3]);
+  if (!dd || !mm || !yyyy) return null;
+
+  // UTC midnight to avoid timezone silliness
+  const t = Date.UTC(yyyy, mm - 1, dd, 0, 0, 0);
+  return Number.isFinite(t) ? t : null;
 }
 
-function getFactionName(r) {
+function getPlayer(r) {
+  return r.Player ?? r.player ?? null;
+}
+
+function getFaction(r) {
   return r.Faction ?? r.faction ?? null;
 }
 
-function getRegionName(r) {
-  return r.Region ?? r.Country ?? r.Nation ?? r.State ?? r.Province ?? null;
+function getCountry(r) {
+  return r.Country ?? r.country ?? null;
+}
+
+function getDateTime(r) {
+  return parseUKDateToTime(r.Date ?? r.date ?? null);
 }
 
 function getClosingElo(r) {
@@ -61,83 +94,69 @@ function getClosingElo(r) {
   return null;
 }
 
-// If you have a date column, add it here later.
-// For now: "latest" = last seen row (dataset order) fallback.
-// If your dataset is sorted newest-first, this works great.
-function getRowSortKey(r) {
-  // Try common date fields if present:
-  const d =
-    r.Date ?? r.date ?? r.EventDate ?? r.eventDate ?? r["Event Date"] ?? null;
+// Pull rows in a way that fits your current engine shape.
+// If your engine exposes a better "allRows()", swap it in here.
+function getAllRows(engine) {
+  // Most robust: dataset service often has getCached() or similar.
+  // But we’ll try a few options so it doesn’t break.
+  const idx = engine?.indexes;
 
-  const t = d ? Date.parse(d) : NaN;
-  if (Number.isFinite(t)) return t;
+  if (typeof idx?.allRows === "function") return idx.allRows();
+  if (typeof idx?.getAllRows === "function") return idx.getAllRows();
 
-  // Fallback: no date available
-  return null;
+  // If your indexes cache raw rows somewhere (common pattern):
+  const maybe = idx?.get?.();
+  if (maybe?.rows && Array.isArray(maybe.rows)) return maybe.rows;
+
+  // Last resort: if indexes exposes byFaction map, flatten it:
+  const byFaction = maybe?.byFaction;
+  if (byFaction instanceof Map) {
+    const flat = [];
+    for (const rows of byFaction.values()) {
+      if (Array.isArray(rows)) flat.push(...rows);
+    }
+    return flat;
+  }
+
+  return [];
 }
 
 // ==================================================
-// RANKING LOGIC
+// CORE: RANK PLAYERS
 // ==================================================
-function rankTopPlayers({ rows, topN = 10, region = null } = {}) {
-  const qRegion = region ? norm(region) : null;
+function rankTopPlayers({ rows, country = null, limit = 10 } = {}) {
+  const qCountry = country ? norm(country) : null;
 
-  // Filter by region if requested
-  const filtered = qRegion
-    ? rows.filter((r) => norm(getRegionName(r)) === qRegion)
+  const filtered = qCountry
+    ? rows.filter((r) => norm(getCountry(r)) === qCountry)
     : rows;
 
-  // Group by player
+  // group rows by player
   const byPlayer = new Map();
 
   for (const r of filtered) {
-    const player = getPlayerName(r);
+    const player = getPlayer(r);
     if (!player) continue;
 
     const key = norm(player);
     const elo = getClosingElo(r);
-    const faction = getFactionName(r);
-    const regionName = getRegionName(r);
+    const dt = getDateTime(r);
+    const faction = getFaction(r);
 
     const entry =
       byPlayer.get(key) ??
       {
         player: String(player),
-        region: regionName ? String(regionName) : null,
-        // We'll choose "latest" row by date if possible
         latestElo: null,
-        latestKey: null,
-        // Track faction counts
+        latestDt: null, // millis UTC
+        // Most used faction
         factionCounts: new Map(),
         rows: 0,
       };
 
     entry.rows++;
 
-    // Latest Elo selection
-    const k = getRowSortKey(r);
-    if (Number.isFinite(elo)) {
-      if (entry.latestElo === null) {
-        entry.latestElo = elo;
-        entry.latestKey = k;
-      } else if (k !== null && entry.latestKey !== null) {
-        // date-based compare
-        if (k > entry.latestKey) {
-          entry.latestElo = elo;
-          entry.latestKey = k;
-        }
-      } else if (k !== null && entry.latestKey === null) {
-        // we found a dated row after undated
-        entry.latestElo = elo;
-        entry.latestKey = k;
-      } else if (k === null && entry.latestKey === null) {
-        // both undated; keep last seen (dataset order)
-        entry.latestElo = elo;
-        entry.latestKey = null;
-      }
-    }
-
-    // Most-used faction
+    // most-used faction
     if (faction) {
       const fk = norm(faction);
       entry.factionCounts.set(fk, {
@@ -146,13 +165,35 @@ function rankTopPlayers({ rows, topN = 10, region = null } = {}) {
       });
     }
 
+    // latest Elo by Date
+    if (Number.isFinite(elo)) {
+      if (entry.latestElo === null) {
+        entry.latestElo = elo;
+        entry.latestDt = dt; // may be null, still ok
+      } else {
+        // Prefer dated comparisons when possible
+        if (dt !== null && entry.latestDt !== null) {
+          if (dt > entry.latestDt) {
+            entry.latestElo = elo;
+            entry.latestDt = dt;
+          }
+        } else if (dt !== null && entry.latestDt === null) {
+          // If we previously had no date, and now we do, prefer the dated one
+          entry.latestElo = elo;
+          entry.latestDt = dt;
+        } else if (dt === null && entry.latestDt === null) {
+          // Both undated: keep last seen (dataset order)
+          entry.latestElo = elo;
+          entry.latestDt = null;
+        }
+      }
+    }
+
     byPlayer.set(key, entry);
   }
 
-  // Build ranked list
   const list = [];
   for (const e of byPlayer.values()) {
-    // Choose most-used faction
     let bestFaction = null;
     for (const f of e.factionCounts.values()) {
       if (!bestFaction || f.n > bestFaction.n) bestFaction = f;
@@ -161,46 +202,41 @@ function rankTopPlayers({ rows, topN = 10, region = null } = {}) {
     list.push({
       player: e.player,
       elo: e.latestElo,
-      faction: bestFaction?.name ?? "—",
-      games: e.rows,
-      region: e.region ?? "—",
+      mostUsedFaction: bestFaction?.name ?? "—",
+      rows: e.rows,
     });
   }
 
-  // Sort by Elo desc, with nulls last
+  // sort by Elo desc; nulls last
   list.sort((a, b) => {
     const ea = Number.isFinite(a.elo) ? a.elo : -Infinity;
     const eb = Number.isFinite(b.elo) ? b.elo : -Infinity;
     return eb - ea;
   });
 
-  return list.slice(0, topN);
+  return list.slice(0, limit);
 }
 
 // ==================================================
-// AUTOCOMPLETE (REGION)
+// AUTOCOMPLETE: COUNTRY
 // ==================================================
 export async function autocomplete(interaction, { engine }) {
   const focused = interaction.options.getFocused(true);
-  if (focused.name !== "region") return;
+  if (focused.name !== "country") return;
 
   const q = norm(focused.value);
 
-  // Pull all rows (best-effort). If you have a better source, swap this.
-  const allRows =
-    engine?.indexes?.get?.()?.rows ??
-    engine?.indexes?.allRows?.() ??
-    [];
+  const rows = getAllRows(engine);
+  const seen = new Map();
 
-  const regions = new Map();
-  for (const r of allRows) {
-    const region = getRegionName(r);
-    if (!region) continue;
-    const k = norm(region);
-    regions.set(k, String(region));
+  for (const r of rows) {
+    const c = getCountry(r);
+    if (!c) continue;
+    const k = norm(c);
+    if (!seen.has(k)) seen.set(k, String(c));
   }
 
-  const choices = [...regions.values()]
+  const choices = [...seen.values()]
     .filter((name) => !q || norm(name).includes(q))
     .sort((a, b) => a.localeCompare(b))
     .slice(0, 25)
@@ -213,44 +249,35 @@ export async function autocomplete(interaction, { engine }) {
 // EXECUTION
 // ==================================================
 export async function run(interaction, { engine }) {
-  const region = interaction.options.getString("region", false);
+  const country = interaction.options.getString("country", false);
+  const limit = interaction.options.getInteger("limit", false) ?? 10;
 
-  // Pull all rows (best-effort). If you have a better source, swap this.
-  const allRows =
-    engine?.indexes?.get?.()?.rows ??
-    engine?.indexes?.allRows?.() ??
-    [];
-
-  if (!allRows.length) {
+  const rows = getAllRows(engine);
+  if (!rows.length) {
     await interaction.reply({
-      content: "No dataset rows available to rank players.",
+      content: "No dataset rows available (yet).",
       ephemeral: true,
     });
     return;
   }
 
-  const top = rankTopPlayers({
-    rows: allRows,
-    topN: 10,
-    region: region || null,
-  });
+  const top = rankTopPlayers({ rows, country, limit });
 
-  const title = region ? `Top Players — ${region}` : "Top Players — Global";
+  const title = country ? `Top Players — ${country}` : "Top Players — Global";
 
-  const lines = top.length
+  const body = top.length
     ? top
         .map(
           (p, i) =>
             `${i + 1}) **${p.player}** — **${fmt(p.elo)}**\n` +
-            `   Most used: *${p.faction}* • Rows: **${p.games}**`
+            `Most used: *${p.mostUsedFaction}* • Rows: **${p.rows}**\n${HR}`
         )
         .join("\n")
     : "—";
 
   const embed = new EmbedBuilder()
     .setTitle(title)
-    .setDescription("Ranked by latest Closing Elo (best-effort).")
-    .addFields({ name: "\u200B", value: lines })
+    .addFields({ name: "\u200B", value: body })
     .setFooter({ text: "Woehammer GT Database" });
 
   await interaction.reply({ embeds: [embed] });
