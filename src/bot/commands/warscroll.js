@@ -129,6 +129,7 @@ export async function run(interaction, { system, engine }) {
   const withoutGames = summary.without.games;
   const withoutWR = summary.without.winRate;
   const avgOcc = summary.included.avgOccurrencesPerList;
+  const reinforcedPct = summary.included.reinforcedPct ?? 0;
 
   const factionGames = faction?.games ?? 0;
   const factionWR = faction?.winRate ?? 0;
@@ -165,6 +166,7 @@ export async function run(interaction, { system, engine }) {
     `Games: **${includedGames}**\n` +
     `Win rate: **${pct(includedWR)}**\n` +
     `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n\n` +
+`Reinforced in: **${pct(reinforcedPct)}** of lists\n\n` +
 
     `**Faction baseline**\n` +
     `Games: **${factionGames}**\n` +
