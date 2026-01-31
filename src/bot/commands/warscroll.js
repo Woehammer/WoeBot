@@ -2,7 +2,9 @@
 // COMMAND: /warscroll
 // PURPOSE: Stats for a single warscroll
 //          (WITH/WITHOUT scoped to the warscroll's faction)
-//          + AUTOCOMPLETE
+//          + Player Elo context
+//          + Text-only analysis + confidence
+//          + Autocomplete
 // ==================================================
 
 // ==================================================
@@ -43,16 +45,46 @@ function fmt(x, dp = 1) {
   return Number(x).toFixed(dp);
 }
 
+function median(arr) {
+  if (!arr.length) return 0;
+  const a = [...arr].sort((x, y) => x - y);
+  const m = Math.floor(a.length / 2);
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+}
+
+function getClosingElo(row) {
+  const candidates = [
+    row["Closing Elo"],
+    row.ClosingElo,
+    row.closingElo,
+    row["ClosingElo"],
+  ];
+  for (const c of candidates) {
+    const v = Number(c);
+    if (Number.isFinite(v)) return v;
+  }
+  return null;
+}
+
+function eloSummary(rows) {
+  const elos = (rows || []).map(getClosingElo).filter(Number.isFinite);
+  if (!elos.length) return { n: 0, average: null, median: null, gap: null };
+
+  const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
+  const med = median(elos);
+  const gap = Math.abs(avg - med);
+
+  return { n: elos.length, average: avg, median: med, gap };
+}
+
 function findWarscrollCanonical(system, inputName) {
   const ws = system?.lookups?.warscrolls ?? [];
   const q = norm(inputName);
 
-  // Direct name match
   for (const w of ws) {
     if (norm(w.name) === q) return w;
   }
 
-  // Alias match
   for (const w of ws) {
     for (const a of w.aliases ?? []) {
       if (norm(a) === q) return w;
@@ -63,7 +95,6 @@ function findWarscrollCanonical(system, inputName) {
 }
 
 function pickTopFactionNameFromRows(rows) {
-  // Returns the most common faction *name* as it appears in rows
   const counts = new Map();
 
   for (const r of rows || []) {
@@ -83,6 +114,20 @@ function pickTopFactionNameFromRows(rows) {
   return best?.name ?? null;
 }
 
+function confidenceFromGames(games) {
+  const g = Number(games ?? 0);
+  if (g < 10) return "Very low confidence: tiny sample, likely noisy.";
+  if (g < 30) return "Low confidence: small sample, treat as directional only.";
+  if (g < 100) return "Medium confidence: decent sample, still some volatility.";
+  return "High confidence: large sample, trends should be fairly stable.";
+}
+
+function pp(deltaWinRate) {
+  if (!Number.isFinite(deltaWinRate)) return "—";
+  const v = deltaWinRate * 100;
+  return `${v >= 0 ? "+" : ""}${v.toFixed(1)}pp`;
+}
+
 // ==================================================
 // AUTOCOMPLETE
 // ==================================================
@@ -98,8 +143,6 @@ export async function autocomplete(interaction, { system }) {
     return;
   }
 
-  // Collect matches by: name contains query OR any alias contains query.
-  // Return canonical names only (no alias entries).
   const matches = [];
   for (const w of ws) {
     const name = String(w.name ?? "");
@@ -119,9 +162,7 @@ export async function autocomplete(interaction, { system }) {
     if (hit) matches.push(name);
   }
 
-  // de-dupe + limit 25
   const unique = [...new Set(matches)].slice(0, 25);
-
   await interaction.respond(unique.map((name) => ({ name, value: name })));
 }
 
@@ -179,10 +220,6 @@ export async function run(interaction, { system, engine }) {
   const factionGames = faction?.games ?? 0;
   const factionWR = faction?.winRate ?? 0;
 
-  // Impact in percentage points (pp)
-  const impactPP = (includedWR - factionWR) * 100;
-  const impactText = `${impactPP >= 0 ? "+" : ""}${impactPP.toFixed(1)} pp`;
-
   // --------------------------------------------------
   // CO-INCLUDES
   // --------------------------------------------------
@@ -193,38 +230,124 @@ export async function run(interaction, { system, engine }) {
       : "—";
 
   // --------------------------------------------------
-  // EMBED (TEXT ONLY)
+  // ELO CONTEXT
+  // --------------------------------------------------
+  // Players using this warscroll (rows where the warscroll appears, then faction-filter)
+  const wsRowsAll = engine.indexes.warscrollRows(warscroll.name) ?? [];
+  const wsRowsFaction = wsRowsAll.filter(
+    (r) => norm(r.Faction ?? r.faction) === norm(factionName)
+  );
+
+  const wsElo = eloSummary(wsRowsFaction);
+
+  // Faction baseline Elo (all rows for that faction)
+  const factionRows = engine.indexes.factionRows(factionName) ?? [];
+  const factionElo = eloSummary(factionRows);
+
+  // --------------------------------------------------
+  // ANALYSIS PARAGRAPHS
+  // --------------------------------------------------
+  const vsFaction = includedWR - factionWR;
+  const vsWithout = includedWR - withoutWR;
+
+  const eloDelta =
+    Number.isFinite(wsElo.average) && Number.isFinite(factionElo.average)
+      ? wsElo.average - factionElo.average
+      : null;
+
+  const p1 =
+    `When included, this warscroll posts a **${pct(includedWR)}** win rate versus the faction baseline of **${pct(
+      factionWR
+    )}** (${pp(vsFaction)}).`;
+
+  const p2 =
+    `Compared to lists **without** it (${pct(withoutWR)}), that’s a shift of **${pp(
+      vsWithout
+    )}**, which suggests it may be contributing — *but sample size matters*.`;
+
+  let p3 = "";
+  if (Number.isFinite(eloDelta)) {
+    const abs = Math.abs(eloDelta);
+    if (abs < 10) {
+      p3 =
+        `Player skill looks broadly similar to the faction baseline (about **${fmt(
+          abs,
+          0
+        )} Elo** difference), so the uplift is less likely to be “just better pilots”.`;
+    } else {
+      p3 =
+        `However, players using this warscroll average about **${fmt(
+          abs,
+          0
+        )} Elo** ${eloDelta >= 0 ? "higher" : "lower"} than the faction baseline, so some of the uplift may be driven by pilot skill rather than the warscroll alone.`;
+    }
+  }
+
+  const confidence = confidenceFromGames(includedGames);
+
+  // --------------------------------------------------
+  // BUILD EMBED (TEXT ONLY)
   // --------------------------------------------------
   const embed = new EmbedBuilder()
     .setTitle(warscroll.name)
-    .setFooter({ text: "Woehammer GT Database • Co-includes weighted by lists • Avg occurrences per list" })
-    .addFields({
-      name: "Overview",
-      value:
-        `Faction: **${factionName}**\n\n` +
-
-        `**Included**\n` +
-        `Games: **${includedGames}**\n` +
-        `Win rate: **${pct(includedWR)}**\n` +
-        `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n` +
-        `Reinforced in: **${pct(reinforcedPct)}** of lists\n` +
-        `${HR}\n\n` +
-
-        `**Faction baseline**\n` +
-        `Games: **${factionGames}**\n` +
-        `Win rate: **${pct(factionWR)}**\n` +
-        `Impact (vs faction): **${impactText}**\n` +
-        `${HR}\n\n` +
-
-        `**Without (same faction)**\n` +
-        `Games: **${withoutGames}**\n` +
-        `Win rate: **${pct(withoutWR)}**\n` +
-        `${HR}\n\n` +
-
-        `**Commonly included with (Top 3)**\n` +
-        `${coText}`,
-      inline: false,
+    .setDescription("Stats from Woehammer GT Database") // <-- the “missing description”
+    .setFooter({
+      text: "Woehammer GT Database • Co-includes weighted by lists • Avg occurrences per list",
     });
+
+  // Overview block (with separators)
+  embed.addFields({
+    name: "Overview",
+    value:
+      `Faction: **${factionName}**\n\n` +
+      `**Included**\n` +
+      `Games: **${includedGames}**\n` +
+      `Win rate: **${pct(includedWR)}**\n` +
+      `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n` +
+      `Reinforced in: **${pct(reinforcedPct)}** of lists\n` +
+      `${HR}\n\n` +
+      `**Faction baseline**\n` +
+      `Games: **${factionGames}**\n` +
+      `Win rate: **${pct(factionWR)}**\n` +
+      `Impact (vs faction): **${pp(vsFaction)}**\n` +
+      `${HR}\n\n` +
+      `**Without (same faction)**\n` +
+      `Games: **${withoutGames}**\n` +
+      `Win rate: **${pct(withoutWR)}**\n` +
+      `${HR}\n\n` +
+      `**Commonly included with (Top 3)**\n` +
+      `${coText}\n` +
+      `${HR}`,
+    inline: false,
+  });
+
+  // Elo block
+  embed.addFields({
+    name: "Player Elo Context",
+    value:
+      `Players using this warscroll (Closing Elo)\n` +
+      `Average: **${Number.isFinite(wsElo.average) ? fmt(wsElo.average, 1) : "—"}**\n` +
+      `Median: **${Number.isFinite(wsElo.median) ? fmt(wsElo.median, 1) : "—"}**\n` +
+      `Gap: **${Number.isFinite(wsElo.gap) ? fmt(wsElo.gap, 1) : "—"}**\n\n` +
+      `Faction Elo baseline (Closing Elo)\n` +
+      `Average: **${
+        Number.isFinite(factionElo.average) ? fmt(factionElo.average, 1) : "—"
+      }**\n` +
+      `Median: **${
+        Number.isFinite(factionElo.median) ? fmt(factionElo.median, 1) : "—"
+      }**\n` +
+      `${HR}`,
+    inline: false,
+  });
+
+  // What this means
+  const meaningParas = [p1, p2, p3, `**Confidence:** ${confidence}`].filter(Boolean);
+
+  embed.addFields({
+    name: "What this means",
+    value: meaningParas.join("\n\n"),
+    inline: false,
+  });
 
   await interaction.reply({ embeds: [embed] });
 }
