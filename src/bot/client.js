@@ -11,11 +11,12 @@ import { Client, GatewayIntentBits, Collection } from "discord.js";
 import ping from "./commands/ping.js";
 import warscroll from "./commands/warscroll.js";
 import faction from "./commands/faction.js";
+import topplayers from "./commands/topplayers.js"; // ✅ add
 
 // ==================================================
 // COMMAND REGISTRY
 // ==================================================
-export const COMMANDS = [ping, warscroll, faction];
+export const COMMANDS = [ping, warscroll, faction, topplayers]; // ✅ add
 
 // ==================================================
 // HELPERS
@@ -59,7 +60,10 @@ export function createDiscordClient({ system, engine }) {
       try {
         await cmd.autocomplete(interaction, client.woebot);
       } catch (err) {
-        console.error(`[WoeBot] autocomplete failed: ${interaction.commandName}`, err);
+        console.error(
+          `[WoeBot] autocomplete failed: ${interaction.commandName}`,
+          err
+        );
       }
       return;
     }
@@ -90,3 +94,5 @@ export function createDiscordClient({ system, engine }) {
 
   return client;
 }
+
+export default { createDiscordClient, COMMANDS };
