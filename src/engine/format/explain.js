@@ -54,27 +54,54 @@ export function explainEloSkew({ average, median } = {}) {
   if (!Number.isFinite(average) || !Number.isFinite(median)) return "";
 
   const gap = average - median;
+  const abs = Math.abs(gap);
 
-  if (Math.abs(gap) < 5) {
-    return "The average and median Elo are closely aligned, indicating a **fairly even spread of player skill**.";
+  // IMPORTANT: treat small gaps as "aligned" (6 is not meaningful skew)
+  if (abs < 10) {
+    return "The average and median Elo are **close**, suggesting a broadly typical spread of player skill rather than results being driven by a small outlier group.";
   }
 
   if (gap > 0) {
-    return "The average Elo sits **above the median**, suggesting results are being **pulled up by a smaller group of high-performing players**.";
+    return "The average Elo sits **well above the median**, suggesting results are being **pulled up by a smaller group of high-performing players**.";
   }
 
-  return "The median Elo sits **above the average**, suggesting a **broader mid-skill base** with fewer extreme outliers.";
+  return "The median Elo sits **well above the average**, suggesting a **broader mid-skill base** with fewer extreme outliers.";
 }
 
 // --------------------------------------------------
 // PLAYER FINISH DISTRIBUTION (5–0, 4–1, etc.)
 // --------------------------------------------------
-export function explainPlayerFinishes({ considered = 0 } = {}) {
+// Pass in shares from performanceBuckets(rows):
+// { "5-0": 0.03, "4-1": 0.19, ... }
+export function explainPlayerFinishes({ considered = 0, shares = null } = {}) {
   if (!considered) {
     return "There were **no clean 5-round results** available to analyse player finishing positions.";
   }
 
-  return "Most players are finishing events around the **3–2 / 2–3 range**, which typically reflects **mid-table consistency rather than spike performance**.";
+  if (!shares || typeof shares !== "object") {
+    return "Finishing positions are based on clean 5-round results, showing where players typically land across events.";
+  }
+
+  const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
+
+  const ranked = order
+    .map((k) => [k, Number(shares[k] ?? 0)])
+    .sort((a, b) => b[1] - a[1]);
+
+  const [topK, topV] = ranked[0] ?? [null, 0];
+  const [sndK, sndV] = ranked[1] ?? [null, 0];
+
+  if (!topK) {
+    return "Finishing positions are based on clean 5-round results, showing where players typically land across events.";
+  }
+
+  // If one bucket dominates, say so plainly
+  if (topV >= 0.4) {
+    return `Most players are finishing **${topK}** (about **${pct(topV)}** of clean results), which is where this faction is most commonly landing.`;
+  }
+
+  // Otherwise describe the main cluster
+  return `Most finishes cluster around **${topK}** and **${sndK}** (about **${pct(topV)}** and **${pct(sndV)}**), showing where the bulk of results are landing.`;
 }
 
 // --------------------------------------------------
@@ -99,18 +126,14 @@ export function explainWinRateVsElo({
   const skew = avgElo - medianElo;
 
   // Classify bands
-  const wrBand =
-    wr >= 0.55 ? "high" :
-    wr <= 0.45 ? "low" :
-    "mid";
+  const wrBand = wr >= 0.55 ? "high" : wr <= 0.45 ? "low" : "mid";
 
   const eloBand =
-    Math.abs(eloDelta) < 10 ? "baseline" :
-    eloDelta > 0 ? "above" : "below";
+    Math.abs(eloDelta) < 10 ? "baseline" : eloDelta > 0 ? "above" : "below";
 
+  // IMPORTANT: keep skew threshold consistent with explainEloSkew (10, not 5)
   const skewBand =
-    Math.abs(skew) < 5 ? "flat" :
-    skew > 0 ? "top-heavy" : "bottom-heavy";
+    Math.abs(skew) < 10 ? "flat" : skew > 0 ? "top-heavy" : "bottom-heavy";
 
   // Interpretations
   if (wrBand === "high") {
