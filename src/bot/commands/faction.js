@@ -7,7 +7,6 @@
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from "discord.js";
-
 import { getFactionIconPath } from "../ui/icons.js";
 import { rankPlayersInFaction } from "../../engine/stats/playerRankings.js";
 
@@ -40,11 +39,6 @@ function pct(x) {
 function fmt(x, dp = 0) {
   if (!Number.isFinite(x)) return "—";
   return x.toFixed(dp);
-}
-
-function n(x) {
-  const v = Number(x);
-  return Number.isFinite(v) ? v : 0;
 }
 
 function median(arr) {
@@ -87,47 +81,27 @@ function closingEloSummary(rows) {
   };
 }
 
-function findFaction(system, inputName) {
-  const fs = system?.lookups?.factions ?? [];
-  const q = norm(inputName);
-
-  for (const f of fs) {
-    if (norm(f.name) === q) return f;
-  }
-
-  return null;
-}
-
 // ==================================================
 // EXECUTION LOGIC
 // ==================================================
 export async function run(interaction, { system, engine }) {
   const input = interaction.options.getString("name", true);
-
-  const factionName = input.trim();
-const rows = engine.indexes.factionRows(factionName);
-
-if (!rows.length) {
-  await interaction.reply({
-    content: `Couldn't find any data for **${input}**.`,
-    ephemeral: true,
-  });
-  return;
-}
+  const factionName = String(input ?? "").trim();
 
   // --------------------------------------------------
-  // ROWS + SUMMARIES
+  // ROWS + BASE SUMMARY (dataset-driven; no lookup required)
   // --------------------------------------------------
-  const rows = engine.indexes.factionRows(faction.name);
+  const rows = engine.indexes.factionRows(factionName);
+
   if (!rows.length) {
     await interaction.reply({
-      content: `No data found for **${faction.name}**.`,
+      content: `Couldn't find any data for **${factionName}**.`,
       ephemeral: true,
     });
     return;
   }
 
-  const summary = engine.indexes.factionSummary(faction.name);
+  const summary = engine.indexes.factionSummary(factionName);
 
   // Elo profile based on Closing Elo (consistent with rankings)
   const elo = closingEloSummary(rows);
@@ -158,32 +132,29 @@ if (!rows.length) {
       : "—";
 
   const statsText =
-    `**Games:** ${summary.games}\n` +
-    `**Win rate:** ${pct(summary.winRate)}\n\n` +
-    `**Closing Elo profile**\n` +
-    `Average: **${fmt(elo.average)}**\n` +
-    `Median: **${fmt(elo.median)}**\n` +
-    `Avg ↔ Median gap: **${fmt(elo.gap, 1)}**`;
+    `**Win Rate**\n` +
+    `Games: **${summary.games}**\n` +
+    `Win rate: **${pct(summary.winRate)}**\n\n` +
+    `**Closing Elo**\n` +
+    `Average: **${fmt(elo.average, 1)}**\n` +
+    `Median: **${fmt(elo.median, 1)}**\n` +
+    `Gap: **${fmt(elo.gap, 1)}**\n\n` +
+    `**Top players (Closing Elo)**\n` +
+    `${playersText}`;
 
   // --------------------------------------------------
   // EMBED
   // --------------------------------------------------
   const embed = new EmbedBuilder()
-    .setTitle(faction.name)
-    .addFields(
-      { name: "\u200B", value: statsText, inline: false },
-      { name: "**Top players (Closing Elo)**", value: playersText, inline: false }
-    )
+    .setTitle(`${factionName} — Overall`)
+    .addFields({ name: "\u200B", value: statsText, inline: false })
     .setFooter({ text: "Woehammer GT Database" });
 
-  // Optional: big faction image if you stored it on the faction lookup
-  if (faction.image) {
-    embed.setImage(faction.image);
-  }
-
-  // Thumbnail icon (local PNG attachment)
+  // --------------------------------------------------
+  // FACTION ICON (thumbnail, local PNG attachment)
+  // --------------------------------------------------
   const files = [];
-  const factionKey = snake(faction.name);
+  const factionKey = snake(factionName);
   const iconPath = getFactionIconPath(factionKey);
 
   if (iconPath) {
