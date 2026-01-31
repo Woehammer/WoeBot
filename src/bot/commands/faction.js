@@ -2,7 +2,7 @@
 // COMMAND: /faction
 // PURPOSE: Faction-level stats + top players (Closing Elo)
 //          + player performance distribution (5-round results)
-//          (TEXT ONLY – no images, no thumbnails)
+//          + deeper explanations (text-only)
 // ==================================================
 
 // ==================================================
@@ -10,6 +10,14 @@
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { rankPlayersInFaction } from "../../engine/stats/playerRankings.js";
+
+import {
+  explainSampleSize,
+  explainEloBaseline,
+  explainEloSkew,
+  explainPlayerFinishes,
+  explainWinRateVsElo,
+} from "../../engine/format/explain.js";
 
 // ==================================================
 // COMMAND DEFINITION
@@ -64,20 +72,13 @@ function getClosingElo(row) {
 }
 
 function closingEloSummary(rows) {
-  const elos = rows
-    .map(getClosingElo)
-    .filter((v) => Number.isFinite(v));
-
+  const elos = rows.map(getClosingElo).filter((v) => Number.isFinite(v));
   if (!elos.length) return { average: 0, median: 0, gap: 0 };
 
   const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
   const med = median(elos);
 
-  return {
-    average: avg,
-    median: med,
-    gap: Math.abs(avg - med),
-  };
+  return { average: avg, median: med, gap: Math.abs(avg - med) };
 }
 
 // ==================================================
@@ -231,9 +232,7 @@ export async function run(interaction, { system, engine }) {
 
   const playersText = topPlayers.length
     ? topPlayers
-        .map(
-          (p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`
-        )
+        .map((p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`)
         .join("\n")
     : "—";
 
@@ -241,10 +240,31 @@ export async function run(interaction, { system, engine }) {
     ? `Based on **${perf.considered}** 5-round results`
     : `No clean 5-round results found`;
 
-  const perfNote = perf.other
-    ? `\n*Other/unknown results: (${perf.other})*`
+  const perfNote = perf.other ? `\n*Other/unknown results: (${perf.other})*` : "";
+
+  // --------------------------------------------------
+  // EXPLANATIONS (DEEPER CONTEXT)
+  // --------------------------------------------------
+  const expLines = [
+    explainSampleSize({ games: summary.games, results: rows.length }),
+    explainEloBaseline({ average: elo.average }),
+    explainEloSkew({ average: elo.average, median: elo.median }),
+    explainPlayerFinishes({ considered: perf.considered }),
+    explainWinRateVsElo({
+      winRate: summary.winRate,
+      avgElo: elo.average,
+      medianElo: elo.median,
+      games: summary.games,
+    }),
+  ].filter(Boolean);
+
+  const explainText = expLines.length
+    ? `\n\n**What this means**\n*${expLines.join("*\n*")}*`
     : "";
 
+  // --------------------------------------------------
+  // OUTPUT TEXT
+  // --------------------------------------------------
   const text =
     `**Win Rate**\n` +
     `Games: **${summary.games}**\n` +
@@ -257,7 +277,8 @@ export async function run(interaction, { system, engine }) {
     `${perfHeader}\n` +
     `${perf.text}${perfNote}\n\n` +
     `**Top Players (Current Battlescroll)**\n` +
-    `${playersText}`;
+    `${playersText}` +
+    `${explainText}`;
 
   const embed = new EmbedBuilder()
     .setTitle(`${factionName} — Overall`)
