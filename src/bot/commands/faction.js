@@ -314,7 +314,7 @@ export async function run(interaction, { system, engine }) {
     `${perf.text}` +
     `${perfNote}\n\n` +
 
-    `**Top players (Closing Elo)**\n` +
+    `**Top Players (Current Battlescroll)**\n` +
     `${playersText}`;
 
   // --------------------------------------------------
