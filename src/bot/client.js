@@ -6,7 +6,7 @@
 // ==================================================
 // IMPORTS
 // ==================================================
-import { Client, GatewayIntentBits, Collection } from "discord.js";
+import { Client, GatewayIntentBits, Collection, Events } from "discord.js";
 
 import ping from "./commands/ping.js";
 import warscroll from "./commands/warscroll.js";
@@ -46,12 +46,41 @@ export function createDiscordClient({ system, engine }) {
   client.woebot = { system, engine };
 
   // --------------------------------------------------
-  // INTERACTION ROUTER
+  // INTERACTION ROUTER (commands + autocomplete)
   // --------------------------------------------------
-  client.on("interactionCreate", async (interaction) => {
+  client.on(Events.InteractionCreate, async (interaction) => {
+    const cmd = client.commands.get(interaction.commandName);
+
+    // ------------------------------------------------
+    // AUTOCOMPLETE
+    // ------------------------------------------------
+    if (interaction.isAutocomplete()) {
+      try {
+        if (!cmd?.autocomplete) {
+          // Discord expects a respond() call even if you have no suggestions
+          await interaction.respond([]);
+          return;
+        }
+
+        await cmd.autocomplete(interaction, client.woebot);
+      } catch (err) {
+        console.error(
+          `[WoeBot] autocomplete failed: ${interaction.commandName}`,
+          err
+        );
+        // Must respond or Discord will keep showing "no options"
+        try {
+          await interaction.respond([]);
+        } catch {}
+      }
+      return;
+    }
+
+    // ------------------------------------------------
+    // SLASH COMMANDS
+    // ------------------------------------------------
     if (!interaction.isChatInputCommand()) return;
 
-    const cmd = client.commands.get(interaction.commandName);
     if (!cmd) {
       await interaction.reply({ content: "Unknown command.", ephemeral: true });
       return;
