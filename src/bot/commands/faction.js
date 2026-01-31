@@ -3,6 +3,7 @@
 // PURPOSE: Faction-level stats + top players (Closing Elo)
 //          + player performance distribution (5-round results)
 //          + deeper explanations (text-only, safe embed chunking)
+//          + OPTIONAL: battle formation filter
 // ==================================================
 
 // ==================================================
@@ -30,6 +31,13 @@ export const data = new SlashCommandBuilder()
       .setName("name")
       .setDescription("Faction name")
       .setRequired(true)
+      .setAutocomplete(true)
+  )
+  .addStringOption((opt) =>
+    opt
+      .setName("formation")
+      .setDescription("Optional battle formation")
+      .setRequired(false)
       .setAutocomplete(true)
   );
 
@@ -74,7 +82,7 @@ function getClosingElo(row) {
 }
 
 function closingEloSummary(rows) {
-  const elos = rows.map(getClosingElo).filter(Number.isFinite);
+  const elos = (rows || []).map(getClosingElo).filter(Number.isFinite);
   if (!elos.length) return { average: 0, median: 0, gap: 0 };
 
   const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
@@ -123,60 +131,45 @@ function findFactionNameFromDataset(engine, inputName) {
 // PLAYER PERFORMANCE DISTRIBUTION
 // ==================================================
 function performanceBuckets(rows) {
-  const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
-
-  const buckets = new Map(order.map((k) => [k, 0]));
+  const buckets = new Map([
+    ["5-0", 0],
+    ["4-1", 0],
+    ["3-2", 0],
+    ["2-3", 0],
+    ["1-4", 0],
+    ["0-5", 0],
+  ]);
 
   let considered = 0;
   let other = 0;
 
-  for (const r of rows) {
-    const played = Number(r.Played ?? r.played ?? 0) || 0;
-    const won = Number(r.Won ?? r.won ?? 0) || 0;
-    const drawn = Number(r.Drawn ?? r.drawn ?? 0) || 0;
-    const lost = Math.max(0, played - won - drawn);
+  for (const r of rows || []) {
+    const played = Number(r.Played ?? 0);
+    const won = Number(r.Won ?? 0);
+    const drawn = Number(r.Drawn ?? 0);
+    const lost = played - won - drawn;
 
     if (played === 5 && drawn === 0) {
       const key = `${won}-${lost}`;
       if (buckets.has(key)) {
         buckets.set(key, (buckets.get(key) ?? 0) + 1);
-        considered += 1;
+        considered++;
       } else {
-        other += 1;
+        other++;
       }
     } else {
-      other += 1;
+      other++;
     }
   }
 
-  // Shares + lines
-  const shares = {};
+  const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
   const lines = order.map((k) => {
     const c = buckets.get(k) ?? 0;
     const share = considered ? c / considered : 0;
-    shares[k] = share;
     return `${k}: **${pct(share)}**`;
   });
 
-  // Identify dominant bucket(s) for better explanations
-  const ranked = order
-    .map((k) => [k, shares[k]])
-    .sort((a, b) => b[1] - a[1]);
-
-  const top = {
-    first: ranked[0]?.[0] ?? null,
-    firstShare: ranked[0]?.[1] ?? 0,
-    second: ranked[1]?.[0] ?? null,
-    secondShare: ranked[1]?.[1] ?? 0,
-  };
-
-  return {
-    considered,
-    other,
-    text: lines.join("\n"),
-    shares,
-    top,
-  };
+  return { considered, other, text: lines.join("\n") };
 }
 
 // ==================================================
@@ -184,57 +177,128 @@ function performanceBuckets(rows) {
 // ==================================================
 export async function autocomplete(interaction, { system, engine }) {
   const focused = interaction.options.getFocused(true);
-  if (focused.name !== "name") return;
-
   const q = norm(focused.value);
 
-  let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
+  // ------------------------------
+  // Faction autocomplete
+  // ------------------------------
+  if (focused.name === "name") {
+    let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
 
-  if (!choices.length) {
-    const byFaction = engine?.indexes?.get?.()?.byFaction;
-    if (byFaction instanceof Map) {
-      choices = [...byFaction.values()]
-        .map((rows) => rows?.[0]?.Faction ?? rows?.[0]?.faction)
-        .filter(Boolean);
+    if (!choices.length) {
+      const byFaction = engine?.indexes?.get?.()?.byFaction;
+      if (byFaction instanceof Map) {
+        choices = [...byFaction.values()]
+          .map((rows) => rows?.[0]?.Faction ?? rows?.[0]?.faction)
+          .filter(Boolean);
+      }
     }
+
+    await interaction.respond(
+      choices
+        .filter((n) => !q || norm(n).includes(q))
+        .slice(0, 25)
+        .map((n) => ({ name: n, value: n }))
+    );
+    return;
   }
 
-  await interaction.respond(
-    choices
-      .filter((n) => !q || norm(n).includes(q))
-      .slice(0, 25)
-      .map((n) => ({ name: n, value: n }))
-  );
+  // ------------------------------
+  // Formation autocomplete
+  // ------------------------------
+  if (focused.name === "formation") {
+    // try to scope formations by the selected faction (if present)
+    const factionInput = (interaction.options.getString("name") ?? "").trim();
+    const factionObj = factionInput ? findFaction(system, factionInput) : null;
+    const factionName =
+      factionObj?.name ??
+      (factionInput ? findFactionNameFromDataset(engine, factionInput) : null);
+
+    let formations = [];
+
+    if (factionName && engine?.indexes?.formationsForFaction) {
+      formations = engine.indexes.formationsForFaction(factionName);
+    } else if (engine?.indexes?.formationsAll) {
+      formations = engine.indexes.formationsAll();
+    }
+
+    // fallback safety
+    formations = (formations || []).filter(Boolean);
+
+    await interaction.respond(
+      formations
+        .filter((n) => !q || norm(n).includes(q))
+        .slice(0, 25)
+        .map((n) => ({ name: n, value: n }))
+    );
+  }
 }
 
 // ==================================================
 // EXECUTION LOGIC
 // ==================================================
 export async function run(interaction, { system, engine }) {
-  const input = interaction.options.getString("name", true).trim();
+  const inputFaction = interaction.options.getString("name", true).trim();
+  const inputFormation = interaction.options.getString("formation", false)?.trim() || null;
 
-  const factionObj = findFaction(system, input);
+  const factionObj = findFaction(system, inputFaction);
   const factionName =
-    factionObj?.name ?? findFactionNameFromDataset(engine, input);
+    factionObj?.name ?? findFactionNameFromDataset(engine, inputFaction);
 
   if (!factionName) {
     await interaction.reply({
-      content: `Couldn't match **${input}** to a known faction.`,
+      content: `Couldn't match **${inputFaction}** to a known faction.`,
       ephemeral: true,
     });
     return;
   }
 
-  const rows = engine.indexes.factionRows(factionName);
-  if (!rows.length) {
-    await interaction.reply({
-      content: `No data found for **${factionName}**.`,
-      ephemeral: true,
-    });
-    return;
+  // ------------------------------
+  // Slice rows (formation optional)
+  // ------------------------------
+  let rows = [];
+  let summary = null;
+  let scopeLabel = "Overall";
+
+  if (inputFormation) {
+    rows = engine.indexes.factionRowsInFormation(factionName, inputFormation);
+    summary = engine.indexes.factionSummaryInFormation
+      ? engine.indexes.factionSummaryInFormation(factionName, inputFormation)
+      : null;
+    scopeLabel = inputFormation;
+
+    if (!rows.length) {
+      await interaction.reply({
+        content: `No data found for **${factionName}** using formation **${inputFormation}**.`,
+        ephemeral: true,
+      });
+      return;
+    }
+  } else {
+    rows = engine.indexes.factionRows(factionName);
+    summary = engine.indexes.factionSummary(factionName);
+
+    if (!rows.length) {
+      await interaction.reply({
+        content: `No data found for **${factionName}**.`,
+        ephemeral: true,
+      });
+      return;
+    }
   }
 
-  const summary = engine.indexes.factionSummary(factionName);
+  // safety if summary helper missing
+  if (!summary) {
+    // compute minimal summary from rows
+    let games = 0;
+    let wins = 0;
+    for (const r of rows) {
+      games += Number(r.Played ?? 0) || 0;
+      wins += Number(r.Won ?? 0) || 0;
+    }
+    summary = { games, winRate: games > 0 ? wins / games : 0 };
+  }
+
   const elo = closingEloSummary(rows);
   const perf = performanceBuckets(rows);
 
@@ -247,10 +311,10 @@ export async function run(interaction, { system, engine }) {
   });
 
   // ==================================================
-  // BUILD EMBED
+  // BUILD EMBED (CHUNKED + DIVIDERS)
   // ==================================================
   const embed = new EmbedBuilder()
-    .setTitle(`${factionName} — Overall`)
+    .setTitle(`${factionName} — ${scopeLabel}`)
     .setFooter({ text: "Woehammer GT Database" })
     .addFields(
       {
@@ -282,10 +346,7 @@ export async function run(interaction, { system, engine }) {
         name: "Top Players (Current Battlescroll)",
         value: topPlayers.length
           ? topPlayers
-              .map(
-                (p, i) =>
-                  `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`
-              )
+              .map((p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`)
               .join("\n") + `\n${HR}`
           : `—\n${HR}`,
       }
@@ -298,7 +359,10 @@ export async function run(interaction, { system, engine }) {
     explainSampleSize({ games: summary.games, results: rows.length }),
     explainEloBaseline({ average: elo.average }),
     explainEloSkew({ average: elo.average, median: elo.median }),
-    explainPlayerFinishes({ considered: perf.considered, shares: perf.shares }),
+    explainPlayerFinishes({
+      considered: perf.considered,
+      // if you later upgrade explain.js, you can pass the actual bucket distribution too
+    }),
     explainWinRateVsElo({
       winRate: summary.winRate,
       avgElo: elo.average,
@@ -310,7 +374,10 @@ export async function run(interaction, { system, engine }) {
   if (explanations.length) {
     embed.addFields({
       name: "What this means",
-      value: explanations.join("\n\n"),
+      value:
+        (inputFormation
+          ? `This section applies **only** to **${factionName}** using **${inputFormation}**.\n\n`
+          : "") + explanations.join("\n\n"),
     });
   }
 
