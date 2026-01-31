@@ -1,7 +1,11 @@
 // ==================================================
-// STATS: PLAYER RANKINGS (BY FACTION)
+// FILE: playerRankings.js
 // PURPOSE: Build player ladder tables within a faction slice
 //          (Closing Elo-based, event-aware participation counts)
+// NOTES:
+// - Default filters are OFF (no minimums) for current battlescroll slice.
+// - "latest" mode = most recent Closing Elo in the slice (by Date).
+// - "peak" mode   = highest Closing Elo in the slice.
 // ==================================================
 
 // ==================================================
@@ -41,7 +45,14 @@ function getClosingElo(row) {
 }
 
 function getPlayer(row) {
-  const candidates = [row.Player, row.player, row["Player Name"], row.playerName];
+  const candidates = [
+    row.Player,
+    row.player,
+    row["Player Name"],
+    row.playerName,
+    row.Name,
+    row.name,
+  ];
   for (const c of candidates) {
     const s = safeStr(c);
     if (s) return s;
@@ -90,21 +101,19 @@ function eventKey(row) {
 /**
  * Build player rankings from rows already scoped to a faction.
  *
- * Ranking uses latestClosingElo by default (current ladder).
- *
- * Filters can be by games or events (recommended).
- *
  * @param {Object} params
  * @param {Array<Object>} params.rows
- * @param {number} [params.minGames=0]
- * @param {number} [params.minEvents=3]
+ * @param {number} [params.minGames=0]     default OFF (no minimum)
+ * @param {number} [params.minEvents=0]    default OFF (no minimum)
  * @param {number} [params.topN=50]
- * @param {"latest"|"peak"} [params.mode="latest"]   latest=latestClosingElo, peak=maxClosingElo
+ * @param {"latest"|"peak"} [params.mode="latest"]
+ *   latest = latestClosingElo (by Date within the slice)
+ *   peak   = maxClosingElo within the slice
  */
 export function rankPlayersInFaction({
   rows,
   minGames = 0,
-  minEvents = 3,
+  minEvents = 0,
   topN = 50,
   mode = "latest",
 }) {
@@ -127,14 +136,11 @@ export function rankPlayersInFaction({
 
         // participation
         eventsSet: new Set(),
-        events: 0,
-
-        // raw row count if you still want it (optional)
         rows: 0,
-
         games: 0,
         effWins: 0,
 
+        // Elo tracking (Closing Elo only)
         maxClosingElo: null,
         latestClosingElo: null,
         latestDateMs: null,
@@ -150,41 +156,45 @@ export function rankPlayersInFaction({
     if (eKey) p.eventsSet.add(eKey);
 
     if (closing !== null) {
-      p.maxClosingElo = p.maxClosingElo === null ? closing : Math.max(p.maxClosingElo, closing);
+      p.maxClosingElo =
+        p.maxClosingElo === null ? closing : Math.max(p.maxClosingElo, closing);
 
+      // Prefer latest by date if available
       if (dateMs !== null) {
         if (p.latestDateMs === null || dateMs > p.latestDateMs) {
           p.latestDateMs = dateMs;
           p.latestClosingElo = closing;
         }
       } else {
+        // No date: last write wins (still better than nothing)
         p.latestClosingElo = closing;
       }
     }
   }
 
-  const list = Array.from(byPlayer.values())
+  return Array.from(byPlayer.values())
     .map((p) => {
       const events = p.eventsSet.size;
+      const maxElo = p.maxClosingElo ?? 0;
+      const latestElo = p.latestClosingElo ?? maxElo;
+
       return {
         player: p.player,
         events,
         rows: p.rows,
         games: p.games,
         winRate: p.games > 0 ? p.effWins / p.games : 0,
-        maxClosingElo: p.maxClosingElo ?? 0,
-        latestClosingElo: p.latestClosingElo ?? (p.maxClosingElo ?? 0),
-        rankScore:
-          mode === "peak"
-            ? (p.maxClosingElo ?? 0)
-            : (p.latestClosingElo ?? (p.maxClosingElo ?? 0)),
+        maxClosingElo: maxElo,
+        latestClosingElo: latestElo,
+        rankScore: mode === "peak" ? maxElo : latestElo,
       };
     })
     .filter((p) => p.games >= minGames && p.events >= minEvents)
     .sort((a, b) => b.rankScore - a.rankScore)
     .slice(0, topN);
-
-  return list;
 }
 
+// ==================================================
+// EXPORTS
+// ==================================================
 export default { rankPlayersInFaction };
