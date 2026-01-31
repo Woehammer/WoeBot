@@ -1,14 +1,17 @@
 // ==================================================
 // COMMAND: /faction
 // PURPOSE: Faction-level stats + top players (Closing Elo)
+//          + player performance (record distribution)
 // ==================================================
 
 // ==================================================
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from "discord.js";
+
 import { getFactionIconPath } from "../ui/icons.js";
 import { rankPlayersInFaction } from "../../engine/stats/playerRankings.js";
+import { playerPerformance } from "../../engine/stats/playerPerformance.js";
 
 // ==================================================
 // COMMAND DEFINITION
@@ -81,27 +84,45 @@ function closingEloSummary(rows) {
   };
 }
 
+function findFaction(system, inputName) {
+  const fs = system?.lookups?.factions ?? [];
+  const q = norm(inputName);
+
+  for (const f of fs) {
+    if (norm(f.name) === q) return f;
+  }
+
+  return null;
+}
+
 // ==================================================
 // EXECUTION LOGIC
 // ==================================================
 export async function run(interaction, { system, engine }) {
   const input = interaction.options.getString("name", true);
-  const factionName = String(input ?? "").trim();
 
-  // --------------------------------------------------
-  // ROWS + BASE SUMMARY (dataset-driven; no lookup required)
-  // --------------------------------------------------
-  const rows = engine.indexes.factionRows(factionName);
-
-  if (!rows.length) {
+  const faction = findFaction(system, input);
+  if (!faction) {
     await interaction.reply({
-      content: `Couldn't find any data for **${factionName}**.`,
+      content: `Couldn't match **${input}** to a known faction.`,
       ephemeral: true,
     });
     return;
   }
 
-  const summary = engine.indexes.factionSummary(factionName);
+  // --------------------------------------------------
+  // ROWS + SUMMARIES
+  // --------------------------------------------------
+  const rows = engine.indexes.factionRows(faction.name);
+  if (!rows.length) {
+    await interaction.reply({
+      content: `No data found for **${faction.name}**.`,
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const summary = engine.indexes.factionSummary(faction.name);
 
   // Elo profile based on Closing Elo (consistent with rankings)
   const elo = closingEloSummary(rows);
@@ -114,6 +135,9 @@ export async function run(interaction, { system, engine }) {
     minEvents: 0,
     mode: "latest",
   });
+
+  // Player performance distribution (records for attendees in this slice)
+  const perf = playerPerformance(rows);
 
   // --------------------------------------------------
   // FORMATTING
@@ -131,6 +155,11 @@ export async function run(interaction, { system, engine }) {
           .join("\n")
       : "—";
 
+  const performanceText =
+    perf.items.length > 0
+      ? perf.items.map((x) => `${x.record}: **${pct(x.pct)}**`).join("\n")
+      : "—";
+
   const statsText =
     `**Win Rate**\n` +
     `Games: **${summary.games}**\n` +
@@ -139,6 +168,8 @@ export async function run(interaction, { system, engine }) {
     `Average: **${fmt(elo.average, 1)}**\n` +
     `Median: **${fmt(elo.median, 1)}**\n` +
     `Gap: **${fmt(elo.gap, 1)}**\n\n` +
+    `**Player Performance**\n` +
+    `${performanceText}\n\n` +
     `**Top players (Closing Elo)**\n` +
     `${playersText}`;
 
@@ -146,15 +177,18 @@ export async function run(interaction, { system, engine }) {
   // EMBED
   // --------------------------------------------------
   const embed = new EmbedBuilder()
-    .setTitle(`${factionName} — Overall`)
+    .setTitle(`${faction.name} — Overall`)
     .addFields({ name: "\u200B", value: statsText, inline: false })
     .setFooter({ text: "Woehammer GT Database" });
 
-  // --------------------------------------------------
-  // FACTION ICON (thumbnail, local PNG attachment)
-  // --------------------------------------------------
+  // Optional: big faction image if stored on the faction lookup
+  if (faction.image) {
+    embed.setImage(faction.image);
+  }
+
+  // Thumbnail icon (local PNG attachment)
   const files = [];
-  const factionKey = snake(factionName);
+  const factionKey = snake(faction.name);
   const iconPath = getFactionIconPath(factionKey);
 
   if (iconPath) {
