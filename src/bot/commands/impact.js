@@ -61,6 +61,16 @@ function fmtNum(x, dp = 2) {
   return Number(x).toFixed(dp);
 }
 
+// Avg occurrences display rule:
+// - show if avgOcc >= 1.05 (meaningful multiples)
+// - OR if included games >= 10 (enough sample that "1.00" isn't just noise)
+function shouldShowAvgOcc(avgOcc, includedGames) {
+  if (!Number.isFinite(avgOcc)) return false;
+  if (avgOcc >= 1.05) return true;
+  if (Number.isFinite(includedGames) && includedGames >= 10) return true;
+  return false;
+}
+
 // Try to get a reliable faction list for autocomplete
 function getFactionChoices({ system, engine }) {
   let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
@@ -188,7 +198,6 @@ export async function run(interaction, { system, engine }) {
     const withoutWR = Number(s.without?.winRate ?? NaN);
     const used = usedPctByGames(incGames, factionGames);
 
-    // NEW: avg occurrences when included
     const avgOcc = Number(
       s.included.avgOccurrencesPerList ??
         s.included.avgOcc ??
@@ -203,6 +212,7 @@ export async function run(interaction, { system, engine }) {
       withoutWR,
       used,
       avgOcc,
+      showAvgOcc: shouldShowAvgOcc(avgOcc, incGames),
       deltaPP: (incWR - factionWR) * 100,
     });
   }
@@ -218,12 +228,19 @@ export async function run(interaction, { system, engine }) {
     ? top
         .map((r, i) => {
           const line1 = `${i + 1}. **${r.name}**`;
-          const line2 =
-            `Win: **${pct(r.incWR)}** (${fmtPP(r.deltaPP)} vs faction) | ` +
-            `Win w/o: **${pct(r.withoutWR)}** | ` +
-            `Used: **${pct(r.used)}** | ` +
-            `Games: **${fmtInt(r.incGames)}** | ` +
-            `Avg occ: **${fmtNum(r.avgOcc, 2)}**`;
+
+          const parts = [
+            `Win: **${pct(r.incWR)}** (${fmtPP(r.deltaPP)} vs faction)`,
+            `Win w/o: **${pct(r.withoutWR)}**`,
+            `Used: **${pct(r.used)}**`,
+            `Games: **${fmtInt(r.incGames)}**`,
+          ];
+
+          if (r.showAvgOcc) {
+            parts.push(`Avg occ: **${fmtNum(r.avgOcc, 2)}**`);
+          }
+
+          const line2 = parts.join(" | ");
           return `${line1}\n${line2}\n${HR}`;
         })
         .join("\n")
