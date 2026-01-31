@@ -6,7 +6,11 @@
 // ==================================================
 // IMPORTS
 // ==================================================
-import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from "discord.js";
+import {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  AttachmentBuilder,
+} from "discord.js";
 
 import { getFactionIconPath } from "../ui/icons.js";
 import { rankPlayersInFaction } from "../../engine/stats/playerRankings.js";
@@ -18,7 +22,11 @@ export const data = new SlashCommandBuilder()
   .setName("faction")
   .setDescription("Shows stats for a faction")
   .addStringOption((opt) =>
-    opt.setName("name").setDescription("Faction name").setRequired(true)
+    opt
+      .setName("name")
+      .setDescription("Faction name")
+      .setRequired(true)
+      .setAutocomplete(true)
   );
 
 // ==================================================
@@ -101,28 +109,15 @@ function findFaction(system, inputName) {
 }
 
 /**
- * Fallback: if lookup is missing, try to find the best matching faction name
- * from the dataset itself (exact case-insensitive match).
+ * Fallback: infer faction name from dataset
  */
 function findFactionNameFromDataset(engine, inputName) {
   const q = norm(inputName);
   const idx = engine?.indexes?.get?.();
   const byFaction = idx?.byFaction;
 
-  if (!byFaction || !(byFaction instanceof Map)) return null;
+  if (!(byFaction instanceof Map)) return null;
 
-  for (const key of byFaction.keys()) {
-    if (norm(key) === q) {
-      // key is already lowercased by safeKey in indexes.js, so we need a "display name"
-      // We can recover it from a row.
-      const rows = byFaction.get(key) || [];
-      const any = rows[0];
-      const display = any?.Faction ?? any?.faction;
-      return display ? String(display) : inputName.trim();
-    }
-  }
-
-  // try exact match against row values (slower but safe)
   for (const rows of byFaction.values()) {
     const any = rows?.[0];
     const display = any?.Faction ?? any?.faction;
@@ -133,18 +128,59 @@ function findFactionNameFromDataset(engine, inputName) {
 }
 
 // ==================================================
+// AUTOCOMPLETE
+// ==================================================
+export async function autocomplete(interaction, { system, engine }) {
+  const focused = interaction.options.getFocused(true);
+  if (focused.name !== "name") return;
+
+  const q = focused.value.toLowerCase();
+  const seen = new Map(); // canonicalName -> display
+
+  // Lookup factions (preferred)
+  for (const f of system?.lookups?.factions ?? []) {
+    if (f.name.toLowerCase().includes(q)) {
+      seen.set(f.name, f.name);
+    }
+    for (const a of f.aliases ?? []) {
+      if (a.toLowerCase().includes(q)) {
+        seen.set(f.name, f.name);
+      }
+    }
+  }
+
+  // Dataset fallback
+  const idx = engine?.indexes?.get?.();
+  const byFaction = idx?.byFaction;
+
+  if (byFaction instanceof Map) {
+    for (const rows of byFaction.values()) {
+      const any = rows?.[0];
+      const name = any?.Faction ?? any?.faction;
+      if (name && String(name).toLowerCase().includes(q)) {
+        seen.set(name, name);
+      }
+    }
+  }
+
+  const choices = Array.from(seen.values())
+    .slice(0, 25)
+    .map((name) => ({ name, value: name }));
+
+  await interaction.respond(choices);
+}
+
+// ==================================================
 // EXECUTION LOGIC
 // ==================================================
 export async function run(interaction, { system, engine }) {
   const input = interaction.options.getString("name", true).trim();
 
-  // 1) Prefer lookup (name/aliases)
+  // 1) Lookup first
   const factionObj = findFaction(system, input);
-
-  // Determine the factionName we’ll use to slice data
   let factionName = factionObj?.name ?? null;
 
-  // 2) Fallback: infer exact faction name from dataset
+  // 2) Dataset fallback
   if (!factionName) {
     factionName = findFactionNameFromDataset(engine, input);
   }
@@ -171,11 +207,8 @@ export async function run(interaction, { system, engine }) {
   }
 
   const summary = engine.indexes.factionSummary(factionName);
-
-  // Closing Elo profile (consistent with rankings)
   const elo = closingEloSummary(rows);
 
-  // Top players by LATEST Closing Elo within this faction slice
   const topPlayers = rankPlayersInFaction({
     rows,
     topN: 3,
@@ -219,14 +252,11 @@ export async function run(interaction, { system, engine }) {
     .addFields({ name: "\u200B", value: statsText, inline: false })
     .setFooter({ text: "Woehammer GT Database" });
 
-  // Large faction image (only if provided in lookup)
   if (factionObj?.image) {
     embed.setImage(factionObj.image);
   }
 
-  // --------------------------------------------------
-  // FACTION ICON (thumbnail attachment)
-  // --------------------------------------------------
+  // Thumbnail icon
   const files = [];
   const factionKey = snake(factionName);
   const iconPath = getFactionIconPath(factionKey);
@@ -243,4 +273,4 @@ export async function run(interaction, { system, engine }) {
 // ==================================================
 // EXPORTS
 // ==================================================
-export default { data, run };
+export default { data, run, autocomplete };
