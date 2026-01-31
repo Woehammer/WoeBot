@@ -11,12 +11,13 @@ import { Client, GatewayIntentBits, Collection } from "discord.js";
 import ping from "./commands/ping.js";
 import warscroll from "./commands/warscroll.js";
 import faction from "./commands/faction.js";
-import topplayers from "./commands/topplayers.js"; // ✅ add
+import topplayers from "./commands/topplayers.js";
+import impact from "./commands/impact.js";
 
 // ==================================================
 // COMMAND REGISTRY
 // ==================================================
-export const COMMANDS = [ping, warscroll, faction, topplayers]; // ✅ add
+export const COMMANDS = [ping, warscroll, faction, topplayers, impact]; // ✅ add
 
 // ==================================================
 // HELPERS
