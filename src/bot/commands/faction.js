@@ -123,45 +123,60 @@ function findFactionNameFromDataset(engine, inputName) {
 // PLAYER PERFORMANCE DISTRIBUTION
 // ==================================================
 function performanceBuckets(rows) {
-  const buckets = new Map([
-    ["5-0", 0],
-    ["4-1", 0],
-    ["3-2", 0],
-    ["2-3", 0],
-    ["1-4", 0],
-    ["0-5", 0],
-  ]);
+  const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
+
+  const buckets = new Map(order.map((k) => [k, 0]));
 
   let considered = 0;
   let other = 0;
 
   for (const r of rows) {
-    const played = Number(r.Played ?? 0);
-    const won = Number(r.Won ?? 0);
-    const drawn = Number(r.Drawn ?? 0);
-    const lost = played - won - drawn;
+    const played = Number(r.Played ?? r.played ?? 0) || 0;
+    const won = Number(r.Won ?? r.won ?? 0) || 0;
+    const drawn = Number(r.Drawn ?? r.drawn ?? 0) || 0;
+    const lost = Math.max(0, played - won - drawn);
 
     if (played === 5 && drawn === 0) {
       const key = `${won}-${lost}`;
       if (buckets.has(key)) {
-        buckets.set(key, buckets.get(key) + 1);
-        considered++;
+        buckets.set(key, (buckets.get(key) ?? 0) + 1);
+        considered += 1;
       } else {
-        other++;
+        other += 1;
       }
     } else {
-      other++;
+      other += 1;
     }
   }
 
-  const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
+  // Shares + lines
+  const shares = {};
   const lines = order.map((k) => {
-    const c = buckets.get(k);
+    const c = buckets.get(k) ?? 0;
     const share = considered ? c / considered : 0;
+    shares[k] = share;
     return `${k}: **${pct(share)}**`;
   });
 
-  return { considered, other, text: lines.join("\n") };
+  // Identify dominant bucket(s) for better explanations
+  const ranked = order
+    .map((k) => [k, shares[k]])
+    .sort((a, b) => b[1] - a[1]);
+
+  const top = {
+    first: ranked[0]?.[0] ?? null,
+    firstShare: ranked[0]?.[1] ?? 0,
+    second: ranked[1]?.[0] ?? null,
+    secondShare: ranked[1]?.[1] ?? 0,
+  };
+
+  return {
+    considered,
+    other,
+    text: lines.join("\n"),
+    shares,
+    top,
+  };
 }
 
 // ==================================================
@@ -269,12 +284,9 @@ export async function run(interaction, { system, engine }) {
           ? topPlayers
               .map(
                 (p, i) =>
-                  `${i + 1}) **${p.player}** — **${fmt(
-                    p.latestClosingElo
-                  )}**`
+                  `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`
               )
-              .join("\n") +
-            `\n${HR}`
+              .join("\n") + `\n${HR}`
           : `—\n${HR}`,
       }
     );
@@ -286,7 +298,7 @@ export async function run(interaction, { system, engine }) {
     explainSampleSize({ games: summary.games, results: rows.length }),
     explainEloBaseline({ average: elo.average }),
     explainEloSkew({ average: elo.average, median: elo.median }),
-    explainPlayerFinishes({ considered: perf.considered }),
+    explainPlayerFinishes({ considered: perf.considered, shares: perf.shares }),
     explainWinRateVsElo({
       winRate: summary.winRate,
       avgElo: elo.average,
