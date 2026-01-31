@@ -36,6 +36,8 @@ export const data = new SlashCommandBuilder()
 // ==================================================
 // HELPERS
 // ==================================================
+const HR = "──────────────";
+
 function norm(s) {
   return String(s ?? "").trim().toLowerCase();
 }
@@ -79,47 +81,6 @@ function closingEloSummary(rows) {
   const med = median(elos);
 
   return { average: avg, median: med, gap: Math.abs(avg - med) };
-}
-
-// --------------------------------------------------
-// EMBED SAFETY
-// --------------------------------------------------
-const FIELD_LIMIT = 1024;
-
-// Split paragraphs into multiple field-safe chunks (<= 1024 chars)
-function splitParagraphsIntoChunks(paragraphs, limit = FIELD_LIMIT) {
-  const chunks = [];
-  let current = "";
-
-  for (const p of paragraphs) {
-    const para = String(p ?? "").trim();
-    if (!para) continue;
-
-    const candidate = current ? `${current}\n\n${para}` : para;
-
-    if (candidate.length <= limit) {
-      current = candidate;
-      continue;
-    }
-
-    // push current chunk if it has content
-    if (current) chunks.push(current);
-
-    // if single paragraph is too long, hard-split it
-    if (para.length > limit) {
-      let i = 0;
-      while (i < para.length) {
-        chunks.push(para.slice(i, i + limit));
-        i += limit;
-      }
-      current = "";
-    } else {
-      current = para;
-    }
-  }
-
-  if (current) chunks.push(current);
-  return chunks;
 }
 
 // ==================================================
@@ -271,7 +232,7 @@ export async function run(interaction, { system, engine }) {
   });
 
   // ==================================================
-  // BUILD EMBED (CORE STATS)
+  // BUILD EMBED
   // ==================================================
   const embed = new EmbedBuilder()
     .setTitle(`${factionName} — Overall`)
@@ -281,14 +242,16 @@ export async function run(interaction, { system, engine }) {
         name: "Win Rate",
         value:
           `Games: **${summary.games}**\n` +
-          `Win rate: **${pct(summary.winRate)}**`,
+          `Win rate: **${pct(summary.winRate)}**\n` +
+          `${HR}`,
       },
       {
         name: "Closing Elo",
         value:
           `Average: **${fmt(elo.average, 1)}**\n` +
           `Median: **${fmt(elo.median, 1)}**\n` +
-          `Gap: **${fmt(elo.gap, 1)}**`,
+          `Gap: **${fmt(elo.gap, 1)}**\n` +
+          `${HR}`,
       },
       {
         name: "Player Performance",
@@ -297,22 +260,29 @@ export async function run(interaction, { system, engine }) {
             ? `Based on **${perf.considered}** 5-round results\n`
             : `No clean 5-round results found\n`) +
           `${perf.text}` +
-          (perf.other ? `\n*Other/unknown results: (${perf.other})*` : ""),
+          (perf.other ? `\n*Other/unknown results: (${perf.other})*` : "") +
+          `\n${HR}`,
       },
       {
         name: "Top Players (Current Battlescroll)",
         value: topPlayers.length
           ? topPlayers
-              .map((p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`)
-              .join("\n")
-          : "—",
+              .map(
+                (p, i) =>
+                  `${i + 1}) **${p.player}** — **${fmt(
+                    p.latestClosingElo
+                  )}**`
+              )
+              .join("\n") +
+            `\n${HR}`
+          : `—\n${HR}`,
       }
     );
 
   // ==================================================
-  // EXPLANATIONS (PARAGRAPHS, AUTO-CHUNKED)
+  // EXPLANATIONS (PARAGRAPHS)
   // ==================================================
-  const explanationParas = [
+  const explanations = [
     explainSampleSize({ games: summary.games, results: rows.length }),
     explainEloBaseline({ average: elo.average }),
     explainEloSkew({ average: elo.average, median: elo.median }),
@@ -325,22 +295,11 @@ export async function run(interaction, { system, engine }) {
     }),
   ].filter(Boolean);
 
-  if (explanationParas.length) {
-    const chunks = splitParagraphsIntoChunks(explanationParas);
-
-    if (chunks.length === 1) {
-      embed.addFields({
-        name: "What this means",
-        value: chunks[0],
-      });
-    } else {
-      chunks.forEach((chunk, idx) => {
-        embed.addFields({
-          name: `What this means (${idx + 1}/${chunks.length})`,
-          value: chunk,
-        });
-      });
-    }
+  if (explanations.length) {
+    embed.addFields({
+      name: "What this means",
+      value: explanations.join("\n\n"),
+    });
   }
 
   await interaction.reply({ embeds: [embed] });
