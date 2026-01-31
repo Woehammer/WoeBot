@@ -9,39 +9,39 @@
 
 export const MANIFESTATIONS_AOS = [
   {
-    name: "Bleeding Icon",
+    name: "Manifestations of Khaine",
     aliases: [
-      "bleeding icon",
+      "manifestatations of khaine",
     ],
   },
   {
-    name: "Hexgorger Skulls",
+    name: "Judgements of Khorne",
     aliases: [
-      "hexgorger skulls",
+      "judgements of khorne",
     ],
   },
   {
-    name: "Bladewind",
+    name: "Manifestations of Tzeentch",
     aliases: [
-      "bladewind",
+      "manifestations of tzeentch",
     ],
   },
 {
-    name: "Bloodwrack Viper",
+    name: "Manifested Insanity",
     aliases: [
-      "bloodwrack viper",
+      "manifested insanity",
     ],
   },
 {
-    name: "Wrath-Axe",
+    name: "Magmic Invocations",
     aliases: [
-      "wrath-axe",
+      "magmic invocations",
     ],
   },
 {
-    name: "Heart of Fury",
+    name: "Dank Manifestations",
     aliases: [
-      "heart of fury",
+      "dank manifestations",
     ],
   },
 ];
