@@ -2,15 +2,13 @@
 // COMMAND: /faction
 // PURPOSE: Faction-level stats + top players (Closing Elo)
 //          + player performance distribution (5-round results)
-//          + NO thumbnail/image in main embed (avoids layout slit)
-//          + icon + faction image sent as follow-ups
+//          (TEXT ONLY – no images, no thumbnails)
 // ==================================================
 
 // ==================================================
 // IMPORTS
 // ==================================================
-import { SlashCommandBuilder, EmbedBuilder, AttachmentBuilder } from "discord.js";
-import { getFactionIconPath } from "../ui/icons.js";
+import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { rankPlayersInFaction } from "../../engine/stats/playerRankings.js";
 
 // ==================================================
@@ -32,10 +30,6 @@ export const data = new SlashCommandBuilder()
 // ==================================================
 function norm(s) {
   return String(s ?? "").trim().toLowerCase();
-}
-
-function snake(s) {
-  return norm(s).replace(/\s+/g, "_");
 }
 
 function pct(x) {
@@ -70,28 +64,25 @@ function getClosingElo(row) {
 }
 
 function closingEloSummary(rows) {
-  const elos = [];
-  for (const r of rows || []) {
-    const e = getClosingElo(r);
-    if (e !== null) elos.push(e);
-  }
+  const elos = rows
+    .map(getClosingElo)
+    .filter((v) => Number.isFinite(v));
 
-  if (!elos.length) return { count: 0, average: 0, median: 0, gap: 0 };
+  if (!elos.length) return { average: 0, median: 0, gap: 0 };
 
   const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
   const med = median(elos);
 
   return {
-    count: elos.length,
     average: avg,
     median: med,
     gap: Math.abs(avg - med),
   };
 }
 
-/**
- * Match a faction from lookup by name OR aliases.
- */
+// ==================================================
+// FACTION MATCHING
+// ==================================================
 function findFaction(system, inputName) {
   const factions = system?.lookups?.factions ?? [];
   const q = norm(inputName);
@@ -105,36 +96,30 @@ function findFaction(system, inputName) {
   return null;
 }
 
-/**
- * Fallback: try to find the best matching faction name from dataset keys.
- */
 function findFactionNameFromDataset(engine, inputName) {
   const q = norm(inputName);
-  const idx = engine?.indexes?.get?.();
-  const byFaction = idx?.byFaction;
+  const byFaction = engine?.indexes?.get?.()?.byFaction;
 
-  if (!byFaction || !(byFaction instanceof Map)) return null;
+  if (!(byFaction instanceof Map)) return null;
 
   if (byFaction.has(q)) {
-    const rows = byFaction.get(q) || [];
-    const any = rows[0];
-    const display = any?.Faction ?? any?.faction;
-    return display ? String(display) : inputName.trim();
+    const rows = byFaction.get(q);
+    const any = rows?.[0];
+    return any?.Faction ?? any?.faction ?? inputName;
   }
 
   for (const rows of byFaction.values()) {
     const any = rows?.[0];
-    const display = any?.Faction ?? any?.faction;
-    if (display && norm(display) === q) return String(display);
+    const name = any?.Faction ?? any?.faction;
+    if (name && norm(name) === q) return name;
   }
 
   return null;
 }
 
-/**
- * PLAYER PERFORMANCE DISTRIBUTION
- * % of faction players finishing 5-0, 4-1, ... 0-5.
- */
+// ==================================================
+// PLAYER PERFORMANCE DISTRIBUTION
+// ==================================================
 function performanceBuckets(rows) {
   const buckets = new Map([
     ["5-0", 0],
@@ -148,29 +133,30 @@ function performanceBuckets(rows) {
   let considered = 0;
   let other = 0;
 
-  for (const r of rows || []) {
-    const played = Number(r.Played ?? r.played ?? 0) || 0;
-    const won = Number(r.Won ?? r.won ?? 0) || 0;
-    const drawn = Number(r.Drawn ?? r.drawn ?? 0) || 0;
-    const lost = Math.max(0, played - won - drawn);
+  for (const r of rows) {
+    const played = Number(r.Played ?? 0);
+    const won = Number(r.Won ?? 0);
+    const drawn = Number(r.Drawn ?? 0);
+    const lost = played - won - drawn;
 
     if (played === 5 && drawn === 0) {
       const key = `${won}-${lost}`;
       if (buckets.has(key)) {
-        buckets.set(key, (buckets.get(key) ?? 0) + 1);
-        considered += 1;
+        buckets.set(key, buckets.get(key) + 1);
+        considered++;
       } else {
-        other += 1;
+        other++;
       }
     } else {
-      other += 1;
+      other++;
     }
   }
 
   const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
+
   const lines = order.map((k) => {
-    const c = buckets.get(k) ?? 0;
-    const share = considered > 0 ? c / considered : 0;
+    const c = buckets.get(k);
+    const share = considered ? c / considered : 0;
     return `${k}: **${pct(share)}**`;
   });
 
@@ -186,28 +172,23 @@ export async function autocomplete(interaction, { system, engine }) {
 
   const q = norm(focused.value);
 
-  const lookup = system?.lookups?.factions ?? [];
-  let choices = lookup.map((f) => f.name);
+  let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
 
   if (!choices.length) {
-    const idx = engine?.indexes?.get?.();
-    const byFaction = idx?.byFaction;
+    const byFaction = engine?.indexes?.get?.()?.byFaction;
     if (byFaction instanceof Map) {
-      choices = [];
-      for (const rows of byFaction.values()) {
-        const any = rows?.[0];
-        const display = any?.Faction ?? any?.faction;
-        if (display) choices.push(String(display));
-      }
+      choices = [...byFaction.values()]
+        .map((rows) => rows?.[0]?.Faction ?? rows?.[0]?.faction)
+        .filter(Boolean);
     }
   }
 
-  const filtered = choices
-    .filter((name) => !q || norm(name).includes(q))
-    .slice(0, 25)
-    .map((name) => ({ name, value: name }));
-
-  await interaction.respond(filtered);
+  await interaction.respond(
+    choices
+      .filter((n) => !q || norm(n).includes(q))
+      .slice(0, 25)
+      .map((n) => ({ name: n, value: n }))
+  );
 }
 
 // ==================================================
@@ -217,11 +198,7 @@ export async function run(interaction, { system, engine }) {
   const input = interaction.options.getString("name", true).trim();
 
   const factionObj = findFaction(system, input);
-  let factionName = factionObj?.name ?? null;
-
-  if (!factionName) {
-    factionName = findFactionNameFromDataset(engine, input);
-  }
+  let factionName = factionObj?.name ?? findFactionNameFromDataset(engine, input);
 
   if (!factionName) {
     await interaction.reply({
@@ -252,21 +229,23 @@ export async function run(interaction, { system, engine }) {
     mode: "latest",
   });
 
-  const playersText =
-    topPlayers.length > 0
-      ? topPlayers
-          .map((p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo, 0)}**`)
-          .join("\n")
-      : "—";
+  const playersText = topPlayers.length
+    ? topPlayers
+        .map(
+          (p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`
+        )
+        .join("\n")
+    : "—";
 
-  const perfHeader =
-    perf.considered > 0
-      ? `Based on **${perf.considered}** 5-round results`
-      : `No clean 5-round results found`;
+  const perfHeader = perf.considered
+    ? `Based on **${perf.considered}** 5-round results`
+    : `No clean 5-round results found`;
 
-  const perfNote = perf.other > 0 ? `\n*Other/unknown results: (${perf.other})*` : "";
+  const perfNote = perf.other
+    ? `\n*Other/unknown results: (${perf.other})*`
+    : "";
 
-  const statsText =
+  const text =
     `**Win Rate**\n` +
     `Games: **${summary.games}**\n` +
     `Win rate: **${pct(summary.winRate)}**\n\n` +
@@ -276,48 +255,16 @@ export async function run(interaction, { system, engine }) {
     `Gap: **${fmt(elo.gap, 1)}**\n\n` +
     `**Player Performance**\n` +
     `${perfHeader}\n` +
-    `${perf.text}` +
-    `${perfNote}\n\n` +
+    `${perf.text}${perfNote}\n\n` +
     `**Top Players (Current Battlescroll)**\n` +
     `${playersText}`;
 
-  // --------------------------------------------------
-  // MAIN EMBED: TEXT ONLY (no thumbnail/image)
-  // --------------------------------------------------
-  const mainEmbed = new EmbedBuilder()
+  const embed = new EmbedBuilder()
     .setTitle(`${factionName} — Overall`)
-    .addFields({ name: "\u200B", value: statsText, inline: false })
+    .addFields({ name: "\u200B", value: text })
     .setFooter({ text: "Woehammer GT Database" });
 
-  await interaction.reply({ embeds: [mainEmbed] });
-
-  // --------------------------------------------------
-  // FOLLOW-UP 1: ICON (local PNG) as an IMAGE embed
-  // --------------------------------------------------
-  const factionKey = snake(factionName);
-  const iconPath = getFactionIconPath(factionKey);
-
-  if (iconPath) {
-    const fileName = `${factionKey}.png`;
-    const file = new AttachmentBuilder(iconPath, { name: fileName });
-
-    const iconEmbed = new EmbedBuilder()
-      .setTitle(`${factionName} — Icon`)
-      .setImage(`attachment://${fileName}`);
-
-    await interaction.followUp({ embeds: [iconEmbed], files: [file] });
-  }
-
-  // --------------------------------------------------
-  // FOLLOW-UP 2: FACTION IMAGE (URL from lookup), if present
-  // --------------------------------------------------
-  if (factionObj?.image) {
-    const imageEmbed = new EmbedBuilder()
-      .setTitle(`${factionName} — Artwork`)
-      .setImage(factionObj.image);
-
-    await interaction.followUp({ embeds: [imageEmbed] });
-  }
+  await interaction.reply({ embeds: [embed] });
 }
 
 // ==================================================
