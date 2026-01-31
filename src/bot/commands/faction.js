@@ -283,17 +283,11 @@ export async function run(interaction, { system, engine }) {
   // FORMATTING
   // --------------------------------------------------
   const playersText =
-    topPlayers.length > 0
-      ? topPlayers
-          .map(
-            (p, i) =>
-              `${i + 1}) **${p.player}** — Closing Elo **${fmt(
-                p.latestClosingElo,
-                0
-              )}** (${p.events} events, ${p.games} games)`
-          )
-          .join("\n")
-      : "—";
+  topPlayers.length > 0
+    ? topPlayers
+        .map((p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo, 0)}**`)
+        .join("\n")
+    : "—";
 
   const perfHeader =
     perf.considered > 0
@@ -301,9 +295,9 @@ export async function run(interaction, { system, engine }) {
       : `No clean 5-round results found`;
 
   const perfNote =
-    perf.other > 0
-      ? `\nOther/unknown results ignored: **${perf.other}**`
-      : "";
+  perf.other > 0
+    ? `\n*Other/unknown results: (${perf.other})*`
+    : "";
 
   const statsText =
     `**Win Rate**\n` +
