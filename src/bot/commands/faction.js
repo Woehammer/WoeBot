@@ -2,7 +2,8 @@
 // COMMAND: /faction
 // PURPOSE: Faction-level stats + top players (Closing Elo)
 //          + player performance distribution (5-round results)
-//          + faction image as a FOLLOW-UP message (prevents "slit" layout)
+//          + NO thumbnail/image in main embed (avoids layout slit)
+//          + icon + faction image sent as follow-ups
 // ==================================================
 
 // ==================================================
@@ -114,7 +115,6 @@ function findFactionNameFromDataset(engine, inputName) {
 
   if (!byFaction || !(byFaction instanceof Map)) return null;
 
-  // keys are lowercased; match them directly
   if (byFaction.has(q)) {
     const rows = byFaction.get(q) || [];
     const any = rows[0];
@@ -122,7 +122,6 @@ function findFactionNameFromDataset(engine, inputName) {
     return display ? String(display) : inputName.trim();
   }
 
-  // try exact match against display value
   for (const rows of byFaction.values()) {
     const any = rows?.[0];
     const display = any?.Faction ?? any?.faction;
@@ -135,9 +134,6 @@ function findFactionNameFromDataset(engine, inputName) {
 /**
  * PLAYER PERFORMANCE DISTRIBUTION
  * % of faction players finishing 5-0, 4-1, ... 0-5.
- *
- * Assumes each row = one player's event result for that faction.
- * Uses 5-round events with no draws as "clean" buckets.
  */
 function performanceBuckets(rows) {
   const buckets = new Map([
@@ -149,8 +145,8 @@ function performanceBuckets(rows) {
     ["0-5", 0],
   ]);
 
-  let considered = 0; // rows used for % (clean 5-round no-draw)
-  let other = 0; // everything else (non-5-round or has draws)
+  let considered = 0;
+  let other = 0;
 
   for (const r of rows || []) {
     const played = Number(r.Played ?? r.played ?? 0) || 0;
@@ -158,7 +154,6 @@ function performanceBuckets(rows) {
     const drawn = Number(r.Drawn ?? r.drawn ?? 0) || 0;
     const lost = Math.max(0, played - won - drawn);
 
-    // Only count 5-round, no-draw results into the 5-0 ... 0-5 buckets
     if (played === 5 && drawn === 0) {
       const key = `${won}-${lost}`;
       if (buckets.has(key)) {
@@ -172,20 +167,14 @@ function performanceBuckets(rows) {
     }
   }
 
-  const lines = [];
   const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
-
-  for (const k of order) {
+  const lines = order.map((k) => {
     const c = buckets.get(k) ?? 0;
     const share = considered > 0 ? c / considered : 0;
-    lines.push(`${k}: **${pct(share)}**`);
-  }
+    return `${k}: **${pct(share)}**`;
+  });
 
-  return {
-    considered,
-    other,
-    text: lines.join("\n"),
-  };
+  return { considered, other, text: lines.join("\n") };
 }
 
 // ==================================================
@@ -197,11 +186,9 @@ export async function autocomplete(interaction, { system, engine }) {
 
   const q = norm(focused.value);
 
-  // Prefer lookup list if present
   const lookup = system?.lookups?.factions ?? [];
   let choices = lookup.map((f) => f.name);
 
-  // Fallback to dataset keys if lookup is empty
   if (!choices.length) {
     const idx = engine?.indexes?.get?.();
     const byFaction = idx?.byFaction;
@@ -229,13 +216,9 @@ export async function autocomplete(interaction, { system, engine }) {
 export async function run(interaction, { system, engine }) {
   const input = interaction.options.getString("name", true).trim();
 
-  // 1) Prefer lookup (name/aliases)
   const factionObj = findFaction(system, input);
-
-  // Determine the factionName we’ll use to slice data
   let factionName = factionObj?.name ?? null;
 
-  // 2) Fallback: infer exact faction name from dataset
   if (!factionName) {
     factionName = findFactionNameFromDataset(engine, input);
   }
@@ -248,11 +231,7 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  // --------------------------------------------------
-  // ROWS + SUMMARIES
-  // --------------------------------------------------
   const rows = engine.indexes.factionRows(factionName);
-
   if (!rows.length) {
     await interaction.reply({
       content: `No data found for **${factionName}**.`,
@@ -262,11 +241,9 @@ export async function run(interaction, { system, engine }) {
   }
 
   const summary = engine.indexes.factionSummary(factionName);
-
-  // Closing Elo profile (consistent with rankings)
   const elo = closingEloSummary(rows);
+  const perf = performanceBuckets(rows);
 
-  // Top players by LATEST Closing Elo within this faction slice
   const topPlayers = rankPlayersInFaction({
     rows,
     topN: 3,
@@ -275,19 +252,10 @@ export async function run(interaction, { system, engine }) {
     mode: "latest",
   });
 
-  // Player performance distribution
-  const perf = performanceBuckets(rows);
-
-  // --------------------------------------------------
-  // FORMATTING
-  // --------------------------------------------------
   const playersText =
     topPlayers.length > 0
       ? topPlayers
-          .map(
-            (p, i) =>
-              `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo, 0)}**`
-          )
+          .map((p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo, 0)}**`)
           .join("\n")
       : "—";
 
@@ -314,33 +282,40 @@ export async function run(interaction, { system, engine }) {
     `${playersText}`;
 
   // --------------------------------------------------
-  // EMBED (MAIN)
+  // MAIN EMBED: TEXT ONLY (no thumbnail/image)
   // --------------------------------------------------
-  const embed = new EmbedBuilder()
+  const mainEmbed = new EmbedBuilder()
     .setTitle(`${factionName} — Overall`)
     .addFields({ name: "\u200B", value: statsText, inline: false })
     .setFooter({ text: "Woehammer GT Database" });
 
+  await interaction.reply({ embeds: [mainEmbed] });
+
   // --------------------------------------------------
-  // FACTION ICON (thumbnail attachment)
+  // FOLLOW-UP 1: ICON (local PNG) as an IMAGE embed
   // --------------------------------------------------
-  const files = [];
   const factionKey = snake(factionName);
   const iconPath = getFactionIconPath(factionKey);
 
   if (iconPath) {
     const fileName = `${factionKey}.png`;
-    files.push(new AttachmentBuilder(iconPath, { name: fileName }));
-    embed.setThumbnail(`attachment://${fileName}`);
+    const file = new AttachmentBuilder(iconPath, { name: fileName });
+
+    const iconEmbed = new EmbedBuilder()
+      .setTitle(`${factionName} — Icon`)
+      .setImage(`attachment://${fileName}`);
+
+    await interaction.followUp({ embeds: [iconEmbed], files: [file] });
   }
 
-  await interaction.reply({ embeds: [embed], files });
-
   // --------------------------------------------------
-  // FOLLOW-UP: FACTION IMAGE (separate message to avoid layout "slit")
+  // FOLLOW-UP 2: FACTION IMAGE (URL from lookup), if present
   // --------------------------------------------------
   if (factionObj?.image) {
-    const imageEmbed = new EmbedBuilder().setImage(factionObj.image);
+    const imageEmbed = new EmbedBuilder()
+      .setTitle(`${factionName} — Artwork`)
+      .setImage(factionObj.image);
+
     await interaction.followUp({ embeds: [imageEmbed] });
   }
 }
