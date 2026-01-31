@@ -1,10 +1,18 @@
 // ==================================================
-// STATS: ELO SUMMARY
-// PURPOSE: avg / median / gap
+// STATS: ELO
+// PURPOSE: elo summary + top elo players
 // ==================================================
-function n(x) {
+
+// ==================================================
+// HELPERS
+// ==================================================
+function toNum(x) {
   const v = Number(x);
   return Number.isFinite(v) ? v : null;
+}
+
+function safeStr(x) {
+  return String(x ?? "").trim();
 }
 
 function median(arr) {
@@ -23,58 +31,7 @@ function getRowElo(row) {
     row["ELO"],
   ];
   for (const c of candidates) {
-    const v = n(c);
-    if (v !== null) return v;
-  }
-  return null;
-}
-
-export function eloSummary(rows) {
-  const elos = [];
-  for (const r of rows || []) {
-    const e = getRowElo(r);
-    if (e !== null) elos.push(e);
-  }
-
-  if (!elos.length) {
-    return { count: 0, average: 0, median: 0, gap: 0 };
-  }
-
-  const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
-  const med = median(elos);
-  return {
-    count: elos.length,
-    average: avg,
-    median: med,
-    gap: Math.abs(avg - med),
-  };
-}
-
-export default { eloSummary };
-
-// ==================================================
-// STATS: TOP ELO PLAYERS
-// PURPOSE: top N players by highest recorded Elo
-// ==================================================
-function safeStr(x) {
-  return String(x ?? "").trim();
-}
-
-function n(x) {
-  const v = Number(x);
-  return Number.isFinite(v) ? v : null;
-}
-
-function getRowElo(row) {
-  const candidates = [
-    row.Elo,
-    row.elo,
-    row["Player Elo"],
-    row.playerElo,
-    row["ELO"],
-  ];
-  for (const c of candidates) {
-    const v = n(c);
+    const v = toNum(c);
     if (v !== null) return v;
   }
   return null;
@@ -96,6 +53,36 @@ function getRowPlayer(row) {
   return null;
 }
 
+// ==================================================
+// STATS: ELO SUMMARY
+// PURPOSE: avg / median / gap
+// ==================================================
+export function eloSummary(rows) {
+  const elos = [];
+  for (const r of rows || []) {
+    const e = getRowElo(r);
+    if (e !== null) elos.push(e);
+  }
+
+  if (!elos.length) {
+    return { count: 0, average: 0, median: 0, gap: 0 };
+  }
+
+  const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
+  const med = median(elos);
+
+  return {
+    count: elos.length,
+    average: avg,
+    median: med,
+    gap: Math.abs(avg - med),
+  };
+}
+
+// ==================================================
+// STATS: TOP ELO PLAYERS
+// PURPOSE: top N players by highest recorded Elo
+// ==================================================
 /**
  * Return top N players by their highest Elo seen in these rows.
  * Also returns how many lists they appear in for this faction slice.
@@ -125,4 +112,7 @@ export function topEloPlayers(rows, topN = 3) {
     .slice(0, topN);
 }
 
+// ==================================================
+// EXPORTS
+// ==================================================
 export default { eloSummary, topEloPlayers };
