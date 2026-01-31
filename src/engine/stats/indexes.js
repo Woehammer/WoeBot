@@ -1,35 +1,14 @@
 // ==================================================
 // FILE: indexes.js
 // PURPOSE: Build and cache fast lookup indexes over dataset rows
-//          + provide common summary helpers (faction + warscroll + players)
+//          + provide common summary helpers (faction + warscroll)
+//          + formation-aware slicing for /faction
 // ==================================================
 
 // ==================================================
 // IMPORTS
 // ==================================================
 import { computeWithWithout } from "./withWithout.js";
-import { rankPlayersInFaction } from "./playerRankings.js";
-
-// ==================================================
-// CONSTANTS / CONFIG
-// ==================================================
-
-// ==================================================
-// TYPES / SHAPES (JSDoc)
-// ==================================================
-
-/**
- * @typedef {Object} IndexService
- * @property {Function} refresh
- * @property {Function} get
- * @property {Function} warscrollRows
- * @property {Function} warscrollSummary
- * @property {Function} factionRows
- * @property {Function} factionSummary
- * @property {Function} factionPlayerRankings
- * @property {Function} factionTopEloPlayers
- * @property {Function} warscrollSummaryInFaction
- */
 
 // ==================================================
 // HELPERS: BASIC NORMALISATION
@@ -48,6 +27,34 @@ function safeRate(num, den) {
 }
 
 // ==================================================
+// HELPERS: ROW FIELD ACCESSORS
+// ==================================================
+function getFaction(row) {
+  return row.Faction ?? row.faction ?? null;
+}
+
+function getPlayer(row) {
+  return row.Player ?? row.player ?? row["Player Name"] ?? row.playerName ?? null;
+}
+
+function getEventName(row) {
+  return row["Event Name"] ?? row.eventName ?? row.Event ?? row.event ?? null;
+}
+
+function getFormation(row) {
+  // Make this tolerant – your sheet naming WILL change at some point.
+  return (
+    row["Battle Formation"] ??
+    row.BattleFormation ??
+    row.battleFormation ??
+    row["Formation"] ??
+    row.formation ??
+    row["Battleformation"] ??
+    null
+  );
+}
+
+// ==================================================
 // HELPERS: INDEX BUILDERS
 // ==================================================
 function buildIndexes(rows) {
@@ -55,36 +62,69 @@ function buildIndexes(rows) {
   const byPlayer = new Map();
   const byEvent = new Map();
 
-  // Warscroll index (name lowercased -> rows that include it)
+  // warscroll name lowercased -> rows that include it
   const byWarscroll = new Map();
 
+  // formation name lowercased -> rows (all factions)
+  const byFormation = new Map();
+
+  // factionKey -> (formationKey -> rows)
+  const byFactionFormation = new Map();
+
   for (const row of rows || []) {
-    const faction = safeKey(row.Faction ?? row.faction);
-    const player = safeKey(row.Player ?? row.player);
-    const eventName = safeKey(row["Event Name"] ?? row.eventName ?? row.event);
+    const factionRaw = getFaction(row);
+    const factionKey = safeKey(factionRaw);
+
+    const playerRaw = getPlayer(row);
+    const playerKey = safeKey(playerRaw);
+
+    const eventRaw = getEventName(row);
+    const eventKey = safeKey(eventRaw);
+
+    const formationRaw = getFormation(row);
+    const formationKey = safeKey(formationRaw);
 
     // ------------------------------
     // INDEX: FACTION
     // ------------------------------
-    if (faction) {
-      if (!byFaction.has(faction)) byFaction.set(faction, []);
-      byFaction.get(faction).push(row);
+    if (factionKey) {
+      if (!byFaction.has(factionKey)) byFaction.set(factionKey, []);
+      byFaction.get(factionKey).push(row);
     }
 
     // ------------------------------
     // INDEX: PLAYER
     // ------------------------------
-    if (player) {
-      if (!byPlayer.has(player)) byPlayer.set(player, []);
-      byPlayer.get(player).push(row);
+    if (playerKey) {
+      if (!byPlayer.has(playerKey)) byPlayer.set(playerKey, []);
+      byPlayer.get(playerKey).push(row);
     }
 
     // ------------------------------
     // INDEX: EVENT
     // ------------------------------
-    if (eventName) {
-      if (!byEvent.has(eventName)) byEvent.set(eventName, []);
-      byEvent.get(eventName).push(row);
+    if (eventKey) {
+      if (!byEvent.has(eventKey)) byEvent.set(eventKey, []);
+      byEvent.get(eventKey).push(row);
+    }
+
+    // ------------------------------
+    // INDEX: FORMATION (global)
+    // ------------------------------
+    if (formationKey) {
+      if (!byFormation.has(formationKey)) byFormation.set(formationKey, []);
+      byFormation.get(formationKey).push(row);
+    }
+
+    // ------------------------------
+    // INDEX: FACTION + FORMATION (nested)
+    // ------------------------------
+    if (factionKey && formationKey) {
+      if (!byFactionFormation.has(factionKey)) byFactionFormation.set(factionKey, new Map());
+      const inner = byFactionFormation.get(factionKey);
+
+      if (!inner.has(formationKey)) inner.set(formationKey, []);
+      inner.get(formationKey).push(row);
     }
 
     // ------------------------------
@@ -99,7 +139,31 @@ function buildIndexes(rows) {
     }
   }
 
-  return { byFaction, byPlayer, byEvent, byWarscroll };
+  return { byFaction, byPlayer, byEvent, byWarscroll, byFormation, byFactionFormation };
+}
+
+// ==================================================
+// HELPERS: SUMMARIES
+// ==================================================
+function factionSummaryFromRows(factionName, rows, formationName = null) {
+  let games = 0;
+  let wins = 0;
+  let lists = 0;
+
+  for (const r of rows || []) {
+    lists += 1;
+    games += n(r.Played);
+    wins += n(r.Won);
+  }
+
+  return {
+    faction: factionName,
+    formation: formationName,
+    lists,
+    games,
+    wins,
+    winRate: safeRate(wins, games),
+  };
 }
 
 // ==================================================
@@ -112,6 +176,8 @@ function createService({ dataset }) {
     byPlayer: new Map(),
     byEvent: new Map(),
     byWarscroll: new Map(),
+    byFormation: new Map(),
+    byFactionFormation: new Map(),
   };
 
   // --------------------------------------------------
@@ -133,104 +199,92 @@ function createService({ dataset }) {
   // --------------------------------------------------
   // ROW LOOKUPS
   // --------------------------------------------------
-
-  /**
-   * Return rows that include a given warscroll (canonical name).
-   */
   function warscrollRows(warscrollName) {
     const key = safeKey(warscrollName);
     return indexes.byWarscroll.get(key) || [];
   }
 
-  /**
-   * Return rows for a given faction name.
-   */
   function factionRows(factionName) {
     const key = safeKey(factionName);
     return indexes.byFaction.get(key) || [];
   }
 
+  function factionRowsInFormation(factionName, formationName) {
+    const fKey = safeKey(factionName);
+    const formKey = safeKey(formationName);
+    const inner = indexes.byFactionFormation.get(fKey);
+    if (!inner) return [];
+    return inner.get(formKey) || [];
+  }
+
+  // --------------------------------------------------
+  // FORMATION LISTS (for autocomplete)
+  // --------------------------------------------------
+  function formationsAll() {
+    // return display names
+    const out = [];
+    for (const rows of indexes.byFormation.values()) {
+      const any = rows?.[0];
+      const display = getFormation(any);
+      if (display) out.push(String(display));
+    }
+    return Array.from(new Set(out));
+  }
+
+  function formationsForFaction(factionName) {
+    const fKey = safeKey(factionName);
+    const inner = indexes.byFactionFormation.get(fKey);
+    if (!inner) return [];
+
+    const out = [];
+    for (const rows of inner.values()) {
+      const any = rows?.[0];
+      const display = getFormation(any);
+      if (display) out.push(String(display));
+    }
+    return Array.from(new Set(out));
+  }
+
   // --------------------------------------------------
   // SUMMARIES
   // --------------------------------------------------
-
-  /**
-   * Full with/without summary for a warscroll, using ALL rows.
-   * (Win rates use games, co-includes use list counts)
-   */
   function warscrollSummary(warscrollName, topN = 3) {
-    return computeWithWithout({
-      rows: rowsCache,
-      warscrollName,
-      topN,
-    });
+    return computeWithWithout({ rows: rowsCache, warscrollName, topN });
   }
 
-  /**
-   * Summary for a faction baseline (games + wins + winRate).
-   * Uses Played/Won totals across ALL rows for that faction.
-   */
   function factionSummary(factionName) {
     const rows = factionRows(factionName);
-
-    let games = 0;
-    let wins = 0;
-    let lists = 0;
-
-    for (const r of rows) {
-      lists += 1;
-      games += n(r.Played);
-      wins += n(r.Won);
-    }
-
-    return {
-      faction: factionName,
-      lists,
-      games,
-      wins,
-      winRate: safeRate(wins, games),
-    };
+    return factionSummaryFromRows(factionName, rows);
   }
 
-  /**
-   * Player rankings inside a faction (based on Closing Elo).
-   * No minimums: anyone appearing in this battlescroll slice is included.
-   */
-  function factionPlayerRankings(factionName, topN = 50) {
-    const rows = factionRows(factionName);
-    return rankPlayersInFaction({ rows, topN });
+  function factionSummaryInFormation(factionName, formationName) {
+    const rows = factionRowsInFormation(factionName, formationName);
+    return factionSummaryFromRows(factionName, rows, formationName);
   }
 
-  /**
-   * Convenience: top N Elo players in faction.
-   */
-  function factionTopEloPlayers(factionName, topN = 3) {
-    return factionPlayerRankings(factionName, topN);
-  }
-
-  /**
-   * With/without summary for a warscroll scoped to a faction only.
-   * (This is the one you want for /warscroll.)
-   */
   function warscrollSummaryInFaction(warscrollName, factionName, topN = 3) {
     const rows = factionRows(factionName);
-    return computeWithWithout({
-      rows,
-      warscrollName,
-      topN,
-    });
+    return computeWithWithout({ rows, warscrollName, topN });
   }
 
   return {
     refresh,
     get,
+
+    // rows
     warscrollRows,
-    warscrollSummary,
     factionRows,
+    factionRowsInFormation,
+
+    // summaries
+    warscrollSummary,
     factionSummary,
-    factionPlayerRankings,
-    factionTopEloPlayers,
+    factionSummaryInFormation,
     warscrollSummaryInFaction,
+
+    // formation helpers
+    formationsAll,
+    formationsForFaction,
   };
 }
 
