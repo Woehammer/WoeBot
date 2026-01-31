@@ -14,7 +14,9 @@ import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("impact")
-  .setDescription("Top warscrolls pulling UP a faction's win rate (vs faction baseline)")
+  .setDescription(
+    "Top warscrolls pulling UP a faction's win rate (vs faction baseline)"
+  )
   .addStringOption((opt) =>
     opt
       .setName("faction")
@@ -35,6 +37,7 @@ export const data = new SlashCommandBuilder()
 // HELPERS
 // ==================================================
 const HR = "──────────────";
+const MAX_FIELD = 1024;
 
 function norm(s) {
   return String(s ?? "").trim().toLowerCase();
@@ -71,6 +74,40 @@ function shouldShowAvgOcc(avgOcc, includedGames) {
   return false;
 }
 
+// Split an array of blocks into chunks that each fit <= maxChars
+function chunkBlocksByChars(blocks, maxChars = MAX_FIELD) {
+  const chunks = [];
+  let buf = "";
+  let bufHas = false;
+
+  for (const b of blocks) {
+    const sep = bufHas ? "\n" : "";
+    const next = buf + sep + b;
+
+    if (next.length <= maxChars) {
+      buf = next;
+      bufHas = true;
+      continue;
+    }
+
+    // flush current buffer
+    if (bufHas) chunks.push(buf);
+
+    // if a single block is too long (rare), hard-trim it
+    if (b.length > maxChars) {
+      chunks.push(b.slice(0, maxChars - 1) + "…");
+      buf = "";
+      bufHas = false;
+    } else {
+      buf = b;
+      bufHas = true;
+    }
+  }
+
+  if (bufHas) chunks.push(buf);
+  return chunks;
+}
+
 // Try to get a reliable faction list for autocomplete
 function getFactionChoices({ system, engine }) {
   let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
@@ -100,6 +137,13 @@ function findFactionName(system, engine, inputName) {
 
   const byFaction = engine?.indexes?.get?.()?.byFaction;
   if (byFaction instanceof Map) {
+    // direct key match (sometimes indexes store normalised keys)
+    if (byFaction.has(q)) {
+      const rows = byFaction.get(q);
+      const any = rows?.[0];
+      return any?.Faction ?? any?.faction ?? inputName;
+    }
+
     for (const rows of byFaction.values()) {
       const any = rows?.[0];
       const name = any?.Faction ?? any?.faction;
@@ -222,37 +266,52 @@ export async function run(interaction, { system, engine }) {
 
   const header =
     `Baseline (faction overall win rate): **${pct(factionWR)}**.\n` +
-    `Listed warscrolls have a **higher win rate** than this baseline.`;
+    `Listed warscrolls: **win rate above baseline** (positive lift).`;
 
-  const body = top.length
-    ? top
-        .map((r, i) => {
-          const line1 = `${i + 1}. **${r.name}**`;
+  // Build one "block" per warscroll, then chunk into safe embed fields
+  const blocks = top.map((r, i) => {
+    const line1 = `${i + 1}. **${r.name}**`;
 
-          const parts = [
-            `Win: **${pct(r.incWR)}** (${fmtPP(r.deltaPP)} vs faction)`,
-            `Win w/o: **${pct(r.withoutWR)}**`,
-            `Used: **${pct(r.used)}**`,
-            `Games: **${fmtInt(r.incGames)}**`,
-          ];
+    const parts = [
+      `Win: **${pct(r.incWR)}** (${fmtPP(r.deltaPP)} vs faction)`,
+      `Win w/o: **${pct(r.withoutWR)}**`,
+      `Used: **${pct(r.used)}**`,
+      `Games: **${fmtInt(r.incGames)}**`,
+    ];
 
-          if (r.showAvgOcc) {
-            parts.push(`Avg occ: **${fmtNum(r.avgOcc, 2)}**`);
-          }
+    if (r.showAvgOcc) {
+      parts.push(`Avg occ: **${fmtNum(r.avgOcc, 2)}**`);
+    }
 
-          const line2 = parts.join(" | ");
-          return `${line1}\n${line2}\n${HR}`;
-        })
-        .join("\n")
-    : "—";
+    const line2 = parts.join(" | ");
+    return `${line1}\n${line2}\n${HR}`;
+  });
 
   const embed = new EmbedBuilder()
-    .setTitle(`Top ${top.length || limit} warscrolls pulling UP — ${factionName}`)
-    .addFields(
-      { name: "Overview", value: header },
-      { name: "Results", value: body }
+    .setTitle(
+      `Top ${top.length || 0} warscrolls pulling UP — ${factionName}`
     )
+    .addFields({ name: "Overview", value: header })
     .setFooter({ text: "Woehammer GT Database" });
+
+  if (!top.length) {
+    embed.addFields({
+      name: "Results",
+      value: "No warscrolls in the lookup are currently above the faction baseline.",
+    });
+    await interaction.reply({ embeds: [embed] });
+    return;
+  }
+
+  const chunks = chunkBlocksByChars(blocks, MAX_FIELD);
+
+  chunks.forEach((chunk, idx) => {
+    embed.addFields({
+      name: idx === 0 ? "Results" : "\u200B",
+      value: chunk,
+      inline: false,
+    });
+  });
 
   await interaction.reply({ embeds: [embed] });
 }
