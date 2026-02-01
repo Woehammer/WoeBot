@@ -5,6 +5,7 @@
 //          + deeper explanations (text-only, safe embed chunking)
 //          + OPTIONAL: battle formation filter
 //          + NEW: Manifestations / Heroic Traits / Artefacts usage
+//               + Used% of lists + Win rate (within lists that include it)
 // ==================================================
 
 // ==================================================
@@ -106,17 +107,40 @@ function getListText(row) {
   );
 }
 
+// --------------------------------------------------
+// TEXT MATCHING (robust for pipes + bullets)
+// --------------------------------------------------
 function escapeRegExp(s) {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// Phrase match that won’t false-match inside longer words.
+// Uses lookarounds instead of \b (handles apostrophes/commas better).
+function phraseRegexFragment(phrase) {
+  const esc = escapeRegExp(String(phrase).toLowerCase().trim());
+  // Not preceded/followed by alphanumeric
+  return `(?<![a-z0-9])${esc}(?![a-z0-9])`;
+}
+
+function getRowGames(r) {
+  const played = Number(r.Played ?? 0) || 0;
+  return played;
+}
+
+function getRowWins(r) {
+  const won = Number(r.Won ?? 0) || 0;
+  return won;
+}
+
 /**
- * Count usage of lookup items in the faction rows.
- * - Counts "rows that include it at least once"
- * - Good for traits/artefacts/manifestation lores
+ * Count usage + win rate of lookup items within the provided rows.
+ * - Usage: % of rows (lists) that include the item at least once
+ * - Win rate: wins/games across rows that include the item
+ * - Respects the already-sliced `rows` (formation scope etc.)
  */
-function countLookupUsage(rows, lookupItems, { filterFaction = null } = {}) {
-  const counts = new Map(); // norm(name) -> { name, n }
+function countLookupUsageWithWR(rows, lookupItems, { filterFaction = null } = {}) {
+  const totalRows = (rows || []).length;
+  const counts = new Map(); // key -> { name, rows, games, wins }
 
   const compiled = (lookupItems ?? [])
     .filter(Boolean)
@@ -133,36 +157,63 @@ function countLookupUsage(rows, lookupItems, { filterFaction = null } = {}) {
 
       if (!phrases.length) return null;
 
-      const pattern = phrases
-        .map((p) => escapeRegExp(p.toLowerCase()))
-        .join("|");
-
-      // soft boundaries work well for your pipe-delimited refined lists
-      const re = new RegExp(`(^|[|\\n\\r])\\s*(?:${pattern})\\b`, "i");
+      // Allow optional bullet/hyphen before phrase:
+      // "|• Zealous Orator|" or "Manifestation Lore - Manifestations of Khaine"
+      const alts = phrases.map(phraseRegexFragment).join("|");
+      const re = new RegExp(`(?:[•*\\-]\\s*)?(?:${alts})`, "i");
 
       return { key: norm(it.name), name: it.name, re };
     })
     .filter(Boolean);
 
-  if (!compiled.length) return { totalRows: rows.length, list: [] };
+  if (!compiled.length) return { totalRows, list: [] };
 
   for (const r of rows || []) {
     const text = String(getListText(r) ?? "");
     if (!text) continue;
 
+    const rowGames = getRowGames(r);
+    const rowWins = getRowWins(r);
+
     for (const it of compiled) {
-      if (it.re.test(text)) {
-        const cur = counts.get(it.key);
-        counts.set(it.key, { name: it.name, n: (cur?.n ?? 0) + 1 });
-      }
+      if (!it.re.test(text)) continue;
+
+      const cur =
+        counts.get(it.key) ?? { name: it.name, rows: 0, games: 0, wins: 0 };
+
+      // Count "lists that include it" once per row (not occurrences)
+      cur.rows += 1;
+      cur.games += rowGames;
+      cur.wins += rowWins;
+
+      counts.set(it.key, cur);
     }
   }
 
-  const list = [...counts.values()].sort((a, b) => b.n - a.n);
-  return { totalRows: (rows || []).length, list };
+  const list = [...counts.values()]
+    .map((x) => ({
+      name: x.name,
+      rows: x.rows,
+      usedPct: totalRows ? x.rows / totalRows : 0,
+      games: x.games,
+      wins: x.wins,
+      winRate: x.games > 0 ? x.wins / x.games : null,
+    }))
+    .sort((a, b) => {
+      // primary: most used
+      if (b.usedPct !== a.usedPct) return b.usedPct - a.usedPct;
+      // tie-break: more rows
+      if (b.rows !== a.rows) return b.rows - a.rows;
+      // then higher win rate
+      const aw = Number.isFinite(a.winRate) ? a.winRate : -Infinity;
+      const bw = Number.isFinite(b.winRate) ? b.winRate : -Infinity;
+      return bw - aw;
+    });
+
+  return { totalRows, list };
 }
 
-function formatTopUsageField(title, usage, { topN = 5 } = {}) {
+function formatTopUsageFieldWithWR(title, usage, { topN = 5 } = {}) {
   const total = usage?.totalRows ?? 0;
   const items = usage?.list ?? [];
 
@@ -177,8 +228,12 @@ function formatTopUsageField(title, usage, { topN = 5 } = {}) {
 
   const top = items.slice(0, topN);
   const lines = top.map((x, i) => {
-    const share = total ? x.n / total : 0;
-    return `${i + 1}) **${x.name}** — **${pct(share)}** (*${x.n}/${total}*)`;
+    const used = pct(x.usedPct);
+    const wr = Number.isFinite(x.winRate) ? pct(x.winRate) : "—";
+    return (
+      `${i + 1}) **${x.name}**\n` +
+      `Used: **${used}** (*${x.rows}/${total}*) | Win rate: **${wr}** (*${x.wins}/${x.games}*)`
+    );
   });
 
   return { name: title, value: `${lines.join("\n")}\n${HR}` };
@@ -403,47 +458,41 @@ export async function run(interaction, { system, engine }) {
   });
 
   // ==================================================
-  // NEW: LIST-BASED LOADOUT USAGE (SCOPED TO THIS VIEW)
+  // NEW: LIST-BASED LOADOUT USAGE + WR (SCOPED)
   // - uses already-sliced `rows`, so formation filter is respected
   // ==================================================
-  const manifestationsUsage = countLookupUsage(
+  const manifestationsUsage = countLookupUsageWithWR(
     rows,
     system?.lookups?.manifestations ?? [],
     { filterFaction: null } // manifestations not faction-scoped
   );
 
-  const traitsUsage = countLookupUsage(
+  const traitsUsage = countLookupUsageWithWR(
     rows,
     system?.lookups?.heroicTraits ?? [],
     { filterFaction: factionName }
   );
 
-  const artefactsUsage = countLookupUsage(
+  const artefactsUsage = countLookupUsageWithWR(
     rows,
     system?.lookups?.artefacts ?? [],
     { filterFaction: factionName }
   );
 
-  const manField = formatTopUsageField(
-    "Manifestations (Top 5)",
-    manifestationsUsage,
-    { topN: 5 }
-  );
+  const manField = formatTopUsageFieldWithWR("Manifestations (Top 5)", manifestationsUsage, {
+    topN: 5,
+  });
 
-  const traitField = formatTopUsageField(
-    "Heroic Traits (Top 5)",
-    traitsUsage,
-    { topN: 5 }
-  );
+  const traitField = formatTopUsageFieldWithWR("Heroic Traits (Top 5)", traitsUsage, {
+    topN: 5,
+  });
 
-  const artField = formatTopUsageField(
-    "Artefacts (Top 5)",
-    artefactsUsage,
-    { topN: 5 }
-  );
+  const artField = formatTopUsageFieldWithWR("Artefacts (Top 5)", artefactsUsage, {
+    topN: 5,
+  });
 
   // ==================================================
-  // BUILD EMBED (CHUNKED + DIVIDERS)
+  // BUILD EMBED (DIVIDERS)
   // ==================================================
   const embed = new EmbedBuilder()
     .setTitle(`${factionName} — ${scopeLabel}`)
@@ -501,9 +550,7 @@ export async function run(interaction, { system, engine }) {
     explainSampleSize({ games: summary.games, results: rows.length }),
     explainEloBaseline({ average: elo.average }),
     explainEloSkew({ average: elo.average, median: elo.median }),
-    explainPlayerFinishes({
-      considered: perf.considered,
-    }),
+    explainPlayerFinishes({ considered: perf.considered }),
     explainWinRateVsElo({
       winRate: summary.winRate,
       avgElo: elo.average,
