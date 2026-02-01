@@ -10,14 +10,16 @@
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { addChunkedSection } from "../ui/embedSafe.js"; // adjust path if needed
+import { addChunkedSection } from "../ui/embedSafe.js"; // ✅ commands -> ui
 
 // ==================================================
 // COMMAND DEFINITION
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("enhancements")
-  .setDescription("Shows top manifestations, heroic traits, and artefacts for a faction (used% + WR)")
+  .setDescription(
+    "Top manifestations, heroic traits, and artefacts for a faction (Used% of lists + Win% when included)"
+  )
   .addStringOption((opt) =>
     opt
       .setName("faction")
@@ -61,6 +63,7 @@ function fmtInt(x) {
 }
 
 function getListText(row) {
+  // Prefer Refined List (pipe-delimited), fallback to List
   return (
     row["Refined List"] ??
     row.RefinedList ??
@@ -75,9 +78,11 @@ function escapeRegExp(s) {
   return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// A slightly safer boundary fragment that works in your pipe/colon text
 function phraseRegexFragment(phrase) {
   const esc = escapeRegExp(String(phrase).toLowerCase().trim());
-  return `(?<![a-z0-9])${esc}(?![a-z0-9])`;
+  // boundaries: start, whitespace, pipe, colon, dash; and end, whitespace, pipe, comma
+  return `(?:^|[\\s|:\\-])${esc}(?=$|[\\s|,])`;
 }
 
 function getRowGames(r) {
@@ -88,7 +93,9 @@ function getRowWins(r) {
   return Number(r.Won ?? 0) || 0;
 }
 
-// Try to get a reliable faction list for autocomplete (same style as impact.js)
+// ------------------------------
+// Autocomplete helpers (same vibe as /impact)
+// ------------------------------
 function getFactionChoices({ system, engine }) {
   let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
   if (choices.length) return choices;
@@ -132,19 +139,19 @@ function findFactionName(system, engine, inputName) {
 }
 
 // --------------------------------------------------
-// CORE: count usage + WR (wins/games) within rows that include item
-// - usage is "rows/lists that include it at least once"
-// - WR is computed from Played/Won for those rows
+// CORE: usage + WR (wins/games) within rows that include item
+// - Used% is "share of lists (rows) that include it at least once"
+// - Win% is computed from Played/Won across those rows
 // --------------------------------------------------
 function countLookupUsageWithWR(rows, lookupItems, { filterFaction = null } = {}) {
   const totalRows = (rows || []).length;
-  const counts = new Map(); // key -> { name, rows, games, wins, usedPct, winRate }
+  const counts = new Map(); // key -> { name, rows, games, wins }
 
   const compiled = (lookupItems ?? [])
     .filter(Boolean)
     .filter((it) => {
       if (!filterFaction) return true;
-      if (!it.faction) return true;
+      if (!it.faction) return true; // allow unfactioned items
       return norm(it.faction) === norm(filterFaction);
     })
     .map((it) => {
@@ -156,7 +163,7 @@ function countLookupUsageWithWR(rows, lookupItems, { filterFaction = null } = {}
       if (!phrases.length) return null;
 
       const alts = phrases.map(phraseRegexFragment).join("|");
-      const re = new RegExp(`(?:[•*\\-]\\s*)?(?:${alts})`, "i");
+      const re = new RegExp(alts, "i");
 
       return { key: norm(it.name), name: it.name, re };
     })
@@ -195,7 +202,7 @@ function countLookupUsageWithWR(rows, lookupItems, { filterFaction = null } = {}
       winRate: x.games > 0 ? x.wins / x.games : null,
     }))
     .sort((a, b) => {
-      // sort by usage desc, tie by win rate desc
+      // usage desc, then win rate desc
       if (b.usedPct !== a.usedPct) return b.usedPct - a.usedPct;
       const aw = Number.isFinite(a.winRate) ? a.winRate : -Infinity;
       const bw = Number.isFinite(b.winRate) ? b.winRate : -Infinity;
@@ -209,21 +216,21 @@ function buildCategoryLines(title, usage, limit) {
   const total = usage?.totalRows ?? 0;
   const items = (usage?.list ?? []).slice(0, limit);
 
-  if (!total) {
-    return [`**${title}**`, "—", HR];
-  }
-  if (!items.length) {
+  if (!total) return [`**${title}**`, "—", HR];
+  if (!items.length)
     return [`**${title}**`, "No matches found in list text for this scope.", HR];
-  }
 
   const lines = [`**${title}**`];
 
   items.forEach((x, i) => {
     const used = pct(x.usedPct);
     const wr = Number.isFinite(x.winRate) ? pct(x.winRate) : "—";
+
     lines.push(
       `${i + 1}. **${x.name}**`,
-      `Used: **${used}** (*${x.rows}/${total}*) | Games: **${fmtInt(x.games)}** | Win: **${wr}** (*${fmtInt(x.wins)}/${fmtInt(x.games)}*)`,
+      `Used: **${used}** (*${x.rows}/${total}*) | Games: **${fmtInt(
+        x.games
+      )}** | Win: **${wr}** (*${fmtInt(x.wins)}/${fmtInt(x.games)}*)`,
       HR
     );
   });
@@ -253,8 +260,11 @@ export async function autocomplete(interaction, ctx) {
   // formation autocomplete (scoped if possible)
   if (focused.name === "formation") {
     const { engine, system } = ctx;
+
     const factionInput = (interaction.options.getString("faction") ?? "").trim();
-    const factionName = factionInput ? findFactionName(system, engine, factionInput) : null;
+    const factionName = factionInput
+      ? findFactionName(system, engine, factionInput)
+      : null;
 
     let formations = [];
     if (factionName && engine?.indexes?.formationsForFaction) {
@@ -279,7 +289,8 @@ export async function autocomplete(interaction, ctx) {
 // ==================================================
 export async function run(interaction, { system, engine }) {
   const inputFaction = interaction.options.getString("faction", true).trim();
-  const inputFormation = interaction.options.getString("formation", false)?.trim() || null;
+  const inputFormation =
+    interaction.options.getString("formation", false)?.trim() || null;
   const limit = interaction.options.getInteger("limit", false) ?? 5;
 
   const factionName = findFactionName(system, engine, inputFaction);
@@ -321,7 +332,7 @@ export async function run(interaction, { system, engine }) {
   const manifestationsUsage = countLookupUsageWithWR(
     rows,
     system?.lookups?.manifestations ?? [],
-    { filterFaction: null }
+    { filterFaction: null } // manifestations are global
   );
 
   const traitsUsage = countLookupUsageWithWR(
@@ -347,10 +358,9 @@ export async function run(interaction, { system, engine }) {
     .setTitle(`${factionName} — Enhancements (${scopeLabel})`)
     .setFooter({ text: "Woehammer GT Database" });
 
-  const header =
-    inputFormation
-      ? `Scope: **${factionName}** using **${inputFormation}**.\nShowing top **${limit}** per category (Used% of lists + win rate when included).`
-      : `Scope: **${factionName}** overall.\nShowing top **${limit}** per category (Used% of lists + win rate when included).`;
+  const header = inputFormation
+    ? `Scope: **${factionName}** using **${inputFormation}**.\nTop **${limit}** per category. Used% = share of lists. Win% = win rate in games where included.`
+    : `Scope: **${factionName}** overall.\nTop **${limit}** per category. Used% = share of lists. Win% = win rate in games where included.`;
 
   addChunkedSection(embed, {
     headerField: { name: "Overview", value: header },
