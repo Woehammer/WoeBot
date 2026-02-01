@@ -15,7 +15,7 @@ import topplayers from "./commands/topplayers.js";
 import impact from "./commands/impact.js";
 import leastimpact from "./commands/leastimpact.js";
 import common from "./commands/common.js";
-import leqstcommon from "./commands/leastcommon.js";
+import leastcommon from "./commands/leastcommon.js";
 
 // ==================================================
 // COMMAND REGISTRY
