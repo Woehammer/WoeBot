@@ -1,15 +1,16 @@
 // ==================================================
-// COMMAND: /leastimpact
-// PURPOSE: Warscrolls pulling DOWN a faction's win rate
-//          (Included win rate < faction baseline)
+// COMMAND: /leastcommon
+// PURPOSE: Least commonly taken warscrolls for a faction
+//          (ranked by Included Games / Used% ascending)
+//          + same stat line format as /impact
 // ==================================================
 
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { addChunkedSection } from "../ui/embedSafe.js";
 
 export const data = new SlashCommandBuilder()
-  .setName("leastimpact")
-  .setDescription("Top warscrolls pulling DOWN a faction's win rate (vs faction baseline)")
+  .setName("leastcommon")
+  .setDescription("Least commonly taken warscrolls for a faction")
   .addStringOption((opt) =>
     opt.setName("faction").setDescription("Faction name").setRequired(true).setAutocomplete(true)
   )
@@ -18,7 +19,7 @@ export const data = new SlashCommandBuilder()
       .setRequired(false).setMinValue(1).setMaxValue(25)
   );
 
-const HR = "──────────────";
+const HR="──────────────";
 function norm(s){return String(s??"").trim().toLowerCase();}
 function pct(x){return Number.isFinite(x)?`${(x*100).toFixed(1)}%`:"—";}
 function fmtPP(x){return Number.isFinite(x)?`${x>=0?"+":""}${x.toFixed(1)}pp`:"—";}
@@ -104,9 +105,7 @@ export async function run(interaction,{system,engine}){
 
     const incGames=Number(s.included.games??0);
     const incWR=Number(s.included.winRate??NaN);
-    if(!incGames||!Number.isFinite(incWR)) continue;
-
-    if(!(incWR < factionWR)) continue; // pulling DOWN
+    if(!Number.isFinite(incWR)) continue;
 
     const withoutWR=Number(s.without?.winRate??NaN);
     const used=usedPctByGames(incGames,factionGames);
@@ -121,17 +120,23 @@ export async function run(interaction,{system,engine}){
       used,
       avgOcc,
       showAvgOcc: shouldShowAvgOcc(avgOcc, incGames),
-      deltaPP: (incWR - factionWR) * 100, // negative
+      deltaPP: (incWR - factionWR) * 100,
     });
   }
 
-  // most negative first
-  rows.sort((a,b)=>a.deltaPP - b.deltaPP);
+  // least common first
+  rows.sort((a,b)=>{
+    if(a.incGames !== b.incGames) return a.incGames - b.incGames;
+    const au = Number.isFinite(a.used) ? a.used : Infinity;
+    const bu = Number.isFinite(b.used) ? b.used : Infinity;
+    return au - bu;
+  });
+
   const top=rows.slice(0,limit);
 
   const header =
     `Baseline (faction overall win rate): **${pct(factionWR)}**.\n` +
-    `Listed warscrolls: **win rate below baseline** (negative lift).`;
+    `Ranked by **Games included** (least seen first).`;
 
   const lines = top.length
     ? top.map((r,i)=>{
@@ -144,15 +149,15 @@ export async function run(interaction,{system,engine}){
         if(r.showAvgOcc) parts.push(`Avg occ: **${fmtNum(r.avgOcc,2)}**`);
         return `${i+1}. **${r.name}**\n${parts.join(" | ")}\n${HR}`;
       })
-    : ["No warscrolls in the lookup are currently below the faction baseline."];
+    : ["No warscrolls found for this faction in the lookup."];
 
-  const embed = new EmbedBuilder()
-    .setTitle(`Top ${top.length || 0} warscrolls pulling DOWN — ${factionName}`)
-    .setFooter({ text: "Woehammer GT Database" });
+  const embed=new EmbedBuilder()
+    .setTitle(`Top ${top.length || 0} least common warscrolls — ${factionName}`)
+    .setFooter({text:"Woehammer GT Database"});
 
   addChunkedSection(embed,{ headerField:{name:"Overview",value:header}, lines });
 
-  await interaction.reply({ embeds:[embed] });
+  await interaction.reply({embeds:[embed]});
 }
 
 export default { data, run, autocomplete };
