@@ -17,6 +17,7 @@ import warscroll from "../src/bot/commands/warscroll.js";
 import faction from "../src/bot/commands/faction.js";
 import topplayers from "../src/bot/commands/topplayers.js";
 import impact from "../src/bot/commands/impact.js";
+import leastimpact from "../src/bot/commands/leastimpact.js"; // ✅ add
 
 // ==================================================
 // HELPERS
@@ -28,6 +29,7 @@ function buildCommandPayload(system) {
     faction.data.toJSON(),
     topplayers.data.toJSON(),
     impact.data.toJSON(),
+    leastimpact.data.toJSON(), // ✅ add
   ];
 }
 
