@@ -163,6 +163,20 @@ const DAUGHTERS_OF_KHAINE = [
       "avatar of khaine",
     ],
   },
+{
+    name: "Scourge of Ghyran Bloodwrack Shrine",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "scourge of ghyran bloodwrack shrine",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Krethusa the Croneseer",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "scourge of ghyran krethusa the croneseer",
+    ],
+  },
 ];
 
 // ==================================================
