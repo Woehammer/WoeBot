@@ -1,116 +1,101 @@
 // ==================================================
 // COMMAND: /common
 // PURPOSE: Most commonly taken warscrolls for a faction
-//          (ranked by Included Games / Used%)
-//          + same stat line format as /impact
+//          (ranked by Used% based on games share)
+//          + same stats line format as /impact
 // ==================================================
 
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { addChunkedSection } from "../ui/embedSafe.js";
 
+import {
+  norm,
+  pct,
+  getFactionChoices,
+  findFactionName,
+  getWarscrollCandidates,
+  usedPctByGames,
+  shouldShowAvgOcc,
+  buildWarscrollBlocks,
+} from "./_warscrollListBase.js";
+
 export const data = new SlashCommandBuilder()
   .setName("common")
-  .setDescription("Most commonly taken warscrolls for a faction")
+  .setDescription("Most commonly taken warscrolls for a faction (by usage)")
   .addStringOption((opt) =>
-    opt.setName("faction").setDescription("Faction name").setRequired(true).setAutocomplete(true)
+    opt
+      .setName("faction")
+      .setDescription("Faction name")
+      .setRequired(true)
+      .setAutocomplete(true)
   )
   .addIntegerOption((opt) =>
-    opt.setName("limit").setDescription("How many warscrolls to show (default 10, max 25)")
-      .setRequired(false).setMinValue(1).setMaxValue(25)
+    opt
+      .setName("limit")
+      .setDescription("How many warscrolls to show (default 10, max 25)")
+      .setRequired(false)
+      .setMinValue(1)
+      .setMaxValue(25)
   );
 
-const HR="──────────────";
-function norm(s){return String(s??"").trim().toLowerCase();}
-function pct(x){return Number.isFinite(x)?`${(x*100).toFixed(1)}%`:"—";}
-function fmtPP(x){return Number.isFinite(x)?`${x>=0?"+":""}${x.toFixed(1)}pp`:"—";}
-function fmtInt(x){return Number.isFinite(x)?`${Math.round(x)}`:"—";}
-function fmtNum(x,dp=2){return Number.isFinite(x)?Number(x).toFixed(dp):"—";}
-function shouldShowAvgOcc(avgOcc, includedGames){
-  if(!Number.isFinite(avgOcc)) return false;
-  if(avgOcc>=1.05) return true;
-  if(Number.isFinite(includedGames) && includedGames>=10) return true;
-  return false;
-}
-function getFactionChoices({system,engine}){
-  let choices=system?.lookups?.factions?.map(f=>f.name)??[];
-  if(choices.length) return choices;
-  const byFaction=engine?.indexes?.get?.()?.byFaction;
-  if(byFaction instanceof Map){
-    return [...byFaction.values()].map(rows=>rows?.[0]?.Faction??rows?.[0]?.faction).filter(Boolean);
-  }
-  return [];
-}
-function findFactionName(system,engine,inputName){
-  const q=norm(inputName);
-  const factions=system?.lookups?.factions??[];
-  for(const f of factions){
-    if(norm(f.name)===q) return f.name;
-    for(const a of f.aliases??[]) if(norm(a)===q) return f.name;
-  }
-  const byFaction=engine?.indexes?.get?.()?.byFaction;
-  if(byFaction instanceof Map){
-    if(byFaction.has(q)){
-      const rows=byFaction.get(q);
-      const any=rows?.[0];
-      return any?.Faction??any?.faction??inputName;
-    }
-    for(const rows of byFaction.values()){
-      const any=rows?.[0];
-      const name=any?.Faction??any?.faction;
-      if(name && norm(name)===q) return name;
-    }
-  }
-  return null;
-}
-function getWarscrollCandidates(system,factionName){
-  const q=norm(factionName);
-  const ws=system?.lookups?.warscrolls??[];
-  return ws.filter(w=>norm(w.faction)===q).map(w=>w.name);
-}
-function usedPctByGames(includedGames,factionGames){
-  if(!Number.isFinite(includedGames)||!Number.isFinite(factionGames)||factionGames<=0) return null;
-  return includedGames/factionGames;
-}
+export async function autocomplete(interaction, ctx) {
+  const focused = interaction.options.getFocused(true);
+  if (focused.name !== "faction") return;
 
-export async function autocomplete(interaction,ctx){
-  const focused=interaction.options.getFocused(true);
-  if(focused.name!=="faction") return;
-  const q=norm(focused.value);
-  const choices=getFactionChoices(ctx);
+  const q = norm(focused.value);
+  const choices = getFactionChoices(ctx);
+
   await interaction.respond(
-    choices.filter(n=>!q||norm(n).includes(q)).slice(0,25).map(n=>({name:n,value:n}))
+    choices
+      .filter((n) => !q || norm(n).includes(q))
+      .slice(0, 25)
+      .map((n) => ({ name: n, value: n }))
   );
 }
 
-export async function run(interaction,{system,engine}){
-  const inputFaction=interaction.options.getString("faction",true).trim();
-  const limit=interaction.options.getInteger("limit",false)??10;
+export async function run(interaction, { system, engine }) {
+  const inputFaction = interaction.options.getString("faction", true).trim();
+  const limit = interaction.options.getInteger("limit", false) ?? 10;
 
-  const factionName=findFactionName(system,engine,inputFaction);
-  if(!factionName) return interaction.reply({content:`Couldn't match **${inputFaction}** to a known faction.`,ephemeral:true});
+  const factionName = findFactionName(system, engine, inputFaction);
+  if (!factionName) {
+    await interaction.reply({ content: `Couldn't match **${inputFaction}** to a known faction.`, ephemeral: true });
+    return;
+  }
 
-  const factionSummary=engine.indexes.factionSummary(factionName);
-  if(!factionSummary?.games) return interaction.reply({content:`No data found for **${factionName}**.`,ephemeral:true});
+  const factionSummary = engine.indexes.factionSummary(factionName);
+  if (!factionSummary?.games) {
+    await interaction.reply({ content: `No data found for **${factionName}**.`, ephemeral: true });
+    return;
+  }
 
-  const factionWR=Number(factionSummary.winRate??0);
-  const factionGames=Number(factionSummary.games??0);
+  const factionWR = Number(factionSummary.winRate ?? 0);
+  const factionGames = Number(factionSummary.games ?? 0);
 
-  const candidates=getWarscrollCandidates(system,factionName);
-  if(!candidates.length) return interaction.reply({content:`No warscroll lookup entries found for **${factionName}**.`,ephemeral:true});
+  const candidates = getWarscrollCandidates(system, factionName);
+  if (!candidates.length) {
+    await interaction.reply({ content: `No warscroll lookup entries found for **${factionName}**.`, ephemeral: true });
+    return;
+  }
 
-  const rows=[];
-  for(const wsName of candidates){
-    const s=engine.indexes.warscrollSummaryInFaction(wsName,factionName,3);
-    if(!s?.included) continue;
+  const rows = [];
+  for (const wsName of candidates) {
+    const s = engine.indexes.warscrollSummaryInFaction(wsName, factionName, 3);
+    if (!s?.included) continue;
 
-    const incGames=Number(s.included.games??0);
-    const incWR=Number(s.included.winRate??NaN);
-    if(!incGames||!Number.isFinite(incWR)) continue;
+    const incGames = Number(s.included.games ?? 0);
+    const incWR = Number(s.included.winRate ?? NaN);
+    if (!incGames || !Number.isFinite(incWR)) continue;
 
-    const withoutWR=Number(s.without?.winRate??NaN);
-    const used=usedPctByGames(incGames,factionGames);
+    const withoutWR = Number(s.without?.winRate ?? NaN);
+    const used = usedPctByGames(incGames, factionGames);
 
-    const avgOcc=Number(s.included.avgOccurrencesPerList ?? s.included.avgOcc ?? s.included.avg_occurrences ?? NaN);
+    const avgOcc = Number(
+      s.included.avgOccurrencesPerList ??
+      s.included.avgOcc ??
+      s.included.avg_occurrences ??
+      NaN
+    );
 
     rows.push({
       name: wsName,
@@ -124,40 +109,38 @@ export async function run(interaction,{system,engine}){
     });
   }
 
-  // most common first: use included games (and tie-break by used%)
-  rows.sort((a,b)=>{
-    if(b.incGames !== a.incGames) return b.incGames - a.incGames;
-    const bu = Number.isFinite(b.used) ? b.used : -Infinity;
-    const au = Number.isFinite(a.used) ? a.used : -Infinity;
-    return bu - au;
+  // Sort by usage desc, then by games desc as tie-breaker
+  rows.sort((a, b) => {
+    const ua = Number.isFinite(a.used) ? a.used : -Infinity;
+    const ub = Number.isFinite(b.used) ? b.used : -Infinity;
+    if (ub !== ua) return ub - ua;
+    return (b.incGames ?? 0) - (a.incGames ?? 0);
   });
 
-  const top=rows.slice(0,limit);
+  const top = rows.slice(0, limit);
+
+  const embed = new EmbedBuilder()
+    .setTitle(`Top ${top.length} most common warscrolls — ${factionName}`)
+    .setFooter({ text: "Woehammer GT Database" });
 
   const header =
     `Baseline (faction overall win rate): **${pct(factionWR)}**.\n` +
-    `Ranked by **Games included** (how often it's seen).`;
+    `Ranked by **Used%** (share of faction games where the warscroll appears).`;
 
-  const lines = top.length
-    ? top.map((r,i)=>{
-        const parts=[
-          `Win: **${pct(r.incWR)}** (${fmtPP(r.deltaPP)} vs faction)`,
-          `Win w/o: **${pct(r.withoutWR)}**`,
-          `Used: **${pct(r.used)}**`,
-          `Games: **${fmtInt(r.incGames)}**`,
-        ];
-        if(r.showAvgOcc) parts.push(`Avg occ: **${fmtNum(r.avgOcc,2)}**`);
-        return `${i+1}. **${r.name}**\n${parts.join(" | ")}\n${HR}`;
-      })
-    : ["No warscrolls found for this faction in the lookup."];
+  if (!top.length) {
+    embed.addFields({ name: "Overview", value: header }, { name: "Results", value: "No warscroll rows found for this faction (within lookup candidates)." });
+    await interaction.reply({ embeds: [embed] });
+    return;
+  }
 
-  const embed=new EmbedBuilder()
-    .setTitle(`Top ${top.length || 0} most common warscrolls — ${factionName}`)
-    .setFooter({text:"Woehammer GT Database"});
+  const lines = buildWarscrollBlocks(top);
 
-  addChunkedSection(embed,{ headerField:{name:"Overview",value:header}, lines });
+  addChunkedSection(embed, {
+    headerField: { name: "Overview", value: header },
+    lines,
+  });
 
-  await interaction.reply({embeds:[embed]});
+  await interaction.reply({ embeds: [embed] });
 }
 
 export default { data, run, autocomplete };
