@@ -4,8 +4,6 @@
 //          + player performance distribution (5-round results)
 //          + deeper explanations (text-only, safe embed chunking)
 //          + OPTIONAL: battle formation filter
-//          + NEW: Manifestations / Heroic Traits / Artefacts usage
-//               + Used% of lists + Win rate (within lists that include it)
 // ==================================================
 
 // ==================================================
@@ -15,33 +13,33 @@ import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { rankPlayersInFaction } from "../../engine/stats/playerRankings.js";
 
 import {
-  explainSampleSize,
-  explainEloBaseline,
-  explainEloSkew,
-  explainPlayerFinishes,
-  explainWinRateVsElo,
+explainSampleSize,
+explainEloBaseline,
+explainEloSkew,
+explainPlayerFinishes,
+explainWinRateVsElo,
 } from "../../engine/format/explain.js";
 
 // ==================================================
 // COMMAND DEFINITION
 // ==================================================
 export const data = new SlashCommandBuilder()
-  .setName("faction")
-  .setDescription("Shows stats for a faction")
-  .addStringOption((opt) =>
-    opt
-      .setName("name")
-      .setDescription("Faction name")
-      .setRequired(true)
-      .setAutocomplete(true)
-  )
-  .addStringOption((opt) =>
-    opt
-      .setName("formation")
-      .setDescription("Optional battle formation")
-      .setRequired(false)
-      .setAutocomplete(true)
-  );
+.setName("faction")
+.setDescription("Shows stats for a faction")
+.addStringOption((opt) =>
+opt
+.setName("name")
+.setDescription("Faction name")
+.setRequired(true)
+.setAutocomplete(true)
+)
+.addStringOption((opt) =>
+opt
+.setName("formation")
+.setDescription("Optional battle formation")
+.setRequired(false)
+.setAutocomplete(true)
+);
 
 // ==================================================
 // HELPERS
@@ -49,527 +47,346 @@ export const data = new SlashCommandBuilder()
 const HR = "──────────────";
 
 function norm(s) {
-  return String(s ?? "").trim().toLowerCase();
+return String(s ?? "").trim().toLowerCase();
 }
 
 function pct(x) {
-  if (!Number.isFinite(x)) return "—";
-  return `${(x * 100).toFixed(1)}%`;
+if (!Number.isFinite(x)) return "—";
+return ${(x * 100).toFixed(1)}%;
 }
 
 function fmt(x, dp = 0) {
-  if (!Number.isFinite(x)) return "—";
-  return Number(x).toFixed(dp);
+if (!Number.isFinite(x)) return "—";
+return Number(x).toFixed(dp);
 }
 
 function median(arr) {
-  if (!arr.length) return 0;
-  const a = [...arr].sort((x, y) => x - y);
-  const m = Math.floor(a.length / 2);
-  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+if (!arr.length) return 0;
+const a = [...arr].sort((x, y) => x - y);
+const m = Math.floor(a.length / 2);
+return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
 }
 
 function getClosingElo(row) {
-  const candidates = [
-    row["Closing Elo"],
-    row.ClosingElo,
-    row.closingElo,
-    row["ClosingElo"],
-  ];
-  for (const c of candidates) {
-    const v = Number(c);
-    if (Number.isFinite(v)) return v;
-  }
-  return null;
+const candidates = [
+row["Closing Elo"],
+row.ClosingElo,
+row.closingElo,
+row["ClosingElo"],
+];
+for (const c of candidates) {
+const v = Number(c);
+if (Number.isFinite(v)) return v;
+}
+return null;
 }
 
 function closingEloSummary(rows) {
-  const elos = (rows || []).map(getClosingElo).filter(Number.isFinite);
-  if (!elos.length) return { average: 0, median: 0, gap: 0 };
+const elos = (rows || []).map(getClosingElo).filter(Number.isFinite);
+if (!elos.length) return { average: 0, median: 0, gap: 0 };
 
-  const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
-  const med = median(elos);
+const avg = elos.reduce((a, b) => a + b, 0) / elos.length;
+const med = median(elos);
 
-  return { average: avg, median: med, gap: Math.abs(avg - med) };
-}
-
-// --------------------------------------------------
-// LIST TEXT ACCESS (prefer Refined List)
-// --------------------------------------------------
-function getListText(row) {
-  return (
-    row["Refined List"] ??
-    row.RefinedList ??
-    row.refinedList ??
-    row.List ??
-    row.list ??
-    ""
-  );
-}
-
-// --------------------------------------------------
-// TEXT MATCHING (robust for pipes + bullets)
-// --------------------------------------------------
-function escapeRegExp(s) {
-  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-// Phrase match that won’t false-match inside longer words.
-// Uses lookarounds instead of \b (handles apostrophes/commas better).
-function phraseRegexFragment(phrase) {
-  const esc = escapeRegExp(String(phrase).toLowerCase().trim());
-  // Not preceded/followed by alphanumeric
-  return `(?<![a-z0-9])${esc}(?![a-z0-9])`;
-}
-
-function getRowGames(r) {
-  const played = Number(r.Played ?? 0) || 0;
-  return played;
-}
-
-function getRowWins(r) {
-  const won = Number(r.Won ?? 0) || 0;
-  return won;
-}
-
-/**
- * Count usage + win rate of lookup items within the provided rows.
- * - Usage: % of rows (lists) that include the item at least once
- * - Win rate: wins/games across rows that include the item
- * - Respects the already-sliced `rows` (formation scope etc.)
- */
-function countLookupUsageWithWR(rows, lookupItems, { filterFaction = null } = {}) {
-  const totalRows = (rows || []).length;
-  const counts = new Map(); // key -> { name, rows, games, wins }
-
-  const compiled = (lookupItems ?? [])
-    .filter(Boolean)
-    .filter((it) => {
-      if (!filterFaction) return true;
-      if (!it.faction) return true; // allow unfactioned items
-      return norm(it.faction) === norm(filterFaction);
-    })
-    .map((it) => {
-      const phrases = [it.name, ...(it.aliases ?? [])]
-        .filter(Boolean)
-        .map((x) => String(x).trim())
-        .filter(Boolean);
-
-      if (!phrases.length) return null;
-
-      // Allow optional bullet/hyphen before phrase:
-      // "|• Zealous Orator|" or "Manifestation Lore - Manifestations of Khaine"
-      const alts = phrases.map(phraseRegexFragment).join("|");
-      const re = new RegExp(`(?:[•*\\-]\\s*)?(?:${alts})`, "i");
-
-      return { key: norm(it.name), name: it.name, re };
-    })
-    .filter(Boolean);
-
-  if (!compiled.length) return { totalRows, list: [] };
-
-  for (const r of rows || []) {
-    const text = String(getListText(r) ?? "");
-    if (!text) continue;
-
-    const rowGames = getRowGames(r);
-    const rowWins = getRowWins(r);
-
-    for (const it of compiled) {
-      if (!it.re.test(text)) continue;
-
-      const cur =
-        counts.get(it.key) ?? { name: it.name, rows: 0, games: 0, wins: 0 };
-
-      // Count "lists that include it" once per row (not occurrences)
-      cur.rows += 1;
-      cur.games += rowGames;
-      cur.wins += rowWins;
-
-      counts.set(it.key, cur);
-    }
-  }
-
-  const list = [...counts.values()]
-    .map((x) => ({
-      name: x.name,
-      rows: x.rows,
-      usedPct: totalRows ? x.rows / totalRows : 0,
-      games: x.games,
-      wins: x.wins,
-      winRate: x.games > 0 ? x.wins / x.games : null,
-    }))
-    .sort((a, b) => {
-      // primary: most used
-      if (b.usedPct !== a.usedPct) return b.usedPct - a.usedPct;
-      // tie-break: more rows
-      if (b.rows !== a.rows) return b.rows - a.rows;
-      // then higher win rate
-      const aw = Number.isFinite(a.winRate) ? a.winRate : -Infinity;
-      const bw = Number.isFinite(b.winRate) ? b.winRate : -Infinity;
-      return bw - aw;
-    });
-
-  return { totalRows, list };
-}
-
-function formatTopUsageFieldWithWR(title, usage, { topN = 5 } = {}) {
-  const total = usage?.totalRows ?? 0;
-  const items = usage?.list ?? [];
-
-  if (!total) return { name: title, value: `—\n${HR}` };
-
-  if (!items.length) {
-    return {
-      name: title,
-      value: `No matches found in list text for this scope.\n${HR}`,
-    };
-  }
-
-  const top = items.slice(0, topN);
-  const lines = top.map((x, i) => {
-    const used = pct(x.usedPct);
-    const wr = Number.isFinite(x.winRate) ? pct(x.winRate) : "—";
-    return (
-      `${i + 1}) **${x.name}**\n` +
-      `Used: **${used}** (*${x.rows}/${total}*) | Win rate: **${wr}** (*${x.wins}/${x.games}*)`
-    );
-  });
-
-  return { name: title, value: `${lines.join("\n")}\n${HR}` };
+return { average: avg, median: med, gap: Math.abs(avg - med) };
 }
 
 // ==================================================
 // FACTION MATCHING
 // ==================================================
 function findFaction(system, inputName) {
-  const factions = system?.lookups?.factions ?? [];
-  const q = norm(inputName);
+const factions = system?.lookups?.factions ?? [];
+const q = norm(inputName);
 
-  for (const f of factions) {
-    if (norm(f.name) === q) return f;
-    for (const a of f.aliases ?? []) {
-      if (norm(a) === q) return f;
-    }
-  }
-  return null;
+for (const f of factions) {
+if (norm(f.name) === q) return f;
+for (const a of f.aliases ?? []) {
+if (norm(a) === q) return f;
+}
+}
+return null;
 }
 
 function findFactionNameFromDataset(engine, inputName) {
-  const q = norm(inputName);
-  const byFaction = engine?.indexes?.get?.()?.byFaction;
-  if (!(byFaction instanceof Map)) return null;
+const q = norm(inputName);
+const byFaction = engine?.indexes?.get?.()?.byFaction;
+if (!(byFaction instanceof Map)) return null;
 
-  if (byFaction.has(q)) {
-    const rows = byFaction.get(q);
-    const any = rows?.[0];
-    return any?.Faction ?? any?.faction ?? inputName;
-  }
+if (byFaction.has(q)) {
+const rows = byFaction.get(q);
+const any = rows?.[0];
+return any?.Faction ?? any?.faction ?? inputName;
+}
 
-  for (const rows of byFaction.values()) {
-    const any = rows?.[0];
-    const name = any?.Faction ?? any?.faction;
-    if (name && norm(name) === q) return name;
-  }
+for (const rows of byFaction.values()) {
+const any = rows?.[0];
+const name = any?.Faction ?? any?.faction;
+if (name && norm(name) === q) return name;
+}
 
-  return null;
+return null;
 }
 
 // ==================================================
 // PLAYER PERFORMANCE DISTRIBUTION
 // ==================================================
 function performanceBuckets(rows) {
-  const buckets = new Map([
-    ["5-0", 0],
-    ["4-1", 0],
-    ["3-2", 0],
-    ["2-3", 0],
-    ["1-4", 0],
-    ["0-5", 0],
-  ]);
+const buckets = new Map([
+["5-0", 0],
+["4-1", 0],
+["3-2", 0],
+["2-3", 0],
+["1-4", 0],
+["0-5", 0],
+]);
 
-  let considered = 0;
-  let other = 0;
+let considered = 0;
+let other = 0;
 
-  for (const r of rows || []) {
-    const played = Number(r.Played ?? 0);
-    const won = Number(r.Won ?? 0);
-    const drawn = Number(r.Drawn ?? 0);
-    const lost = played - won - drawn;
+for (const r of rows || []) {
+const played = Number(r.Played ?? 0);
+const won = Number(r.Won ?? 0);
+const drawn = Number(r.Drawn ?? 0);
+const lost = played - won - drawn;
 
-    if (played === 5 && drawn === 0) {
-      const key = `${won}-${lost}`;
-      if (buckets.has(key)) {
-        buckets.set(key, (buckets.get(key) ?? 0) + 1);
-        considered++;
-      } else {
-        other++;
-      }
-    } else {
-      other++;
-    }
-  }
+if (played === 5 && drawn === 0) {  
+  const key = `${won}-${lost}`;  
+  if (buckets.has(key)) {  
+    buckets.set(key, (buckets.get(key) ?? 0) + 1);  
+    considered++;  
+  } else {  
+    other++;  
+  }  
+} else {  
+  other++;  
+}
 
-  const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
-  const lines = order.map((k) => {
-    const c = buckets.get(k) ?? 0;
-    const share = considered ? c / considered : 0;
-    return `${k}: **${pct(share)}**`;
-  });
+}
 
-  return { considered, other, text: lines.join("\n") };
+const order = ["5-0", "4-1", "3-2", "2-3", "1-4", "0-5"];
+const lines = order.map((k) => {
+const c = buckets.get(k) ?? 0;
+const share = considered ? c / considered : 0;
+return ${k}: **${pct(share)}**;
+});
+
+return { considered, other, text: lines.join("\n") };
 }
 
 // ==================================================
 // AUTOCOMPLETE
 // ==================================================
 export async function autocomplete(interaction, { system, engine }) {
-  const focused = interaction.options.getFocused(true);
-  const q = norm(focused.value);
+const focused = interaction.options.getFocused(true);
+const q = norm(focused.value);
 
-  // ------------------------------
-  // Faction autocomplete
-  // ------------------------------
-  if (focused.name === "name") {
-    let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
+// ------------------------------
+// Faction autocomplete
+// ------------------------------
+if (focused.name === "name") {
+let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
 
-    if (!choices.length) {
-      const byFaction = engine?.indexes?.get?.()?.byFaction;
-      if (byFaction instanceof Map) {
-        choices = [...byFaction.values()]
-          .map((rows) => rows?.[0]?.Faction ?? rows?.[0]?.faction)
-          .filter(Boolean);
-      }
-    }
+if (!choices.length) {  
+  const byFaction = engine?.indexes?.get?.()?.byFaction;  
+  if (byFaction instanceof Map) {  
+    choices = [...byFaction.values()]  
+      .map((rows) => rows?.[0]?.Faction ?? rows?.[0]?.faction)  
+      .filter(Boolean);  
+  }  
+}  
 
-    await interaction.respond(
-      choices
-        .filter((n) => !q || norm(n).includes(q))
-        .slice(0, 25)
-        .map((n) => ({ name: n, value: n }))
-    );
-    return;
-  }
+await interaction.respond(  
+  choices  
+    .filter((n) => !q || norm(n).includes(q))  
+    .slice(0, 25)  
+    .map((n) => ({ name: n, value: n }))  
+);  
+return;
 
-  // ------------------------------
-  // Formation autocomplete
-  // ------------------------------
-  if (focused.name === "formation") {
-    // try to scope formations by the selected faction (if present)
-    const factionInput = (interaction.options.getString("name") ?? "").trim();
-    const factionObj = factionInput ? findFaction(system, factionInput) : null;
-    const factionName =
-      factionObj?.name ??
-      (factionInput ? findFactionNameFromDataset(engine, factionInput) : null);
+}
 
-    let formations = [];
+// ------------------------------
+// Formation autocomplete
+// ------------------------------
+if (focused.name === "formation") {
+// try to scope formations by the selected faction (if present)
+const factionInput = (interaction.options.getString("name") ?? "").trim();
+const factionObj = factionInput ? findFaction(system, factionInput) : null;
+const factionName =
+factionObj?.name ??
+(factionInput ? findFactionNameFromDataset(engine, factionInput) : null);
 
-    if (factionName && engine?.indexes?.formationsForFaction) {
-      formations = engine.indexes.formationsForFaction(factionName);
-    } else if (engine?.indexes?.formationsAll) {
-      formations = engine.indexes.formationsAll();
-    }
+let formations = [];  
 
-    formations = (formations || []).filter(Boolean);
+if (factionName && engine?.indexes?.formationsForFaction) {  
+  formations = engine.indexes.formationsForFaction(factionName);  
+} else if (engine?.indexes?.formationsAll) {  
+  formations = engine.indexes.formationsAll();  
+}  
 
-    await interaction.respond(
-      formations
-        .filter((n) => !q || norm(n).includes(q))
-        .slice(0, 25)
-        .map((n) => ({ name: n, value: n }))
-    );
-  }
+// fallback safety  
+formations = (formations || []).filter(Boolean);  
+
+await interaction.respond(  
+  formations  
+    .filter((n) => !q || norm(n).includes(q))  
+    .slice(0, 25)  
+    .map((n) => ({ name: n, value: n }))  
+);
+
+}
 }
 
 // ==================================================
 // EXECUTION LOGIC
 // ==================================================
 export async function run(interaction, { system, engine }) {
-  const inputFaction = interaction.options.getString("name", true).trim();
-  const inputFormation =
-    interaction.options.getString("formation", false)?.trim() || null;
+const inputFaction = interaction.options.getString("name", true).trim();
+const inputFormation = interaction.options.getString("formation", false)?.trim() || null;
 
-  const factionObj = findFaction(system, inputFaction);
-  const factionName =
-    factionObj?.name ?? findFactionNameFromDataset(engine, inputFaction);
+const factionObj = findFaction(system, inputFaction);
+const factionName =
+factionObj?.name ?? findFactionNameFromDataset(engine, inputFaction);
 
-  if (!factionName) {
-    await interaction.reply({
-      content: `Couldn't match **${inputFaction}** to a known faction.`,
-      ephemeral: true,
-    });
-    return;
-  }
+if (!factionName) {
+await interaction.reply({
+content: Couldn't match **${inputFaction}** to a known faction.,
+ephemeral: true,
+});
+return;
+}
 
-  // ------------------------------
-  // Slice rows (formation optional)
-  // ------------------------------
-  let rows = [];
-  let summary = null;
-  let scopeLabel = "Overall";
+// ------------------------------
+// Slice rows (formation optional)
+// ------------------------------
+let rows = [];
+let summary = null;
+let scopeLabel = "Overall";
 
-  if (inputFormation) {
-    rows = engine.indexes.factionRowsInFormation(factionName, inputFormation);
-    summary = engine.indexes.factionSummaryInFormation
-      ? engine.indexes.factionSummaryInFormation(factionName, inputFormation)
-      : null;
-    scopeLabel = inputFormation;
+if (inputFormation) {
+rows = engine.indexes.factionRowsInFormation(factionName, inputFormation);
+summary = engine.indexes.factionSummaryInFormation
+? engine.indexes.factionSummaryInFormation(factionName, inputFormation)
+: null;
+scopeLabel = inputFormation;
 
-    if (!rows.length) {
-      await interaction.reply({
-        content: `No data found for **${factionName}** using formation **${inputFormation}**.`,
-        ephemeral: true,
-      });
-      return;
-    }
-  } else {
-    rows = engine.indexes.factionRows(factionName);
-    summary = engine.indexes.factionSummary(factionName);
+if (!rows.length) {  
+  await interaction.reply({  
+    content: `No data found for **${factionName}** using formation **${inputFormation}**.`,  
+    ephemeral: true,  
+  });  
+  return;  
+}
 
-    if (!rows.length) {
-      await interaction.reply({
-        content: `No data found for **${factionName}**.`,
-        ephemeral: true,
-      });
-      return;
-    }
-  }
+} else {
+rows = engine.indexes.factionRows(factionName);
+summary = engine.indexes.factionSummary(factionName);
 
-  // safety if summary helper missing
-  if (!summary) {
-    let games = 0;
-    let wins = 0;
-    for (const r of rows) {
-      games += Number(r.Played ?? 0) || 0;
-      wins += Number(r.Won ?? 0) || 0;
-    }
-    summary = { games, winRate: games > 0 ? wins / games : 0 };
-  }
+if (!rows.length) {  
+  await interaction.reply({  
+    content: `No data found for **${factionName}**.`,  
+    ephemeral: true,  
+  });  
+  return;  
+}
 
-  const elo = closingEloSummary(rows);
-  const perf = performanceBuckets(rows);
+}
 
-  const topPlayers = rankPlayersInFaction({
-    rows,
-    topN: 3,
-    minGames: 0,
-    minEvents: 0,
-    mode: "latest",
-  });
+// safety if summary helper missing
+if (!summary) {
+// compute minimal summary from rows
+let games = 0;
+let wins = 0;
+for (const r of rows) {
+games += Number(r.Played ?? 0) || 0;
+wins += Number(r.Won ?? 0) || 0;
+}
+summary = { games, winRate: games > 0 ? wins / games : 0 };
+}
 
-  // ==================================================
-  // NEW: LIST-BASED LOADOUT USAGE + WR (SCOPED)
-  // - uses already-sliced `rows`, so formation filter is respected
-  // ==================================================
-  const manifestationsUsage = countLookupUsageWithWR(
-    rows,
-    system?.lookups?.manifestations ?? [],
-    { filterFaction: null } // manifestations not faction-scoped
-  );
+const elo = closingEloSummary(rows);
+const perf = performanceBuckets(rows);
 
-  const traitsUsage = countLookupUsageWithWR(
-    rows,
-    system?.lookups?.heroicTraits ?? [],
-    { filterFaction: factionName }
-  );
+const topPlayers = rankPlayersInFaction({
+rows,
+topN: 3,
+minGames: 0,
+minEvents: 0,
+mode: "latest",
+});
 
-  const artefactsUsage = countLookupUsageWithWR(
-    rows,
-    system?.lookups?.artefacts ?? [],
-    { filterFaction: factionName }
-  );
+// ==================================================
+// BUILD EMBED (CHUNKED + DIVIDERS)
+// ==================================================
+const embed = new EmbedBuilder()
+.setTitle(${factionName} — ${scopeLabel})
+.setFooter({ text: "Woehammer GT Database" })
+.addFields(
+{
+name: "Win Rate",
+value:
+Games: **${summary.games}**\n +
+Win rate: **${pct(summary.winRate)}**\n +
+${HR},
+},
+{
+name: "Closing Elo",
+value:
+Average: **${fmt(elo.average, 1)}**\n +
+Median: **${fmt(elo.median, 1)}**\n +
+Gap: **${fmt(elo.gap, 1)}**\n +
+${HR},
+},
+{
+name: "Player Performance",
+value:
+(perf.considered
+? Based on **${perf.considered}** 5-round results\n
+: No clean 5-round results found\n) +
+${perf.text} +
+(perf.other ? \n*Other/unknown results: (${perf.other})* : "") +
+\n${HR},
+},
+{
+name: "Top Players (Current Battlescroll)",
+value: topPlayers.length
+? topPlayers
+.map((p, i) => ${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**)
+.join("\n") + \n${HR}
+: —\n${HR},
+}
+);
 
-  const manField = formatTopUsageFieldWithWR("Manifestations (Top 5)", manifestationsUsage, {
-    topN: 5,
-  });
+// ==================================================
+// EXPLANATIONS (PARAGRAPHS)
+// ==================================================
+const explanations = [
+explainSampleSize({ games: summary.games, results: rows.length }),
+explainEloBaseline({ average: elo.average }),
+explainEloSkew({ average: elo.average, median: elo.median }),
+explainPlayerFinishes({
+considered: perf.considered,
+// if you later upgrade explain.js, you can pass the actual bucket distribution too
+}),
+explainWinRateVsElo({
+winRate: summary.winRate,
+avgElo: elo.average,
+medianElo: elo.median,
+games: summary.games,
+}),
+].filter(Boolean);
 
-  const traitField = formatTopUsageFieldWithWR("Heroic Traits (Top 5)", traitsUsage, {
-    topN: 5,
-  });
+if (explanations.length) {
+embed.addFields({
+name: "What this means",
+value:
+(inputFormation
+? This section applies **only** to **${factionName}** using **${inputFormation}**.\n\n
+: "") + explanations.join("\n\n"),
+});
+}
 
-  const artField = formatTopUsageFieldWithWR("Artefacts (Top 5)", artefactsUsage, {
-    topN: 5,
-  });
-
-  // ==================================================
-  // BUILD EMBED (DIVIDERS)
-  // ==================================================
-  const embed = new EmbedBuilder()
-    .setTitle(`${factionName} — ${scopeLabel}`)
-    .setFooter({ text: "Woehammer GT Database" })
-    .addFields(
-      {
-        name: "Win Rate",
-        value:
-          `Games: **${summary.games}**\n` +
-          `Win rate: **${pct(summary.winRate)}**\n` +
-          `${HR}`,
-      },
-      {
-        name: "Closing Elo",
-        value:
-          `Average: **${fmt(elo.average, 1)}**\n` +
-          `Median: **${fmt(elo.median, 1)}**\n` +
-          `Gap: **${fmt(elo.gap, 1)}**\n` +
-          `${HR}`,
-      },
-      {
-        name: "Player Performance",
-        value:
-          (perf.considered
-            ? `Based on **${perf.considered}** 5-round results\n`
-            : `No clean 5-round results found\n`) +
-          `${perf.text}` +
-          (perf.other ? `\n*Other/unknown results: (${perf.other})*` : "") +
-          `\n${HR}`,
-      },
-      {
-        name: "Top Players (Current Battlescroll)",
-        value: topPlayers.length
-          ? topPlayers
-              .map(
-                (p, i) =>
-                  `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`
-              )
-              .join("\n") + `\n${HR}`
-          : `—\n${HR}`,
-      },
-
-      // ==================================================
-      // NEW SECTIONS (DO NOT REMOVE EXISTING OUTPUT)
-      // ==================================================
-      manField,
-      traitField,
-      artField
-    );
-
-  // ==================================================
-  // EXPLANATIONS (PARAGRAPHS)
-  // ==================================================
-  const explanations = [
-    explainSampleSize({ games: summary.games, results: rows.length }),
-    explainEloBaseline({ average: elo.average }),
-    explainEloSkew({ average: elo.average, median: elo.median }),
-    explainPlayerFinishes({ considered: perf.considered }),
-    explainWinRateVsElo({
-      winRate: summary.winRate,
-      avgElo: elo.average,
-      medianElo: elo.median,
-      games: summary.games,
-    }),
-  ].filter(Boolean);
-
-  if (explanations.length) {
-    embed.addFields({
-      name: "What this means",
-      value:
-        (inputFormation
-          ? `This section applies **only** to **${factionName}** using **${inputFormation}**.\n\n`
-          : "") + explanations.join("\n\n"),
-    });
-  }
-
-  await interaction.reply({ embeds: [embed] });
+await interaction.reply({ embeds: [embed] });
 }
 
 // ==================================================
