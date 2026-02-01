@@ -4,6 +4,7 @@
 //          + player performance distribution (5-round results)
 //          + deeper explanations (text-only, safe embed chunking)
 //          + OPTIONAL: battle formation filter
+//          + NEW: Manifestations / Heroic Traits / Artefacts usage
 // ==================================================
 
 // ==================================================
@@ -89,6 +90,98 @@ function closingEloSummary(rows) {
   const med = median(elos);
 
   return { average: avg, median: med, gap: Math.abs(avg - med) };
+}
+
+// --------------------------------------------------
+// LIST TEXT ACCESS (prefer Refined List)
+// --------------------------------------------------
+function getListText(row) {
+  return (
+    row["Refined List"] ??
+    row.RefinedList ??
+    row.refinedList ??
+    row.List ??
+    row.list ??
+    ""
+  );
+}
+
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Count usage of lookup items in the faction rows.
+ * - Counts "rows that include it at least once"
+ * - Good for traits/artefacts/manifestation lores
+ */
+function countLookupUsage(rows, lookupItems, { filterFaction = null } = {}) {
+  const counts = new Map(); // norm(name) -> { name, n }
+
+  const compiled = (lookupItems ?? [])
+    .filter(Boolean)
+    .filter((it) => {
+      if (!filterFaction) return true;
+      if (!it.faction) return true; // allow unfactioned items
+      return norm(it.faction) === norm(filterFaction);
+    })
+    .map((it) => {
+      const phrases = [it.name, ...(it.aliases ?? [])]
+        .filter(Boolean)
+        .map((x) => String(x).trim())
+        .filter(Boolean);
+
+      if (!phrases.length) return null;
+
+      const pattern = phrases
+        .map((p) => escapeRegExp(p.toLowerCase()))
+        .join("|");
+
+      // soft boundaries work well for your pipe-delimited refined lists
+      const re = new RegExp(`(^|[|\\n\\r])\\s*(?:${pattern})\\b`, "i");
+
+      return { key: norm(it.name), name: it.name, re };
+    })
+    .filter(Boolean);
+
+  if (!compiled.length) return { totalRows: rows.length, list: [] };
+
+  for (const r of rows || []) {
+    const text = String(getListText(r) ?? "");
+    if (!text) continue;
+
+    for (const it of compiled) {
+      if (it.re.test(text)) {
+        const cur = counts.get(it.key);
+        counts.set(it.key, { name: it.name, n: (cur?.n ?? 0) + 1 });
+      }
+    }
+  }
+
+  const list = [...counts.values()].sort((a, b) => b.n - a.n);
+  return { totalRows: (rows || []).length, list };
+}
+
+function formatTopUsageField(title, usage, { topN = 5 } = {}) {
+  const total = usage?.totalRows ?? 0;
+  const items = usage?.list ?? [];
+
+  if (!total) return { name: title, value: `—\n${HR}` };
+
+  if (!items.length) {
+    return {
+      name: title,
+      value: `No matches found in list text for this scope.\n${HR}`,
+    };
+  }
+
+  const top = items.slice(0, topN);
+  const lines = top.map((x, i) => {
+    const share = total ? x.n / total : 0;
+    return `${i + 1}) **${x.name}** — **${pct(share)}** (*${x.n}/${total}*)`;
+  });
+
+  return { name: title, value: `${lines.join("\n")}\n${HR}` };
 }
 
 // ==================================================
@@ -222,7 +315,6 @@ export async function autocomplete(interaction, { system, engine }) {
       formations = engine.indexes.formationsAll();
     }
 
-    // fallback safety
     formations = (formations || []).filter(Boolean);
 
     await interaction.respond(
@@ -239,7 +331,8 @@ export async function autocomplete(interaction, { system, engine }) {
 // ==================================================
 export async function run(interaction, { system, engine }) {
   const inputFaction = interaction.options.getString("name", true).trim();
-  const inputFormation = interaction.options.getString("formation", false)?.trim() || null;
+  const inputFormation =
+    interaction.options.getString("formation", false)?.trim() || null;
 
   const factionObj = findFaction(system, inputFaction);
   const factionName =
@@ -289,7 +382,6 @@ export async function run(interaction, { system, engine }) {
 
   // safety if summary helper missing
   if (!summary) {
-    // compute minimal summary from rows
     let games = 0;
     let wins = 0;
     for (const r of rows) {
@@ -309,6 +401,46 @@ export async function run(interaction, { system, engine }) {
     minEvents: 0,
     mode: "latest",
   });
+
+  // ==================================================
+  // NEW: LIST-BASED LOADOUT USAGE (SCOPED TO THIS VIEW)
+  // - uses already-sliced `rows`, so formation filter is respected
+  // ==================================================
+  const manifestationsUsage = countLookupUsage(
+    rows,
+    system?.lookups?.manifestations ?? [],
+    { filterFaction: null } // manifestations not faction-scoped
+  );
+
+  const traitsUsage = countLookupUsage(
+    rows,
+    system?.lookups?.heroicTraits ?? [],
+    { filterFaction: factionName }
+  );
+
+  const artefactsUsage = countLookupUsage(
+    rows,
+    system?.lookups?.artefacts ?? [],
+    { filterFaction: factionName }
+  );
+
+  const manField = formatTopUsageField(
+    "Manifestations (Top 5)",
+    manifestationsUsage,
+    { topN: 5 }
+  );
+
+  const traitField = formatTopUsageField(
+    "Heroic Traits (Top 5)",
+    traitsUsage,
+    { topN: 5 }
+  );
+
+  const artField = formatTopUsageField(
+    "Artefacts (Top 5)",
+    artefactsUsage,
+    { topN: 5 }
+  );
 
   // ==================================================
   // BUILD EMBED (CHUNKED + DIVIDERS)
@@ -346,10 +478,20 @@ export async function run(interaction, { system, engine }) {
         name: "Top Players (Current Battlescroll)",
         value: topPlayers.length
           ? topPlayers
-              .map((p, i) => `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`)
+              .map(
+                (p, i) =>
+                  `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`
+              )
               .join("\n") + `\n${HR}`
           : `—\n${HR}`,
-      }
+      },
+
+      // ==================================================
+      // NEW SECTIONS (DO NOT REMOVE EXISTING OUTPUT)
+      // ==================================================
+      manField,
+      traitField,
+      artField
     );
 
   // ==================================================
@@ -361,7 +503,6 @@ export async function run(interaction, { system, engine }) {
     explainEloSkew({ average: elo.average, median: elo.median }),
     explainPlayerFinishes({
       considered: perf.considered,
-      // if you later upgrade explain.js, you can pass the actual bucket distribution too
     }),
     explainWinRateVsElo({
       winRate: summary.winRate,
