@@ -13,7 +13,9 @@ import warscroll from "./commands/warscroll.js";
 import faction from "./commands/faction.js";
 import topplayers from "./commands/topplayers.js";
 import impact from "./commands/impact.js";
-import leastimpact from "./commands/leastimpact.js"; // ✅ add
+import leastimpact from "./commands/leastimpact.js";
+import common from "./commands/common.js";
+import leqstcommon from "./commands/leastcommon.js";
 
 // ==================================================
 // COMMAND REGISTRY
@@ -24,7 +26,9 @@ export const COMMANDS = [
   faction,
   topplayers,
   impact,
-  leastimpact, // ✅ add
+  leastimpact,
+  common,
+  leastcommon,
 ];
 
 // ==================================================
