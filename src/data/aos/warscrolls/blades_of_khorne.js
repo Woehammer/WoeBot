@@ -232,6 +232,13 @@ const BLADES_OF_KHORNE = [
       "scourge of ghyran bloodcrushers",
     ],
   },
+{
+    name: "Skull Altar",
+    faction: "Blades of Khorne",
+    aliases: [
+      "skull altar",
+    ],
+  },
 ];
 
 // ==================================================
