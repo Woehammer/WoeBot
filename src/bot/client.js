@@ -13,11 +13,19 @@ import warscroll from "./commands/warscroll.js";
 import faction from "./commands/faction.js";
 import topplayers from "./commands/topplayers.js";
 import impact from "./commands/impact.js";
+import leastimpact from "./commands/leastimpact.js"; // ✅ add
 
 // ==================================================
 // COMMAND REGISTRY
 // ==================================================
-export const COMMANDS = [ping, warscroll, faction, topplayers, impact]; // ✅ add
+export const COMMANDS = [
+  ping,
+  warscroll,
+  faction,
+  topplayers,
+  impact,
+  leastimpact, // ✅ add
+];
 
 // ==================================================
 // HELPERS
