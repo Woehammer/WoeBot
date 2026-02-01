@@ -1,121 +1,141 @@
 // ==================================================
-// UI: EMBED SAFE RENDERER
-// PURPOSE: Prevent Discord embed limits crashes by chunking
+// COMMAND: /impact
+// PURPOSE: Top warscrolls pulling UP a faction's win rate
+//          (Included win rate > faction baseline)
 // ==================================================
 
-const LIMITS = {
-  FIELD_VALUE: 1024,
-  FIELD_NAME: 256,
-  FIELDS_PER_EMBED: 25,
-  EMBED_TOTAL: 6000,
-};
+import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { addChunkedSection } from "../ui/embedSafe.js";
 
-function clampStr(s, max) {
-  const str = String(s ?? "");
-  if (str.length <= max) return str;
-  return str.slice(0, Math.max(0, max - 1)) + "…";
-}
+import {
+  norm,
+  pct,
+  getFactionChoices,
+  findFactionName,
+  getWarscrollCandidates,
+  usedPctByGames,
+  shouldShowAvgOcc,
+  buildWarscrollBlocks,
+} from "./_warscrollListBase.js";
 
-function safeFieldName(name) {
-  const n = String(name ?? "\u200B") || "\u200B";
-  return clampStr(n, LIMITS.FIELD_NAME);
-}
-
-function safeFieldValue(value) {
-  const v = String(value ?? "\u200B") || "\u200B";
-  return clampStr(v, LIMITS.FIELD_VALUE);
-}
-
-function estimateEmbedSize(embed) {
-  let total = 0;
-  const data = embed.data ?? {};
-  if (data.title) total += String(data.title).length;
-  if (data.description) total += String(data.description).length;
-  if (data.footer?.text) total += String(data.footer.text).length;
-
-  for (const f of data.fields ?? []) {
-    total += String(f.name ?? "").length + String(f.value ?? "").length;
-  }
-  return total;
-}
-
-// Split lines into <=1024 field values
-export function chunkLinesToFields(lines, { fieldName = "Results" } = {}) {
-  const out = [];
-  let buf = "";
-
-  const pushBuf = (name) => {
-    if (!buf) return;
-    out.push({
-      name: safeFieldName(name),
-      value: safeFieldValue(buf),
-      inline: false,
-    });
-    buf = "";
-  };
-
-  for (const raw of lines ?? []) {
-    const line = String(raw ?? "");
-    const candidate = buf ? `${buf}\n${line}` : line;
-
-    if (candidate.length <= LIMITS.FIELD_VALUE) {
-      buf = candidate;
-      continue;
-    }
-
-    // flush existing buffer
-    pushBuf(out.length === 0 ? fieldName : "Results (cont.)");
-
-    // single line too big? hard cut
-    if (line.length > LIMITS.FIELD_VALUE) {
-      out.push({
-        name: safeFieldName(out.length === 0 ? fieldName : "Results (cont.)"),
-        value: safeFieldValue(clampStr(line, LIMITS.FIELD_VALUE)),
-        inline: false,
-      });
-    } else {
-      buf = line;
-    }
-  }
-
-  pushBuf(out.length === 0 ? fieldName : "Results (cont.)");
-  return out;
-}
-
-// Add a header + chunked results safely (handles 25 fields + total size)
-export function addChunkedSection(embed, { headerField = null, lines = [] } = {}) {
-  if (headerField?.name && headerField?.value) {
-    embed.addFields({
-      name: safeFieldName(headerField.name),
-      value: safeFieldValue(headerField.value),
-      inline: false,
-    });
-  }
-
-  const existing = embed.data?.fields?.length ?? 0;
-  const remainingFieldSlots = Math.max(0, LIMITS.FIELDS_PER_EMBED - existing);
-
-  const fields = chunkLinesToFields(lines, { fieldName: "Results" }).slice(
-    0,
-    remainingFieldSlots
+export const data = new SlashCommandBuilder()
+  .setName("impact")
+  .setDescription("Top warscrolls pulling UP a faction's win rate (vs faction baseline)")
+  .addStringOption((opt) =>
+    opt
+      .setName("faction")
+      .setDescription("Faction name")
+      .setRequired(true)
+      .setAutocomplete(true)
+  )
+  .addIntegerOption((opt) =>
+    opt
+      .setName("limit")
+      .setDescription("How many warscrolls to show (default 10, max 25)")
+      .setRequired(false)
+      .setMinValue(1)
+      .setMaxValue(25)
   );
 
-  if (fields.length) embed.addFields(...fields);
+export async function autocomplete(interaction, ctx) {
+  const focused = interaction.options.getFocused(true);
+  if (focused.name !== "faction") return;
 
-  // final total-size guard
-  const size = estimateEmbedSize(embed);
-  if (size > LIMITS.EMBED_TOTAL) {
-    const fs = embed.data?.fields ?? [];
-    if (fs.length) {
-      const last = fs[fs.length - 1];
-      last.value = safeFieldValue(
-        clampStr(last.value, Math.max(0, LIMITS.FIELD_VALUE - 80)) +
-          "\n…(trimmed to fit Discord limits)"
-      );
-    }
-  }
+  const q = norm(focused.value);
+  const choices = getFactionChoices(ctx);
 
-  return embed;
+  await interaction.respond(
+    choices
+      .filter((n) => !q || norm(n).includes(q))
+      .slice(0, 25)
+      .map((n) => ({ name: n, value: n }))
+  );
 }
 
-export const EMBED_LIMITS = LIMITS;
+export async function run(interaction, { system, engine }) {
+  const inputFaction = interaction.options.getString("faction", true).trim();
+  const limit = interaction.options.getInteger("limit", false) ?? 10;
+
+  const factionName = findFactionName(system, engine, inputFaction);
+  if (!factionName) {
+    await interaction.reply({ content: `Couldn't match **${inputFaction}** to a known faction.`, ephemeral: true });
+    return;
+  }
+
+  const factionSummary = engine.indexes.factionSummary(factionName);
+  if (!factionSummary?.games) {
+    await interaction.reply({ content: `No data found for **${factionName}**.`, ephemeral: true });
+    return;
+  }
+
+  const factionWR = Number(factionSummary.winRate ?? 0);
+  const factionGames = Number(factionSummary.games ?? 0);
+
+  const candidates = getWarscrollCandidates(system, factionName);
+  if (!candidates.length) {
+    await interaction.reply({ content: `No warscroll lookup entries found for **${factionName}**.`, ephemeral: true });
+    return;
+  }
+
+  const rows = [];
+  for (const wsName of candidates) {
+    const s = engine.indexes.warscrollSummaryInFaction(wsName, factionName, 3);
+    if (!s?.included) continue;
+
+    const incGames = Number(s.included.games ?? 0);
+    const incWR = Number(s.included.winRate ?? NaN);
+    if (!incGames || !Number.isFinite(incWR)) continue;
+
+    // Only "pulling UP"
+    if (!(incWR > factionWR)) continue;
+
+    const withoutWR = Number(s.without?.winRate ?? NaN);
+    const used = usedPctByGames(incGames, factionGames);
+
+    const avgOcc = Number(
+      s.included.avgOccurrencesPerList ??
+      s.included.avgOcc ??
+      s.included.avg_occurrences ??
+      NaN
+    );
+
+    rows.push({
+      name: wsName,
+      incWR,
+      incGames,
+      withoutWR,
+      used,
+      avgOcc,
+      showAvgOcc: shouldShowAvgOcc(avgOcc, incGames),
+      deltaPP: (incWR - factionWR) * 100,
+    });
+  }
+
+  rows.sort((a, b) => b.deltaPP - a.deltaPP);
+  const top = rows.slice(0, limit);
+
+  const embed = new EmbedBuilder()
+    .setTitle(`Top ${top.length} warscrolls pulling UP — ${factionName}`)
+    .setFooter({ text: "Woehammer GT Database" });
+
+  const header =
+    `Baseline (faction overall win rate): **${pct(factionWR)}**.\n` +
+    `Listed warscrolls: **win rate above baseline** (positive lift).`;
+
+  if (!top.length) {
+    embed.addFields({ name: "Overview", value: header }, { name: "Results", value: "No warscrolls are above baseline (within lookup candidates)." });
+    await interaction.reply({ embeds: [embed] });
+    return;
+  }
+
+  const lines = buildWarscrollBlocks(top);
+
+  addChunkedSection(embed, {
+    headerField: { name: "Overview", value: header },
+    lines,
+  });
+
+  await interaction.reply({ embeds: [embed] });
+}
+
+export default { data, run, autocomplete };
