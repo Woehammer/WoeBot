@@ -1,6 +1,6 @@
 // ==================================================
 // COMMAND: /topplayers
-// PURPOSE: Top 10 players by latest Closing Elo
+// PURPOSE: Top players by latest Closing Elo
 //          (global or filtered by Country)
 //          + most-used faction
 // ==================================================
@@ -9,6 +9,7 @@
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { addChunkedSection } from "../ui/embedSafe.js";
 
 // ==================================================
 // COMMAND DEFINITION
@@ -94,21 +95,15 @@ function getClosingElo(r) {
   return null;
 }
 
-// Pull rows in a way that fits your current engine shape.
-// If your engine exposes a better "allRows()", swap it in here.
 function getAllRows(engine) {
-  // Most robust: dataset service often has getCached() or similar.
-  // But we’ll try a few options so it doesn’t break.
   const idx = engine?.indexes;
 
   if (typeof idx?.allRows === "function") return idx.allRows();
   if (typeof idx?.getAllRows === "function") return idx.getAllRows();
 
-  // If your indexes cache raw rows somewhere (common pattern):
   const maybe = idx?.get?.();
   if (maybe?.rows && Array.isArray(maybe.rows)) return maybe.rows;
 
-  // Last resort: if indexes exposes byFaction map, flatten it:
   const byFaction = maybe?.byFaction;
   if (byFaction instanceof Map) {
     const flat = [];
@@ -131,7 +126,6 @@ function rankTopPlayers({ rows, country = null, limit = 10 } = {}) {
     ? rows.filter((r) => norm(getCountry(r)) === qCountry)
     : rows;
 
-  // group rows by player
   const byPlayer = new Map();
 
   for (const r of filtered) {
@@ -148,15 +142,10 @@ function rankTopPlayers({ rows, country = null, limit = 10 } = {}) {
       {
         player: String(player),
         latestElo: null,
-        latestDt: null, // millis UTC
-        // Most used faction
+        latestDt: null,
         factionCounts: new Map(),
-        rows: 0,
       };
 
-    entry.rows++;
-
-    // most-used faction
     if (faction) {
       const fk = norm(faction);
       entry.factionCounts.set(fk, {
@@ -165,24 +154,20 @@ function rankTopPlayers({ rows, country = null, limit = 10 } = {}) {
       });
     }
 
-    // latest Elo by Date
     if (Number.isFinite(elo)) {
       if (entry.latestElo === null) {
         entry.latestElo = elo;
-        entry.latestDt = dt; // may be null, still ok
+        entry.latestDt = dt;
       } else {
-        // Prefer dated comparisons when possible
         if (dt !== null && entry.latestDt !== null) {
           if (dt > entry.latestDt) {
             entry.latestElo = elo;
             entry.latestDt = dt;
           }
         } else if (dt !== null && entry.latestDt === null) {
-          // If we previously had no date, and now we do, prefer the dated one
           entry.latestElo = elo;
           entry.latestDt = dt;
         } else if (dt === null && entry.latestDt === null) {
-          // Both undated: keep last seen (dataset order)
           entry.latestElo = elo;
           entry.latestDt = null;
         }
@@ -203,11 +188,9 @@ function rankTopPlayers({ rows, country = null, limit = 10 } = {}) {
       player: e.player,
       elo: e.latestElo,
       mostUsedFaction: bestFaction?.name ?? "—",
-      rows: e.rows,
     });
   }
 
-  // sort by Elo desc; nulls last
   list.sort((a, b) => {
     const ea = Number.isFinite(a.elo) ? a.elo : -Infinity;
     const eb = Number.isFinite(b.elo) ? b.elo : -Infinity;
@@ -265,20 +248,22 @@ export async function run(interaction, { engine }) {
 
   const title = country ? `Top Players — ${country}` : "Top Players — Global";
 
-  const body = top.length
-  ? top
-      .map(
+  const lines = top.length
+    ? top.map(
         (p, i) =>
           `${i + 1}) **${p.player}** — **${fmt(p.elo)}**\n` +
           `Most used: *${p.mostUsedFaction}*\n${HR}`
       )
-      .join("\n")
-  : "—";
+    : ["—"];
 
   const embed = new EmbedBuilder()
     .setTitle(title)
-    .addFields({ name: "\u200B", value: body })
     .setFooter({ text: "Woehammer GT Database" });
+
+  addChunkedSection(embed, {
+    headerField: null,
+    lines,
+  });
 
   await interaction.reply({ embeds: [embed] });
 }
