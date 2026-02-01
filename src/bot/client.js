@@ -16,6 +16,7 @@ import impact from "./commands/impact.js";
 import leastimpact from "./commands/leastimpact.js";
 import common from "./commands/common.js";
 import leastcommon from "./commands/leastcommon.js";
+import enhancements from "./commands/enhancements.js";
 
 // ==================================================
 // COMMAND REGISTRY
@@ -29,6 +30,7 @@ export const COMMANDS = [
   leastimpact,
   common,
   leastcommon,
+  enhancements,
 ];
 
 // ==================================================
