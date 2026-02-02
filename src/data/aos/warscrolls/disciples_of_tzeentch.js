@@ -43,6 +43,41 @@ const DISCIPLES_OF_TZEENTCH = [
       "gaunt summoner on disc of tzeentch",
     ],
   },
+{
+    name: "Kairos Fateweaver",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "kairos fateweaver",
+    ],
+  },
+{
+    name: "Lord of Change",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "lord of change",
+    ],
+  },
+{
+    name: "magister",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "magister",
+    ],
+  },
+{
+    name: "Magister on Disc of Tzeentch",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "magister on disc of tzeentch",
+    ],
+  },
+{
+    name: "Ogroid Thaumaturge",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "ogroid thaumaturge",
+    ],
+  },
 ];
 
 // ==================================================
