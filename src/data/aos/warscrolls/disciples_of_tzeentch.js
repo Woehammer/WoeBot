@@ -78,6 +78,55 @@ const DISCIPLES_OF_TZEENTCH = [
       "ogroid thaumaturge",
     ],
   },
+{
+    name: "The Changeling",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "the changeling",
+    ],
+  },
+{
+    name: "Tzaangor Shaman",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "tzaangor shaman",
+    ],
+  },
+{
+    name: "Blue Horrors and Brimstone Horrors",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "blue horrors and brimstone horrors",
+    ],
+  },
+{
+    name: "Exalted Flamer of Tzeentch",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "exalted flamer of tzeentch",
+    ],
+  },
+{
+    name: "Flamers of Tzeentch",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "flamers of tzeentch",
+    ],
+  },
+{
+    name: "Jade Obelisk",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "jade obelisk",
+    ],
+  },
+{
+    name: "Kairic Acolytes",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "kairic acolytes",
+    ],
+  },
 ];
 
 // ==================================================
