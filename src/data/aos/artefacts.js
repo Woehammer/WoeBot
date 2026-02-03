@@ -170,6 +170,20 @@ export const ARTEFACTS_AOS = [
       "the grisly pennant",
     ],
   },
+{
+    name: "Broken Sceptre of the Solstice",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "broken sceptre of the solstice",
+    ],
+  },
+{
+    name: "Feted Coronet",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "feted coronet",
+    ],
+  },
 ];
 
 // ==================================================
