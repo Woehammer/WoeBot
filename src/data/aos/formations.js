@@ -158,6 +158,41 @@ export const FORMATIONS_AOS = [
       "the croneseers pariahs",
     ],
   },
+{
+    name: "Masters of Fate",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "masters of fate",
+    ],
+  },
+{
+    name: "Spellweaver Coven",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "spellweaver coven",
+    ],
+  },
+{
+    name: "Arcanite Cabal",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "arcanite cabal",
+    ],
+  },
+{
+    name: "Change Host",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "change host",
+    ],
+  },
+{
+    name: "Tzaangor Coven",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "tzaangor coven",
+    ],
+  },
 ];
 
 // ==================================================
