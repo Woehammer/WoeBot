@@ -176,6 +176,20 @@ const FLESH_EATER_COURTS = [
       "charnel throne",
     ],
   },
+{
+    name: "Scourge of Ghyran Abhorrant Ghoul King",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "scourge of ghyran abhorrant ghoul king",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Abhorrant Gorewarden",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "scourge of ghyran abhorrant gorewarden",
+    ],
+  },
 ];
 
 // ==================================================
