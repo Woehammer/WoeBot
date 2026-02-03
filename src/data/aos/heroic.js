@@ -135,6 +135,27 @@ export const HEROIC_TRAITS_AOS = [
       "nexus of fate",
     ],
   },
+{
+    name: "Cruel Taskmaster",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "cruel taskmaster",
+    ],
+  },
+{
+    name: "Savage Beyond Reason",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "savage beyond reason",
+    ],
+  },
+{
+    name: "Stronger in Madness",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "stronger in madness",
+    ],
+  },
 ];
 
 // ==================================================
