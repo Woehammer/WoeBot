@@ -149,6 +149,27 @@ export const ARTEFACTS_AOS = [
       "spell-catcher amulet",
     ],
   },
+{
+    name: "Charnel Vestments",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "charnel vestments",
+    ],
+  },
+{
+    name: "The Splintered Femur",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "the splintered femur",
+    ],
+  },
+{
+    name: "The Grisly Pennant",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "the grisly pennant",
+    ],
+  },
 ];
 
 // ==================================================
