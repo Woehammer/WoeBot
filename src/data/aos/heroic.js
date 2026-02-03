@@ -177,6 +177,21 @@ export const HEROIC_TRAITS_AOS = [
       "savage abomination",
     ],
   },
+{
+    name: "Lord of Revelries",
+    faction: "Flesh-eater Courts",
+    aliases: [
+       "lord of revelries",
+    ],
+  },
+{
+    name: "Tip of the King's Lance",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "tip of the king's lance",
+      "tip of the kings lance",
+    ],
+  },
 ];
 
 // ==================================================
