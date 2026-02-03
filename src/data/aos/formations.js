@@ -242,6 +242,20 @@ export const FORMATIONS_AOS = [
       "questing courtiers",
     ],
   },
+{
+    name: "The Equinox Feast",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "the equinox feast",
+    ],
+  },
+{
+    name: "The Knights of New Summercourt",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "the knights of new summercourt",
+    ],
+  },
 ];
 
 // ==================================================
