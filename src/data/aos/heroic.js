@@ -156,6 +156,27 @@ export const HEROIC_TRAITS_AOS = [
       "stronger in madness",
     ],
   },
+{
+    name: "Horribly Resilient",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "horribly resilient",
+    ],
+  },
+{
+    name: "Revered Monstrosity",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "revered monstrosity",
+    ],
+  },
+{
+    name: "Savage Abomination",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "savage abomination",
+    ],
+  },
 ];
 
 // ==================================================
