@@ -114,6 +114,27 @@ export const HEROIC_TRAITS_AOS = [
       "proselyte of morning heg",
     ],
   },
+{
+    name: "Cult Demagogue",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "cult demagogue",
+    ],
+  },
+{
+    name: "Illusionist",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "illusionist",
+    ],
+  },
+{
+    name: "Nexus of Fate",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "nexus of fate",
+    ],
+  },
 ];
 
 // ==================================================
