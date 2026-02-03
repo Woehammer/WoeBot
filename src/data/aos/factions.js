@@ -42,6 +42,15 @@ export const FACTIONS_AOS = [
     iconkey: "daughters_of_khaine",
   },
 {
+    key: "disciples_of_tzeentch",
+    name: "Disciples of Tzeentch",
+    grandAlliance: "Chaos",
+    aliases: [
+      "disciples of tzeentch",
+    ],
+    iconkey: "disciples_of_tzeentch",
+  },
+{
     key: "gloomspite_gitz",
     name: "Gloomspite Gitz",
     grandAlliance: "Destruction",
