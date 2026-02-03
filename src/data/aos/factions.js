@@ -51,13 +51,13 @@ export const FACTIONS_AOS = [
     iconkey: "disciples_of_tzeentch",
   },
 {
-    key: "flesh-eater_courts",
+    key: "flesh_eater_courts",
     name: "Flesh-eater Courts",
     grandAlliance: "Death",
     aliases: [
       "flesh-eater courts",
     ],
-    iconkey: "flesh-eater_courts",
+    iconkey: "flesh_eater_courts",
   },
 {
     key: "gloomspite_gitz",
