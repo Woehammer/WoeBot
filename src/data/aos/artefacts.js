@@ -106,6 +106,49 @@ export const ARTEFACTS_AOS = [
       "sevenfold shadow",
     ],
   },
+{
+    name: "Ambition's End",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "ambition's end",
+      "ambitions end",
+    ],
+  },
+{
+    name: "Nine-eyed Tome",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "nine-eyed tome",
+    ],
+  },
+{
+    name: "Wyrdflame Blade",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "wyrdflame blade",
+    ],
+  },
+{
+    name: "Arcane Siphon",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "arcane siphon",
+    ],
+  },
+{
+    name: "Mutating Blade",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "mutating blade",
+    ],
+  },
+{
+    name: "Spell-Catcher Amulet",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "spell-catcher amulet",
+    ],
+  },
 ];
 
 // ==================================================
