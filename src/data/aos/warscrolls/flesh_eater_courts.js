@@ -106,6 +106,76 @@ const FLESH_EATER_COURTS = [
       "ushoran, mortarch of delusion",
     ],
   },
+{
+    name: "Crypt Flayers",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "crypt flayers",
+    ],
+  },
+{
+    name: "Crypt Ghouls",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "crypt ghouls",
+    ],
+  },
+{
+    name: "Crypt Horrors",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "crypt horrors",
+    ],
+  },
+{
+    name: "Cryptguard",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "cryptguard",
+    ],
+  },
+{
+    name: "Royal Beastflayers",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "royal beastflayers",
+    ],
+  },
+{
+    name: "Morbheg Knights",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "morbheg knights",
+    ],
+  },
+{
+    name: "Varghulf Courtier",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "varghulf courtier",
+    ],
+  },
+{
+    name: "Royal Terrorgheist",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "royal terrorgheist",
+    ],
+  },
+{
+    name: "Royal Zombie Dragon",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "royal zombie dragon",
+    ],
+  },
+{
+    name: "Charnel Throne",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "charnel throne",
+    ],
+  },
 ];
 
 // ==================================================
