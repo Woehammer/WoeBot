@@ -193,6 +193,13 @@ export const FORMATIONS_AOS = [
       "tzaangor coven",
     ],
   },
+{
+    name: "Wyrdflame Host",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "wyrdflame host",
+    ],
+  },
 ];
 
 // ==================================================
