@@ -200,6 +200,48 @@ export const FORMATIONS_AOS = [
       "wyrdflame host",
     ],
   },
+{
+    name: "Knightly Echelon",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "knightly echelon",
+    ],
+  },
+{
+    name: "Lords of the Manor",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "lords of the manor",
+    ],
+  },
+{
+    name: "Royal Menagerie",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "royal menagerie",
+    ],
+  },
+{
+    name: "The Royal Hunt",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "the royal hunt",
+    ],
+  },
+{
+    name: "Impassioned Serfs",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "impassioned serfs",
+    ],
+  },
+{
+    name: "Questing Courtiers",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "questing courtiers",
+    ],
+  },
 ];
 
 // ==================================================
