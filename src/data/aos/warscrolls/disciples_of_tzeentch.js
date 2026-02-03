@@ -127,6 +127,76 @@ const DISCIPLES_OF_TZEENTCH = [
       "kairic acolytes",
     ],
   },
+{
+    name: "Pink Horrors",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "pink horrors",
+    ],
+  },
+{
+    name: "Tzaangor Enlightened",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "tzaangor enlightened",
+    ],
+  },
+{
+    name: "Tzaangors",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "tzaangors",
+    ],
+  },
+{
+    name: "Tzaangor Enlightened on Discs of Tzeentch",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "tzaangor enlightened on discs of tzeentch",
+    ],
+  },
+{
+    name: "Tzaangor Skyfires",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "tzaangor skyfires",
+    ],
+  },
+{
+    name: "Chaos Spawn of Tzeentch",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "chaos spawn of tzeentch",
+    ],
+  },
+{
+    name: "Screamers of Tzeentch",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "screamers of tzeentch",
+    ],
+  },
+{
+    name: "Burning Chariot of Tzeentch",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "burning chariot of tzeentch",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Ogroid Thaumaturge",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "scourge of ghyran ogroid thaumaturge",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Kairic Acolytes",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "scourge of ghyran kairic acolytes",
+    ],
+  },
 ];
 
 // ==================================================
