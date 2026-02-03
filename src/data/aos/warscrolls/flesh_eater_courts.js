@@ -29,6 +29,13 @@ const FLESH_EATER_COURTS = [
       "abhorrant ghoul king",
     ],
   },
+{
+    name: "Abhorrant Ghoul King on Royal Terrorgheist",
+    faction: "Flesh-eater Courts",
+    aliases: [
+      "abhorrant ghoul king on royal terrorgheist",
+    ],
+  },
 ];
 
 // ==================================================
