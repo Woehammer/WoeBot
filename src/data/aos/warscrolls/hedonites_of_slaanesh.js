@@ -16,31 +16,31 @@ const HEDONITES_OF_SLAANESH = [
     ],
   },
   {
-    name: "Bloodwrack Shrine",
-    faction: "Daughters of Khaine",
+    name: "Contorted Epitome",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "bloodwrack shrine",
+      "contorted epitome",
     ],
   },
 {
-    name: "Hag Queen",
-    faction: "Daughters of Khaine",
+    name: "Dexcessa, the Talon of Slaanesh",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "hag queen",
+      "dexcessa, the talon of slaanesh",
     ],
   },
 {
-    name: "Hag Queen on Cauldron of Blood",
-    faction: "Daughters of Khaine",
+    name: "Glutos Orscollion, Lord of Gluttony",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "hag queen on cauldron of blood",
+      "glutos orscollion, lord of gluttony",
     ],
   },
 {
-    name: "High Gladiatrix",
-    faction: "Daughters of Khaine",
+    name: "Infernal Enrapturess, Herald of Slaanesh",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "high gladiatrix",
+      "infernal enrapturess, herald of slaanesh",
     ],
   },
 {
