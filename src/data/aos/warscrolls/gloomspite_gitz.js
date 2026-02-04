@@ -281,6 +281,20 @@ const GLOOMSPITE_GITZ = [
       "bad moon loonshrine",
     ],
   },
+{
+    name: "Scourge of Ghyran Sporesplatta Fanatics",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "scourge of ghyran sporesplatta fanatics",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Loonsmasha Fanatics",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "scourge of ghyran loonsmasha fanatics",
+    ],
+  },
 ];
 
 // ==================================================
