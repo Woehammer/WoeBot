@@ -50,6 +50,12 @@ export const MANIFESTATIONS_AOS = [
       "da king's gitz manifestation lore",
     ],
   },
+{
+    name: "Droggz's Gitmob Manifestation Lore",
+    aliases: [
+      "droggz's gitmob manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
