@@ -256,6 +256,41 @@ export const FORMATIONS_AOS = [
       "the knights of new summercourt",
     ],
   },
+{
+    name: "Forge Brethren",
+    faction: "Fyreslayers",
+    aliases: [
+      "forge brethren",
+    ],
+  },
+{
+    name: "Lords of the Lodge",
+    faction: "Fyreslayers",
+    aliases: [
+      "lords of the lodge",
+    ],
+  },
+{
+    name: "Scales of Vulcatrix",
+    faction: "Fyreslayers",
+    aliases: [
+      "scales of vulcatrix",
+    ],
+  },
+{
+    name: "Warrior Kinband",
+    faction: "Fyreslayers",
+    aliases: [
+      "warrior kinband",
+    ],
+  },
+{
+    name: "Lofnir Drothkeepers",
+    faction: "Fyreslayers",
+    aliases: [
+      "lofnir drothkeepers",
+    ],
+  },
 ];
 
 // ==================================================
