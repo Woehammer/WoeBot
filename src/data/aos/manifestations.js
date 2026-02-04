@@ -56,6 +56,12 @@ export const MANIFESTATIONS_AOS = [
       "droggz's gitmob manifestation lore",
     ],
   },
+{
+    name: "Manifestations of Depravity",
+    aliases: [
+      "manifestations of depravity",
+    ],
+  },
 ];
 
 // ==================================================
