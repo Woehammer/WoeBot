@@ -290,6 +290,13 @@ export const HEROIC_TRAITS_AOS = [
        "stick 'em and run",
     ],
   },
+{
+    name: "Loonstone Teef",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "loonstone teef",
+    ],
+  },
 ];
 
 // ==================================================
