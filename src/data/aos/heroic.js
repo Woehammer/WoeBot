@@ -241,6 +241,55 @@ export const HEROIC_TRAITS_AOS = [
        "raised around beasts",
     ],
   },
+{
+    name: "Fight Another Day",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "fight another day",
+    ],
+  },
+{
+    name: "Loontouched",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "loontouched",
+    ],
+  },
+{
+    name: "The Clammy Hand",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "the clammy hand",
+    ],
+  },
+{
+    name: "Da King's Adjutant",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "da king's adjutant",
+    ],
+  },
+{
+    name: "Glarejester",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "glarejester",
+    ],
+  },
+{
+    name: "Plucky Git",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "plucky git",
+    ],
+  },
+{
+    name: "Stick 'Em and Run",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "stick 'em and run",
+    ],
+  },
 ];
 
 // ==================================================
