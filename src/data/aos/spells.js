@@ -56,6 +56,24 @@ export const SPELLS_AOS = [
       "lore of the clammy dank",
     ],
   },
+{
+    name: "Lore of Frazzlegit",
+    aliases: [
+      "lore of frazzlegit",
+    ],
+  },
+{
+    name: "Da King's Gitz Spell Lore",
+    aliases: [
+      "da king's gitz spell lore",
+    ],
+  },
+{
+    name: "Droggz's Gitmob Spell Lore",
+    aliases: [
+      "droggz's gitmob spell lore",
+    ],
+  },
 ];
 
 // ==================================================
