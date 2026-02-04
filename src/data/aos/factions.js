@@ -68,6 +68,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "gloomspite_gitz",
   },
+{
+    key: "hedonites_of_slaanesh",
+    name: "Hedonites of Slaanesh",
+    grandAlliance: "Chaos",
+    aliases: [
+      "hedonites of slaanesh",
+    ],
+    iconkey: "hedonites_of_slaanesh",
+  },
 ];
 
 // ==================================================
