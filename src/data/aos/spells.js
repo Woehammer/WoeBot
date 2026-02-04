@@ -74,6 +74,12 @@ export const SPELLS_AOS = [
       "droggz's gitmob spell lore",
     ],
   },
+{
+    name: "Lore of Extravagance",
+    aliases: [
+      "lore of extravagance",
+    ],
+  },
 ];
 
 // ==================================================
