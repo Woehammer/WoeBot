@@ -9,39 +9,45 @@
 
 export const SPELLS_AOS = [
   {
-    name: "Manifestations of Khaine",
+    name: "Spells of the Collegiate Arcane",
     aliases: [
-      "manifestatations of khaine",
+      "spells of the collegiate arcane",
     ],
   },
   {
-    name: "Judgements of Khorne",
+    name: "Lore of Shadows",
     aliases: [
-      "judgements of khorne",
+      "lore of shadows",
     ],
   },
   {
-    name: "Manifestations of Tzeentch",
+    name: "Lore of Change",
     aliases: [
-      "manifestations of tzeentch",
+      "lore of change",
     ],
   },
 {
-    name: "Manifested Insanity",
+    name: "Lore of Fate",
     aliases: [
-      "manifested insanity",
+      "lore of fate",
     ],
   },
 {
-    name: "Magmic Invocations",
+    name: "Lore of Madness",
     aliases: [
-      "magmic invocations",
+      "lore of madness",
     ],
   },
 {
-    name: "Dank Manifestations",
+    name: "The Knights of New Summercourt Spell Lore",
     aliases: [
-      "dank manifestations",
+      "the knights of new summercourt spell lore",
+    ],
+  },
+{
+    name: "The Equinox Feast Spell Lore",
+    aliases: [
+      "the equinox feast spell lore",
     ],
   },
 ];
