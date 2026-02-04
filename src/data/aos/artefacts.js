@@ -184,6 +184,34 @@ export const ARTEFACTS_AOS = [
       "feted coronet",
     ],
   },
+{
+    name: "Ash-cloud Rune",
+    faction: "Fyreslayers",
+    aliases: [
+       "ash-cloud rune",
+    ],
+  },
+{
+    name: "Draught of the Finest Magmalt",
+    faction: "Fyreslayers",
+    aliases: [
+       "draught of the finest magmalt",
+    ],
+  },
+{
+    name: "Droth-helm",
+    faction: "Fyreslayers",
+    aliases: [
+       "droth-helm",
+    ],
+  },
+{
+    name: "Mastery Over Monsters",
+    faction: "Fyreslayers",
+    aliases: [
+       "mastery over monsters",
+    ],
+  },
 ];
 
 // ==================================================
