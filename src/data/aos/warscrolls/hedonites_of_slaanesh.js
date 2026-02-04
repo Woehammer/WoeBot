@@ -44,87 +44,87 @@ const HEDONITES_OF_SLAANESH = [
     ],
   },
 {
-    name: "Krethusa the Croneseer",
-    faction: "Daughters of Khaine",
+    name: "Keeper of Secrets",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "krethusa the croneseer",
+      "keeper of secrets",
     ],
   },
 {
-    name: "Melusai Ironscale",
-    faction: "Daughters of Khaine",
+    name: "Lord of Hubris",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "melusai ironscale",
+      "lord of hubris",
     ],
   },
 {
-    name: "Morathi-Khaine",
-    faction: "Daughters of Khaine",
+    name: "Lord of Pain",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "morathi-khaine",
+      "lord of pain",
     ],
   },
 {
-    name: "Slaughter Queen",
-    faction: "Daughters of Khaine",
+    name: "Shalaxi Helbane",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "slaughter queen",
+      "shalaxi helbane",
     ],
   },
 {
-    name: "Slaughter Queen on Cauldron of Blood",
-    faction: "Daughters of Khaine",
+    name: "Shardspeaker of Slaanesh",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "slaughter queen on cauldron of blood",
+      "shardspeaker of slaanesh",
     ],
   },
 {
-    name: "The Shadow Queen",
-    faction: "Daughters of Khaine",
+    name: "Sigvald, Prince of Slaanesh",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "the shadow queen",
+      "sigvald, prince of slaanesh",
     ],
   },
 {
-    name: "Blood Sisters",
-    faction: "Daughters of Khaine",
+    name: "Syll'Esske, the Vengeful Allegiance",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "blood sisters",
+      "syll'esske, the vengeful allegiance",
     ],
   },
 {
-    name: "Blood Stalkers",
-    faction: "Daughters of Khaine",
+    name: "Synessa, the Voice of Slaanesh",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "blood stalkers",
+      "synessa, the voice of slaanesh",
     ],
   },
 {
-    name: "Khainite Shadowstalkers",
-    faction: "Daughters of Khaine",
+    name: "The Masque",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "khainite shadowstalkers",
+      "the masque",
     ],
   },
 {
-    name: "Khinerai Heartrenders",
-    faction: "Daughters of Khaine",
+    name: "Blissbard Archers",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "khinerai heartrenders",
+      "blissbarb archers",
     ],
   },
 {
-    name: "Khinerai Lifetakers",
-    faction: "Daughters of Khaine",
+    name: "Daemonettes",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "khinerai lifetakers",
+      "daemonettes",
     ],
   },
 {
-    name: "Sisters of Slaughter with Bladed Bucklers",
-    faction: "Daughters of Khaine",
+    name: "Myrmidesh Painbringers",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "sisters of slaughter with bladed bucklers",
+      "myrmidesh painbringers",
     ],
   },
 {
