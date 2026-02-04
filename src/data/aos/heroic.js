@@ -192,6 +192,55 @@ export const HEROIC_TRAITS_AOS = [
       "tip of the kings lance",
     ],
   },
+{
+    name: "Ash-beard",
+    faction: "Fyreslayers",
+    aliases: [
+       "ash-beard",
+    ],
+  },
+{
+    name: "Blood of the Berzerker",
+    faction: "Fyreslayers",
+    aliases: [
+       "blood of the berzerker",
+    ],
+  },
+{
+    name: "Fiercely Competitive",
+    faction: "Fyreslayers",
+    aliases: [
+       "fiercely competitive",
+    ],
+  },
+{
+    name: "Incandescent Blaze",
+    faction: "Fyreslayers",
+    aliases: [
+       "incandescent blaze",
+    ],
+  },
+{
+    name: "Peerless Lineage",
+    faction: "Fyreslayers",
+    aliases: [
+       "peerless lineage",
+    ],
+  },
+{
+    name: "Thickened Scales",
+    faction: "Fyreslayers",
+    aliases: [
+       "thickened scales",
+    ],
+  },
+{
+    name: "Raised Around Beasts",
+    faction: "Fyreslayers",
+    aliases: [
+       "raised around beasts",
+    ],
+  },
 ];
 
 // ==================================================
