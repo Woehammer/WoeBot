@@ -9,6 +9,7 @@ import daughtersOfKhaine from "./warscrolls/daughters_of_khaine.js";
 import disciplesOfTzeentch from "./warscrolls/disciples_of_tzeentch.js";
 import fleshEaterCourts from "./warscrolls/flesh_eater_courts.js";
 import fyreslayers from "./warscrolls/fyreslayers.js";
+import gloomspiteGitz from "./warscrolls/gloomspite_gitz.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -21,6 +22,7 @@ export const WARSCROLLS_AOS = [
   ...disciplesOfTzeentch,
   ...fleshEaterCourts,
   ...fyreslayers,
+  ...gloomspiteGitz,
 ];
 
 // ==================================================
