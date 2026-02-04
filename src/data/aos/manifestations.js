@@ -44,6 +44,12 @@ export const MANIFESTATIONS_AOS = [
       "dank manifestations",
     ],
   },
+{
+    name: "Da King's Gitz Manifestation Lore",
+    aliases: [
+      "da king's gitz manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
