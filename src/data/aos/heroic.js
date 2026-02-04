@@ -297,6 +297,48 @@ export const HEROIC_TRAITS_AOS = [
        "loonstone teef",
     ],
   },
+{
+    name: "Glory Hog",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "glory hog",
+    ],
+  },
+{
+    name: "Into the Fray",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "into the fray",
+    ],
+  },
+{
+    name: "Strongest Alone",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "strongest alone",
+    ],
+  },
+{
+    name: "Celebrity Warlord",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "celebrity warlord",
+    ],
+  },
+{
+    name: "Master of Temptation",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "master of temptation",
+    ],
+  },
+{
+    name: "The Need For Perfection",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "the need for perfection",
+    ],
+  },
 ];
 
 // ==================================================
