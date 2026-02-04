@@ -291,6 +291,69 @@ export const FORMATIONS_AOS = [
       "lofnir drothkeepers",
     ],
   },
+{
+    name: "Gitmob Pack",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "gitmob pack",
+    ],
+  },
+{
+    name: "Gloomspite Horde",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "gloomspite horde",
+    ],
+  },
+{
+    name: "Squigalanche",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "squigalanche",
+    ],
+  },
+{
+    name: "Troggherd",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "troggherd",
+    ],
+  },
+{
+    name: "Gittish Tide",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "gittish tide",
+    ],
+  },
+{
+    name: "Sunbiter Pack",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "sunbiter pack",
+    ],
+  },
+{
+    name: "Da King's Gitz",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "da king's gitz",
+    ],
+  },
+{
+    name: "Droggz's Gitmob",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "droggz's gitmob",
+    ],
+  },
+{
+    name: "Trugg's Troggherd",
+    faction: "Gloomspite Gitz",
+    aliases: [
+      "trugg's troggherd",
+    ],
+  },
 ];
 
 // ==================================================
