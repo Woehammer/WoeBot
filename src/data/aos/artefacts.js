@@ -212,6 +212,62 @@ export const ARTEFACTS_AOS = [
        "mastery over monsters",
     ],
   },
+{
+    name: "Backstabber's Blade",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "backstabber's blade",
+    ],
+  },
+{
+    name: "Leering Gitshield",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "leering gitshield",
+    ],
+  },
+{
+    name: "The Clammy Cowl",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "the clammy cowl",
+    ],
+  },
+{
+    name: "Loonstone Medallion",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "loonstone medallion",
+    ],
+  },
+{
+    name: "Moonhoned Shiv",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "moonhoned shiv",
+    ],
+  },
+{
+    name: "Whatnot of Prestige",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "whatnot of prestige",
+    ],
+  },
+{
+    name: "Glareface's Grin",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "glareface's grin",
+    ],
+  },
+{
+    name: "Crunchy Shinies",
+    faction: "Gloomspite Gitz",
+    aliases: [
+       "crunchy shinies",
+    ],
+  },
 ];
 
 // ==================================================
