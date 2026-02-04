@@ -268,6 +268,27 @@ export const ARTEFACTS_AOS = [
        "crunchy shinies",
     ],
   },
+{
+    name: "Icon of Infinite Excess",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "icon of infinite excess",
+    ],
+  },
+{
+    name: "Pendant of Slaanesh",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "pendant of slaanesh",
+    ],
+  },
+{
+    name: "Threnody Voicebox",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "thredony voicebox",
+    ],
+  },
 ];
 
 // ==================================================
