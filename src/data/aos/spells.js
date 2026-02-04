@@ -50,6 +50,12 @@ export const SPELLS_AOS = [
       "the equinox feast spell lore",
     ],
   },
+{
+    name: "Lore of the Clammy Dank",
+    aliases: [
+      "lore of the clammy dank",
+    ],
+  },
 ];
 
 // ==================================================
