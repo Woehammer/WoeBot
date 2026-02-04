@@ -354,6 +354,48 @@ export const FORMATIONS_AOS = [
       "trugg's troggherd",
     ],
   },
+{
+    name: "Depraved Carnival",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "depraved carnival",
+    ],
+  },
+{
+    name: "Epicurean Revellers",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "epicurean revellers",
+    ],
+  },
+{
+    name: "Seeker Cavalcade",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "seeker cavalcade",
+    ],
+  },
+{
+    name: "Supreme Sybarites",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "supreme sybarites",
+    ],
+  },
+{
+    name: "Invaders",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "invaders",
+    ],
+  },
+{
+    name: "Pretenders",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "pretenders",
+    ],
+  },
 ];
 
 // ==================================================
