@@ -374,6 +374,62 @@ export const HEROIC_TRAITS_AOS = [
       "an eye for weakness",
     ],
   },
+{
+    name: "Form of the Fangmora",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "form of the fangmora",
+    ],
+  },
+{
+    name: "Hunter of Souls",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "hunter of souls",
+    ],
+  },
+{
+    name: "Nightmare Legacy",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "nightmare legacy",
+    ],
+  },
+{
+    name: "Endless Sea-storm",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "endless sea-storm",
+    ],
+  },
+{
+    name: "Lord of Storm and Sea",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "lord of storm and sea",
+    ],
+  },
+{
+    name: "Merciless Raider",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "merciless raider",
+    ],
+  },
+{
+    name: "Prodigy of the Asydrzor",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "prodigy of the asydrzor",
+    ],
+  },
+{
+    name: "Serve the Enclave",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "serve the enclave",
+    ],
+  },
 ];
 
 // ==================================================
