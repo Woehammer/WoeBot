@@ -339,6 +339,41 @@ export const HEROIC_TRAITS_AOS = [
       "the need for perfection",
     ],
   },
+{
+    name: "Raging Animus",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "raging animus",
+    ],
+  },
+{
+    name: "Ruthless Overseer",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "ruthless overseer",
+    ],
+  },
+{
+    name: "Servile Automaton",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "servile automaton",
+    ],
+  },
+{
+    name: "Fire, You Worms",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "fire, you worms",
+    ],
+  },
+{
+    name: "An Eye for Weakness",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "an eye for weakness",
+    ],
+  },
 ];
 
 // ==================================================
