@@ -128,53 +128,87 @@ const HEDONITES_OF_SLAANESH = [
     ],
   },
 {
-    name: "Sisters of Slaughter with Sacrificial Knives",
-    faction: "Daughters of Khaine",
+    name: "Slaangor Fiendbloods",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "sisters of slaughter with aacrificial knives",
+      "slaangor fiendbloods",
     ],
   },
 {
-    name: "Witch Aelves with Bladed Bucklers",
-    faction: "Daughters of Khaine",
+    name: "Symbaresh Twinsouls",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "witch aelves with bladed bucklers",
+      "symbaresh twinsouls",
     ],
   },
 {
-    name: "Witch Aelves with Paired Sciansá",
-    faction: "Daughters of Khaine",
+    name: "Blissbarb Seekers",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "witch aelves with paired sciansá",
-      "witch aelves with paired sciansa",
+      "blissbarb seekers",
     ],
   },
 {
-    name: "Doomfire Warlocks",
-    faction: "Daughters of Khaine",
+    name: "Hellstriders",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "doomfire warlocks",
+      "hellstriders",
     ],
   },
 {
-    name: "Avatar of Khaine",
-    faction: "Daughters of Khaine",
+    name: "Seekers",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "avatar of khaine",
+      "seekers",
     ],
   },
 {
-    name: "Scourge of Ghyran Bloodwrack Shrine",
-    faction: "Daughters of Khaine",
+    name: "Slickblade Seekers",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "scourge of ghyran bloodwrack shrine",
+      "slickblade seekers",
     ],
   },
 {
-    name: "Scourge of Ghyran Krethusa the Croneseer",
-    faction: "Daughters of Khaine",
+    name: "Fiends",
+    faction: "Hedonites of Slaanesh",
     aliases: [
-      "scourge of ghyran krethusa the croneseer",
+      "fiends",
+    ],
+  },
+{
+    name: "Hellflayer",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "hellflayer",
+    ],
+  },
+{
+    name: "Seeker Chariot",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "seeker chariot",
+    ],
+  },
+{
+    name: "Fane of Slaanesh",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "fane of slaanesh",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Syll'Esske, the Vengeful Allegiance",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "scourge of ghyran syll'esske, the vengeful allegiance",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Slaangor Fiendbloods",
+    faction: "Hedonites of Slaanesh",
+    aliases: [
+      "scourge of ghyran slaangor fiendbloods",
     ],
   },
 ];
