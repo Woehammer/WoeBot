@@ -62,6 +62,18 @@ export const MANIFESTATIONS_AOS = [
       "manifestations of depravity",
     ],
   },
+{
+    name: "Lore of the Abyss",
+    aliases: [
+      "lore of the abyss",
+    ],
+  },
+{
+    name: "Wardens of the Chorrileum Manifestation Lore",
+    aliases: [
+      "wardens of the chorrileum manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
