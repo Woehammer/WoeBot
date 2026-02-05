@@ -452,6 +452,62 @@ export const FORMATIONS_AOS = [
       "ziggurat stampede",
     ],
   },
+{
+    name: "Akhelian Beastmasters",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "akhelian beastmasters",
+    ],
+  },
+{
+    name: "Isharann Council",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "isharann council",
+    ],
+  },
+{
+    name: "Namarti Corps",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "namarti corps",
+    ],
+  },
+{
+    name: "Soul-raid Ambushers",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "soul-raid ambushers",
+    ],
+  },
+{
+    name: "Deep-sea Stalkers",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "deep-sea stalkers",
+    ],
+  },
+{
+    name: "Ethersea Predators",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "ethersea predators",
+    ],
+  },
+{
+    name: "The First Phalanx of Ionrach",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "the first phalanx of ionrach",
+    ],
+  },
+{
+    name: "Wardens of the Chorrileum",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "wardens of the chorrileum",
+    ],
+  },
 ];
 
 // ==================================================
