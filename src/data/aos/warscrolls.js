@@ -11,6 +11,7 @@ import fleshEaterCourts from "./warscrolls/flesh_eater_courts.js";
 import fyreslayers from "./warscrolls/fyreslayers.js";
 import gloomspiteGitz from "./warscrolls/gloomspite_gitz.js";
 import hedonitesOfSlaanesh from "./warscrolls/hedonites_of_slaanesh.js";
+import helsmithsOfHashut from "./warscrolls/helsmiths_of_hashut.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -25,6 +26,7 @@ export const WARSCROLLS_AOS = [
   ...fyreslayers,
   ...gloomspiteGitz,
   ...hedonitesOfSlaanesh,
+  ...helsmithsOfHashut,
 ];
 
 // ==================================================
