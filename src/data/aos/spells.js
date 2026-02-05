@@ -80,6 +80,24 @@ export const SPELLS_AOS = [
       "lore of extravagance",
     ],
   },
+{
+    name: "Ziggurat Stampede Spell Lore",
+    aliases: [
+      "ziggurat stampede spell lore",
+    ],
+  },
+{
+    name: "Taar’s Grand Forgehost Spell Lore",
+    aliases: [
+      "taar’s grand forgehost spell lore",
+    ],
+  },
+{
+    name: "Lore of Infernal Power",
+    aliases: [
+      "lore of infernal power",
+    ],
+  },
 ];
 
 // ==================================================
