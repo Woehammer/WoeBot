@@ -396,6 +396,62 @@ export const FORMATIONS_AOS = [
       "pretenders",
     ],
   },
+{
+    name: "Castigation Battery",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "castigation battery",
+    ],
+  },
+{
+    name: "Daemonsmith Cabal ",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "daemonsmith cabal",
+    ],
+  },
+{
+    name: "Hashutite Host ",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "hashutite host",
+    ],
+  },
+{
+    name: "The Bullfather’s Horns",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "the bullfather’s horns",
+    ],
+  },
+{
+    name: "Domination Force",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "domination force",
+    ],
+  },
+{
+    name: "Industrial Polluters",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "industrial polluters",
+    ],
+  },
+{
+    name: "Taar’s Grand Forgehost",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "taar’s grand forgehost",
+    ],
+  },
+{
+    name: "Ziggurat Stampede",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "ziggurat stampede",
+    ],
+  },
 ];
 
 // ==================================================
