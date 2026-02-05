@@ -86,6 +86,18 @@ export const PRAYERS_AOS = [
       "lofnir drothkeepers prayer lore",
     ],
   },
+{
+    name: "Prayers of the Scorched Sect”,
+    aliases: [
+      "prayers of the scorched sect",
+    ],
+  },
+  {
+    name: "Taar’s Grand Forgehost Prayer Lore”,
+    aliases: [
+      "taar’s grand forgehost prayer lore",
+    ],
+  },
 ];
 
 // ==================================================
