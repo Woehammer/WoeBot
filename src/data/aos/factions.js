@@ -86,6 +86,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "helsmiths_of_hashut",
   },
+{
+    key: "idoneth_deepkin",
+    name: "Idoneth Deepkin",
+    grandAlliance: "Order",
+    aliases: [
+      "idoneth deepkin",
+    ],
+    iconkey: "idoneth_deepkin",
+  },
 ];
 
 // ==================================================
