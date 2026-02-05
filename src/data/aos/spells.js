@@ -98,6 +98,18 @@ export const SPELLS_AOS = [
       "lore of infernal power",
     ],
   },
+{
+    name: "Lore of the Deeps",
+    aliases: [
+      "lore of the deeps",
+    ],
+  },
+{
+    name: "Wardens of the Chorrileum Spell Lore",
+    aliases: [
+      "wardens of the chorrileum spell lore",
+    ],
+  },
 ];
 
 // ==================================================
