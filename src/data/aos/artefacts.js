@@ -345,6 +345,41 @@ export const ARTEFACTS_AOS = [
       "visage of the great bull",
     ],
   },
+{
+    name: "Armour of the Cythai",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "armour of the cythai",
+    ],
+  },
+{
+    name: "Lifekelp Pod",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "lifekelp pod",
+    ],
+  },
+{
+    name: "Dritchleech",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "dritchleech",
+    ],
+  },
+{
+    name: "Crest of the Ionrach",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "crest of the ionrach",
+    ],
+  },
+{
+    name: "Ammonite Carnyx",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "ammonite carnyx",
+    ],
+  },
 ];
 
 // ==================================================
