@@ -289,6 +289,62 @@ export const ARTEFACTS_AOS = [
       "thredony voicebox",
     ],
   },
+{
+    name: "Scroll of Petrification",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "scroll of petrification",
+    ],
+  },
+{
+    name: "Crucible of Spite",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "crucible of spite",
+    ],
+  },
+{
+    name: "Gauntlets of Punishment",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "gauntlets of punishment",
+    ],
+  },
+{
+    name: "Greed Pistons",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "greed pistons",
+    ],
+  },
+{
+    name: "Overdrive Switch",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "overdrive switch",
+    ],
+  },
+{
+    name: "Breath of Contempt",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "breath of contempt",
+    ],
+  },
+{
+    name: "Talisman of Obsidian",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "talisman of obsidian",
+    ],
+  },
+{
+    name: "Visage of the Great Bull",
+    faction: "Helsmiths of Hashut",
+    aliases: [
+      "visage of the great bull",
+    ],
+  },
 ];
 
 // ==================================================
