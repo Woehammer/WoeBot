@@ -430,6 +430,27 @@ export const HEROIC_TRAITS_AOS = [
       "serve the enclave",
     ],
   },
+{
+    name: "Voidchill Darkness",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "voidchill darkness",
+    ],
+  },
+{
+    name: "Deep Connection",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "deep connection",
+    ],
+  },
+{
+    name: "Swift-Finned Skirmisher",
+    faction: "Idoneth Deepkin",
+    aliases: [
+      "swift-finned skirmisher",
+    ],
+  },
 ];
 
 // ==================================================
