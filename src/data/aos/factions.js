@@ -77,6 +77,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "hedonites_of_slaanesh",
   },
+{
+    key: "helsmiths_of_hashut",
+    name: "Helsmiths of Hashut",
+    grandAlliance: "Chaos",
+    aliases: [
+      "helsmiths of hashut",
+    ],
+    iconkey: "helsmiths_of_hashut",
+  },
 ];
 
 // ==================================================
