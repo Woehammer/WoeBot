@@ -23,7 +23,7 @@ const KHARADRON_OVERLORDS = [
   {
     name: "Arkanaut Admiral",
     faction: "Kharadron Overlords",
-      "arkanaut admiral",,
+      "arkanaut admiral",
     ],
   },
    {
