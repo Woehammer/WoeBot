@@ -683,6 +683,55 @@ export const FORMATIONS_AOS = [
       "the eternal nightmare",
     ],
   },
+  {
+    name: "Greedy Eaters",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "greedy eaters",
+    ],
+  },
+  {
+    name: "Mawpath Menaces",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "mawpath menaces",
+    ],
+  },
+  {
+    name: "Beast Handlers",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "beast handlers",
+    ],
+  },
+  {
+    name: "Blackpowder Fanatics",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "blackpowder fanatics",
+    ],
+  },
+  {
+    name: "Heralds of the Everwinter",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "heralds of the everwinter",
+    ],
+  },
+  {
+    name: "Prophets of the Gulping God",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "prophets of the gulping god",
+    ],
+  },
+  {
+    name: "The Roving Maw",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "the roving maw",
+    ],
+  },
 ];
 
 // ==================================================
