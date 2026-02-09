@@ -110,6 +110,19 @@ export const SPELLS_AOS = [
       "wardens of the chorrileum spell lore",
     ],
   },
+{
+    name: "Lore of Hysh",
+    aliases: [
+      "lore of hysh",
+    ],
+  },
+  {
+    name: "Lore of Prismatic Resonance",
+    aliases: [
+      "lore of prismatic resonance",
+    ],
+  },
+
 ];
 
 // ==================================================
