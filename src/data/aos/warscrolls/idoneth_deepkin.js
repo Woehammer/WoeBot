@@ -122,6 +122,18 @@ const IDONETH_DEEPKIN = [
     aliases: [  "gloomtide shipwreck",
     ],
   },
+  {
+    name: "Scourge of Ghyran Akhelian Thrallmaster",
+    faction: "Idoneth Deepkin",
+    aliases: [  "scourge of ghyran akhelian thrallmaster",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Namarti Thralls",
+    faction: "Idoneth Deepkin",
+    aliases: [  "scourge of ghyran namarti thralls",
+    ],
+  },
 ];
 
 // ==================================================
