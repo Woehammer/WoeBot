@@ -123,9 +123,21 @@ const KHARADRON_OVERLORDS = [
     ],
   },
   {
+    name: "Scourge of Ghyran Codewright",
+    faction: "Kharadron Overlords",
+      "scourge of ghyran codewright",
+    ],
+  },
+  {
     name: "Zontari Endrin Dock",
     faction: "Kharadron Overlords",
       "zontari endrin dock",
+    ],
+  },
+  {
+    name: "Scourge of Ghyran Grundstok Gunhauler",
+    faction: "Kharadron Overlords",
+      "scourge of ghyran grundstok gunhauler",
     ],
   },
 ];
