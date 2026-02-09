@@ -74,6 +74,42 @@ export const MANIFESTATIONS_AOS = [
       "wardens of the chorrileum manifestation lore",
     ],
   },
+{
+    name: "Aetherwrought Machineries",
+    aliases: [
+      "aetherwrought machineries",
+    ],
+  },
+{
+    name: "Forbidden Power",
+    aliases: [
+      "forbidden power",
+    ],
+  },
+{
+    name: "Krondspine Incarnate",
+    aliases: [
+      "krondspine incarnate",
+    ],
+  },
+{
+    name: "Morbid Conjuration",
+    aliases: [
+      "morbid conjuration",
+    ],
+  },
+{
+    name: "Primal Energy",
+    aliases: [
+      "primal energy",
+    ],
+  },
+{
+    name: "Twilit Sorceries",
+    aliases: [
+      "twilit sorceries",
+    ],
+  },
 ];
 
 // ==================================================
