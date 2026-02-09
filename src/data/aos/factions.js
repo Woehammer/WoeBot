@@ -122,6 +122,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "maggotkin_of_nurgle",
   },
+  {
+    key: "nighthaunt",
+    name: "nighthaunt",
+    grandAlliance: "Death",
+    aliases: [
+      "nighthaunt",
+    ],
+    iconkey: "nighthaunt",
+  },
 ];
 
 // ==================================================
