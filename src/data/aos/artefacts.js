@@ -380,6 +380,146 @@ export const ARTEFACTS_AOS = [
       "ammonite carnyx",
     ],
   },
+{
+    name: "Voidstone Orb",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "voidstone orb",
+    ],
+  },
+  {
+    name: "Celestium Burst Grenade",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "celestium burst grenade",
+    ],
+  },
+  {
+    name: "Blazebeard and Sons Bamboozling Flakgun",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "blazebeard and sons bamboozling flakgun",
+    ],
+  },
+  {
+    name: "Emberstone Flare",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "emberstone flare",
+    ],
+  },
+  {
+    name: "Karst-Bana Aether-Powered Combat Rig",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "karst-bana aether-powered combat rig",
+    ],
+  },
+  {
+    name: "Spell in a Bottle",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "spell in a bottle",
+    ],
+  },
+  {
+    name: "Aetheric Nullifier",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "aetheric nullifier",
+    ],
+  },
+  {
+    name: "Rockbuster Charges",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "rockbuster charges",
+    ],
+  },
+  {
+    name: "Thorgsson's Universal Automaton Actuator",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "thorgsson's universal automaton actuator",
+    ],
+  },
+  {
+    name: "Aerodynamism",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "aerodynamism",
+    ],
+  },
+  {
+    name: "Guns For All Occassions",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "guns for all occassions",
+    ],
+  },
+  {
+    name: "Hegsson Solutions 'Old Reliable' Hullplates",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "hegsson solutions 'old reliable' hullplates",
+    ],
+  },
+  {
+    name: "Gruksson Wide-bore Cylinders",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "gruksson wide-bore cylinders",
+    ],
+  },
+  {
+    name: "Coalbeard's Collapsible Bombrack",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "coalbeard's collapsible bombrack",
+    ],
+  },
+  {
+    name: "Tracer-fire Rounds",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "tracer-fire rounds",
+    ],
+  },
+  {
+    name: "Grandiose Fuselage",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "grandiose fuselage",
+    ],
+  },
+  {
+    name: "Nullstone Galvanisation",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "nullstone galvinisation",
+    ],
+  },
+  {
+    name: "Blazebeard and Sons Ejector Pod",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "blazebeard and sons ejector pod",
+    ],
+  },
+  {
+    name: "Voidstone Repulsor Vents",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "voidstone repulsor vents",
+    ],
+  },
+  {
+    name: "Zonbarcorp 'Dealbreaker' Battle Ram",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "zombarcorp 'dealbreaker' battle ram",
+    ],
+  },
 ];
 
 // ==================================================
