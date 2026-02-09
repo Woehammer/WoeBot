@@ -507,7 +507,48 @@ export const HEROIC_TRAITS_AOS = [
       "flanking fire",
     ],
   },
-
+{
+    name: "Masterful Tactician",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "masterful tactician",
+    ],
+  },
+  {
+    name: "Paragon of Hysh",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "paragon of hysh",
+    ],
+  },
+  {
+    name: "Perfect Strike",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "perfect strike",
+    ],
+  },
+  {
+    name: "Aetherquartz Requisitioner",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "aetherquartz requisitioner",
+    ],
+  },
+  {
+    name: "Flawless Commander",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "flawless commander",
+    ],
+  },
+  {
+    name: "Martial Perfectionist",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "martial perfectionist",
+    ],
+  },
 ];
 
 // ==================================================
