@@ -541,6 +541,41 @@ export const ARTEFACTS_AOS = [
       "waystone",
     ],
   },
+ {
+    name: "The Witherstave",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "the witherstave",
+    ],
+  },
+  {
+    name: "The Carrion Dirge",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "the carrion dirge",
+    ],
+  },
+  {
+    name: "Rustfang",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "rustfang",
+    ],
+  },
+  {
+    name: "Cankerous Nail",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "cankerous nail",
+    ],
+  },
+  {
+    name: "Stinking Sporeseed",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "stinking sporeseed",
+    ],
+  },
 ];
 
 // ==================================================
