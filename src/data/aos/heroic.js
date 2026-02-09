@@ -605,6 +605,41 @@ export const HEROIC_TRAITS_AOS = [
       "foetid orchardist",
     ],
   },
+  {
+    name: "Ruler of the Spectral Hosts",
+    faction: "Nighthaunt",
+    aliases: [
+      "ruler of the spectral hosts",
+    ],
+  },
+  {
+    name: "Deathly Possessor",
+    faction: "Nighthaunt",
+    aliases: [
+      "deathly possessor",
+    ],
+  },
+  {
+    name: "Shadowy Aura",
+    faction: "Nighthaunt",
+    aliases: [
+      "shadowy aura",
+    ],
+  },
+  {
+    name: "Silent Overseer",
+    faction: "Nighthaunt",
+    aliases: [
+      "silent overseer",
+    ],
+  },
+  {
+    name: "Damned Vessel",
+    faction: "Nighthaunt",
+    aliases: [
+      "damned vessel",
+    ],
+  },
 ];
 
 // ==================================================
