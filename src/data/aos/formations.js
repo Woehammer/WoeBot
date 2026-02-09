@@ -508,6 +508,55 @@ export const FORMATIONS_AOS = [
       "wardens of the chorrileum",
     ],
   },
+{
+    name: "Endrineers Guild Expeditionary Force",
+    faction: "Kharadron Overlords",
+    aliases: [
+      "endrineers guild expeditionary force",
+    ],
+  },
+  {
+    name: "Pioneers and Scavengers",
+    faction: "Kharadron Overlords",
+    aliases: [
+      "pioneers and scavengers",
+    ],
+  },
+  {
+    name: "Rapid Deployment Squadron",
+    faction: "Kharadron Overlords",
+    aliases: [
+      "rapid deployment squadron",
+    ],
+  },
+  {
+    name: "Veteran Ground Troops",
+    faction: "Kharadron Overlords",
+    aliases: [
+      "veteran ground troops",
+    ],
+  },
+  {
+    name: "Grundstok Expeditionary Force",
+    faction: "Kharadron Overlords",
+    aliases: [
+      "grundstok expeditionary force",
+    ],
+  },
+  {
+    name: "Pioneer Outpost",
+    faction: "Kharadron Overlords",
+    aliases: [
+      "pioneer outpost",
+    ],
+  },
+  {
+    name: "The Magnate's Crew",
+    faction: "Kharadron Overlords",
+    aliases: [
+      "the magnate's crew",
+    ],
+  },
 ];
 
 // ==================================================
