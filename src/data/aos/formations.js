@@ -557,6 +557,34 @@ export const FORMATIONS_AOS = [
       "the magnate's crew",
     ],
   },
+{
+    name: "Alarith Temple",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "alarith temple",
+    ],
+  },
+  {
+    name: "Hurakan Temple",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "hurakan temple",
+    ],
+  },
+  {
+    name: "Scinari Council",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "scinari council",
+    ],
+  },
+  {
+    name: "Vanari Battlehost",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "vanari battlehost",
+    ],
+  },
 ];
 
 // ==================================================
