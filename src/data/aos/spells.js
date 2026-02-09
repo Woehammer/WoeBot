@@ -122,7 +122,24 @@ export const SPELLS_AOS = [
       "lore of prismatic resonance",
     ],
   },
-
+ {
+    name: "Lore of Malignance",
+    aliases: [
+      "lore of malignance",
+    ],
+  },
+  {
+    name: "Cycle of Corruption Spell Lore",
+    aliases: [
+      "cycle of corruption spell lore",
+    ],
+  },
+  {
+    name: "The Gardeners of Nurgle Spell Lore",
+    aliases: [
+      "the gardeners of nurgle spell lore",
+    ],
+  },
 ];
 
 // ==================================================
