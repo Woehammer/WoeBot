@@ -140,6 +140,24 @@ export const SPELLS_AOS = [
       "the gardeners of nurgle spell lore",
     ],
   },
+  {
+    name: "Lore of the Underworlds",
+    aliases: [
+      "lore of the underworlds",
+    ],
+  },
+  {
+    name: "The Clattering Procession Spell Lore",
+    aliases: [
+      "the clattering procession spell lore",
+    ],
+  },
+  {
+    name: "The Eternal Nightmare Spell Lore",
+    aliases: [
+      "the eternal nightmare spell lore",
+    ],
+  },
 ];
 
 // ==================================================
