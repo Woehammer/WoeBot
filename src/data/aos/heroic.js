@@ -549,6 +549,62 @@ export const HEROIC_TRAITS_AOS = [
       "martial perfectionist",
     ],
   },
+ {
+    name: "Grandfather's Blessing",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "grandfather's blessing",
+    ],
+  },
+  {
+    name: "Gift of Febrile Frenzy",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "gift of frebile frenzy",
+    ],
+  },
+  {
+    name: "Overpowering Stench",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "overpowering stench",
+    ],
+  },
+  {
+    name: "Corpulent Avalanche",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "corpulent avalanche",
+    ],
+  },
+  {
+    name: "Living Plague",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "living plague",
+    ],
+  },
+  {
+    name: "Unctuous Preacher",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "unctuous preacher",
+    ],
+  },
+  {
+    name: "Utterly Disgusting",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "utterly disgusting",
+    ],
+  },
+  {
+    name: "Foetid Orchardist",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "foetid orchardist",
+    ],
+  },
 ];
 
 // ==================================================
