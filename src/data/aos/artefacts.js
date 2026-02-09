@@ -632,6 +632,34 @@ export const ARTEFACTS_AOS = [
       "the seal of nagash",
     ],
   },
+  {
+    name: "Elixir of the Frostwyrm",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "elixir of the frostwyrm",
+    ],
+  },
+  {
+    name: "Gruesome Trophies",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "gruesome trophies",
+    ],
+  },
+  {
+    name: "The Fang of Ghur",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "the fang of ghur",
+    ],
+  },
+  {
+    name: "Flasks of Congealed Maw-juices",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "flasks of congealed maw-juices",
+    ],
+  },
 ];
 
 // ==================================================
