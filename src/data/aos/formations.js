@@ -627,6 +627,62 @@ export const FORMATIONS_AOS = [
       "the gardeners of Nurgle",
     ],
   },
+  {
+    name: "Death Stalkers",
+    faction: "Nighthaunt",
+    aliases: [
+      "death stalkers",
+    ],
+  },
+  {
+    name: "Quicksilver Gheists",
+    faction: "Nighthaunt",
+    aliases: [
+      "quicksilver gheists",
+    ],
+  },
+  {
+    name: "Royal Procession",
+    faction: "Nighthaunt",
+    aliases: [
+      "royal procession",
+    ],
+  },
+  {
+    name: "shrieker Host",
+    faction: "Nighthaunt",
+    aliases: [
+      "shrieker host",
+    ],
+  },
+  {
+    name: "Deathrust Gheists",
+    faction: "Nighthaunt",
+    aliases: [
+      "deathrust gheists",
+    ],
+  },
+  {
+    name: "Hungry Nexus",
+    faction: "Nighthaunt",
+    aliases: [
+      "hungry nexus",
+    ],
+  },
+  {
+    name: "The Clattering Procession",
+    faction: "Nighthaunt",
+    aliases: [
+      "the clattering procession",
+    ],
+  },
+  {
+    name: "The Eternal Nightmare",
+    faction: "Nighthaunt",
+    aliases: [
+      "the eternal nightmare",
+    ],
+  },
 ];
 
 // ==================================================
