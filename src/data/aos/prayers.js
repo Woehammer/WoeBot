@@ -98,6 +98,24 @@ export const PRAYERS_AOS = [
       "taar’s grand forgehost prayer lore",
     ],
   },
+ {
+    name: "Lore of Virulence",
+    aliases: [
+      "lore of virulence",
+    ],
+  },
+  {
+    name: "Bendictions of Sickness",
+    aliases: [
+      "bendictions of sickness",
+    ],
+  },
+  {
+    name: "Cycle of Corruption Prayer Lore",
+    aliases: [
+      "cycle of corruption prayer lore",
+    ],
+  },
 ];
 
 // ==================================================
