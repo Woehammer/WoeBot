@@ -131,6 +131,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "nighthaunt",
   },
+   {
+    key: "ogor_mawtribes",
+    name: "ogor mawtribes",
+    grandAlliance: "Destruction",
+    aliases: [
+      "ogor mawtribes",
+    ],
+    iconkey: "ogor_mawtribes",
+  },
 ];
 
 // ==================================================
