@@ -95,6 +95,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "idoneth_deepkin",
   },
+{
+    key: "kharadron_overlords",
+    name: "Kharadron Overlords",
+    grandAlliance: "Order",
+    aliases: [
+      "kharadron overlords",
+    ],
+    iconkey: "kharadron_overlords",
+  },
 ];
 
 // ==================================================
