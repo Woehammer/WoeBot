@@ -116,6 +116,12 @@ export const MANIFESTATIONS_AOS = [
       "manifestatations of hysh",
     ],
   },
+  {
+    name: "Infernal Sorceries",
+    aliases: [
+      "infernal sorceries",
+    ],
+  },
 ];
 
 // ==================================================
