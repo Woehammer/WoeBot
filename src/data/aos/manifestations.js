@@ -110,6 +110,12 @@ export const MANIFESTATIONS_AOS = [
       "twilit sorceries",
     ],
   },
+{
+    name: "Manifestations of Hysh",
+    aliases: [
+      "manifestatations of hysh",
+    ],
+  },
 ];
 
 // ==================================================
