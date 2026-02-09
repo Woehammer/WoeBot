@@ -122,6 +122,18 @@ export const MANIFESTATIONS_AOS = [
       "infernal sorceries",
     ],
   },
+  {
+    name: "The Clattering Procession Manifestation Lore",
+    aliases: [
+      "the clattering procession manifestation lore",
+    ],
+  },
+  {
+    name: "The Eternal Nightmare Manifestation Lore",
+    aliases: [
+      "the eternal nightmare manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
