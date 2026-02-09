@@ -585,6 +585,48 @@ export const FORMATIONS_AOS = [
       "vanari battlehost",
     ],
   },
+{	
+    name: "Affliction Cyst",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "affliction cyst",
+    ],
+  },
+  {
+    name: "Nurgle's Menagerie",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "nurgle's menagerie",
+    ],
+  },
+  {
+    name: "Plague Cyst",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "plague cyst",
+    ],
+  },
+  {
+    name: "Tallyband of Nurgle",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "tallyband of Nurgle",
+    ],
+  },
+  {
+    name: "Cycle of Corruption",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "cycle of corruption",
+    ],
+  },
+  {
+    name: "The Gardeners of Nurgle",
+    faction: "Maggotkin of Nurgle",
+    aliases: [
+      "the gardeners of Nurgle",
+    ],
+  },
 ];
 
 // ==================================================
