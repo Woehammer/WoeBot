@@ -11,7 +11,8 @@ const KHARADRON_OVERLORDS = [
     {
     name: "Aether-Khemist",
     faction: "Kharadron Overlords",
-      "aether-khemist",
+    aliases: [
+  "aether-khemist",
     ],
   },
   {
