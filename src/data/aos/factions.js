@@ -104,6 +104,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "kharadron_overlords",
   },
+{
+    key: "lumineth_realmlords",
+    name: "Lumineth Realm-lords",
+    grandAlliance: "Order",
+    aliases: [
+      "lumineth realm-lords",
+    ],
+    iconkey: "lumineth_realmlords",
+  },
 ];
 
 // ==================================================
