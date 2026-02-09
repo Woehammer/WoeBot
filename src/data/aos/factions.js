@@ -113,6 +113,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "lumineth_realmlords",
   },
+{
+    key: "maggotkin_of_nurgle",
+    name: "Maggotkin of Nurgle",
+    grandAlliance: "Chaos",
+    aliases: [
+      "maggotkin of nurgle",
+    ],
+    iconkey: "maggotkin_of_nurgle",
+  },
 ];
 
 // ==================================================
