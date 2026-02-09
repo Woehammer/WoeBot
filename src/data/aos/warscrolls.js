@@ -16,6 +16,7 @@ import idonethDeepkin from "./warscrolls/idoneth_deepkin.js";
 import kharadronOverlords from "./warscrolls/kharadron_overlords.js";
 import luminethRealmlords from "./warscrolls/lumineth_realmlords.js";
 import maggotkinOfNurgle from "./warscrolls/maggotkin_of_nurgle.js";
+import nighthaunt from "./warscrolls/nighthaunt.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -35,6 +36,7 @@ export const WARSCROLLS_AOS = [
   ...kharadronOverlords,
   ...luminethRealmlords,
   ...maggotkinOfNurgle,
+  ...nighthaunt,
 ];
 
 // ==================================================
