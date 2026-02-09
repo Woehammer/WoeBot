@@ -218,6 +218,20 @@ const NIGHTHAUNT = [
       "nexus of grief",
     ],
   },
+	{
+    name: "Scourge of Ghyran Kurdoss Valentian, the Craven King",
+    faction: "Nighthaunt",
+	aliases: [
+      "scourge of ghyran kurdoss valentian, the craven king",
+    ],
+  },
+	{
+    name: "Scourge of Ghyran Black Coach",
+    faction: "Nighthaunt",
+	aliases: [
+      "scourge of ghyran black coach",
+    ],
+  },
 ];
 
 // ==================================================
