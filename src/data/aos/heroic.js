@@ -451,6 +451,63 @@ export const HEROIC_TRAITS_AOS = [
       "swift-finned skirmisher",
     ],
   },
+ {
+    name: "Shrewd Opportunist",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "shrewd opportunist",
+    ],
+  },
+  {
+    name: "Bold as Brass",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "bold as brass",
+    ],
+  },
+  {
+    name: "Combat Grafter",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "combat grafter",
+    ],
+  },
+  {
+    name: "Entrenchment Expert",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "entrenchment expert",
+    ],
+  },
+  {
+    name: "Copper Fingers",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "copper fingers",
+    ],
+  },
+  {
+    name: "Territorial Trailblazer",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "territorial trailblazer",
+    ],
+  },
+  {
+    name: "Master of Discipline",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "master of discipline",
+    ],
+  },
+  {
+    name: "Flanking Fire",
+    faction: "Kharadron Ovelords",
+    aliases: [
+      "flanking fire",
+    ],
+  },
+
 ];
 
 // ==================================================
