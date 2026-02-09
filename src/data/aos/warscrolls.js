@@ -13,6 +13,7 @@ import gloomspiteGitz from "./warscrolls/gloomspite_gitz.js";
 import hedonitesOfSlaanesh from "./warscrolls/hedonites_of_slaanesh.js";
 import helsmithsOfHashut from "./warscrolls/helsmiths_of_hashut.js";
 import idonethDeepkin from "./warscrolls/idoneth_deepkin.js";
+import kharadronOverlords from "./warscrolls/kharadron_overlords.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -29,6 +30,7 @@ export const WARSCROLLS_AOS = [
   ...hedonitesOfSlaanesh,
   ...helsmithsOfHashut,
   ...idonethDeepkin,
+  ...kharadronOverlords,
 ];
 
 // ==================================================
