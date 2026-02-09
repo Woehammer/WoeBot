@@ -576,6 +576,62 @@ export const ARTEFACTS_AOS = [
       "stinking sporeseed",
     ],
   },
+  {
+    name: "Brazier of Nagashizzar",
+    faction: "Nighthaunt",
+    aliases: [
+      "brazier of nagashizzar",
+    ],
+  },
+  {
+    name: "Lightshard of the Harvest Moon",
+    faction: "Nighthaunt",
+    aliases: [
+      "lightshard of the harvest moon",
+    ],
+  },
+  {
+    name: "Mirror of Echoing Failures",
+    faction: "Nighthaunt",
+    aliases: [
+      "mirror of echoing failures",
+    ],
+  },
+  {
+    name: "Amulet of Waking Nightmares",
+    faction: "Nighthaunt",
+    aliases: [
+      "amulet of waking nightmares",
+    ],
+  },
+  {
+    name: "Stave of Suffering",
+    faction: "Nighthaunt",
+    aliases: [
+      "stave of suffering",
+    ],
+  },
+  {
+    name: "Tombstone of the Penitent",
+    faction: "Nighthaunt",
+    aliases: [
+      "tombstone of the penitent",
+    ],
+  },
+  {
+    name: "Talisman of the Nadir",
+    faction: "Nighthaunt",
+    aliases: [
+      "talisman of the nadir",
+    ],
+  },
+  {
+    name: "The Seal of Nagash",
+    faction: "Nighthaunt",
+    aliases: [
+      "the seal of nagash",
+    ],
+  },
 ];
 
 // ==================================================
