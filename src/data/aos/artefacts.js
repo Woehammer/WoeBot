@@ -520,6 +520,27 @@ export const ARTEFACTS_AOS = [
       "zombarcorp 'dealbreaker' battle ram",
     ],
   },
+{
+    name: "Phoenix Stone",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "phoenix stone",
+    ],
+  },
+  {
+    name: "Silver Wand",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "silver wand",
+    ],
+  },
+  {
+    name: "Waystone",
+    faction: "Lumineth Realm-lords",
+    aliases: [
+      "waystone",
+    ],
+  },
 ];
 
 // ==================================================
