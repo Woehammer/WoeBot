@@ -723,6 +723,13 @@ export const ARTEFACTS_AOS = [
       "da great wollopa",
     ],
   },
+  {
+    name: "Da Sneaky Stab-slab",
+    faction: "Big Waaagh!",
+    aliases: [
+      "da sneaky stab-slab",
+    ],
+  },
 ];
 
 // ==================================================
