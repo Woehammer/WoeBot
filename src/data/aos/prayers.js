@@ -116,6 +116,12 @@ export const PRAYERS_AOS = [
       "cycle of corruption prayer lore",
     ],
   },
+  {
+    name: "Everwinter Prayers",
+    aliases: [
+      "everwinter prayers",
+    ],
+  },
 ];
 
 // ==================================================
