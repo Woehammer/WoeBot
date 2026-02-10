@@ -19,6 +19,7 @@ import maggotkinOfNurgle from "./warscrolls/maggotkin_of_nurgle.js";
 import nighthaunt from "./warscrolls/nighthaunt.js";
 import ogorMawtribes from "./warscrolls/ogor_mawtribes.js";
 import kruleboyz from "./warscrolls/kruleboyz.js";
+import ironjawz from "./warscrolls/ironjawz.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -41,6 +42,7 @@ export const WARSCROLLS_AOS = [
   ...nighthaunt,
   ...ogorMawtribes,
   ...kruleboyz,
+  ...ironjawz,
 ];
 
 // ==================================================
