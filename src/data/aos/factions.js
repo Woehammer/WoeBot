@@ -158,6 +158,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "ironjawz",
   },
+  {
+    key: "big_waaagh",
+    name: "Big Waaagh!",
+    grandAlliance: "Destruction",
+    aliases: [
+      "big waaagh",
+    ],
+    iconkey: "big_waaagh",
+  },
 ];
 
 // ==================================================
