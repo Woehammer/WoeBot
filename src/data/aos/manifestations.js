@@ -146,6 +146,12 @@ export const MANIFESTATIONS_AOS = [
       "murkvast menagerie manifestation lore",
     ],
   },
+  {
+    name: "Zoggrok's Ironmongerz Manifestation Lore",
+    aliases: [
+      "zoggrok's ironmongerz manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
