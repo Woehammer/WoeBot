@@ -822,6 +822,27 @@ export const HEROIC_TRAITS_AOS = [
       "takin' names",
     ],
   },
+  {
+    name: "Aura of Sterility",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "aura of sterility",
+    ],
+  },
+  {
+    name: "Diversionary Tactics",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "diversionary tactics",
+    ],
+  },
+  {
+    name: "Mighty Archaeossian",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "mighty archaeossian",
+    ],
+  },
 ];
 
 // ==================================================
