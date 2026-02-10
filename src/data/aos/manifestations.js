@@ -134,6 +134,18 @@ export const MANIFESTATIONS_AOS = [
       "the eternal nightmare manifestation lore",
     ],
   },
+  {
+    name: "Manifestations of Gorkamorka",
+    aliases: [
+      "manifestations of gorkamorka",
+    ],
+  },
+  {
+    name: "Murkvast Menagerie Manifestation Lore",
+    aliases: [
+      "murkvast menagerie manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
