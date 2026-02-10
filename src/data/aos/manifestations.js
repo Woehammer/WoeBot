@@ -152,6 +152,12 @@ export const MANIFESTATIONS_AOS = [
       "zoggrok's ironmongerz manifestation lore",
     ],
   },
+  {
+    name: "Big Waaagh! Manifestation Lore",
+    aliases: [
+      "big waaagh! manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
