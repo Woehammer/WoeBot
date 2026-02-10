@@ -738,6 +738,62 @@ export const HEROIC_TRAITS_AOS = [
       "grim diet",
     ],
   },
+   {
+    name: "An Eye For Da Fight",
+    faction: "Ironjawz",
+    aliases: [
+      "an eye for da fight",
+    ],
+  },
+  {
+    name: "Hulking Brute",
+    faction: "Ironjawz",
+    aliases: [
+      "hulking brute",
+    ],
+  },
+  {
+    name: "Mega Bossy",
+    faction: "Ironjawz",
+    aliases: [
+      "mega bossy",
+    ],
+  },
+  {
+    name: "Big 'Un",
+    faction: "Ironjawz",
+    aliases: [
+      "big 'un",
+    ],
+  },
+  {
+    name: "Fast 'Unt",
+    faction: "Ironjawz",
+    aliases: [
+      "fast 'un",
+    ],
+  },
+  {
+    name: "Mad 'Un",
+    faction: "Ironjawz",
+    aliases: [
+      "mad 'un",
+    ],
+  },
+  {
+    name: "Trophy Hunta",
+    faction: "Ironjawz",
+    aliases: [
+      "trophy hunta",
+    ],
+  },
+  {
+    name: "Oi! Back To It!",
+    faction: "Ironjawz",
+    aliases: [
+      "oi! back to it!",
+    ],
+  },
 ];
 
 // ==================================================
