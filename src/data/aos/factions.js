@@ -124,7 +124,7 @@ export const FACTIONS_AOS = [
   },
   {
     key: "nighthaunt",
-    name: "nighthaunt",
+    name: "Nighthaunt",
     grandAlliance: "Death",
     aliases: [
       "nighthaunt",
@@ -133,12 +133,21 @@ export const FACTIONS_AOS = [
   },
    {
     key: "ogor_mawtribes",
-    name: "ogor mawtribes",
+    name: "Ogor Mawtribes",
     grandAlliance: "Destruction",
     aliases: [
       "ogor mawtribes",
     ],
     iconkey: "ogor_mawtribes",
+  },
+  {
+    key: "kruleboyz",
+    name: "Kruleboyz",
+    grandAlliance: "Destruction",
+    aliases: [
+      "kruleboyz",
+    ],
+    iconkey: "kruleboyz",
   },
 ];
 
