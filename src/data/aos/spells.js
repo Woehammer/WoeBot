@@ -206,6 +206,12 @@ export const SPELLS_AOS = [
       "lore of ossian sorcery",
     ],
   },
+  {
+    name: "Lore of Necrotheurgy",
+    aliases: [
+      "lore of necrotheurgy",
+    ],
+  },
 ];
 
 // ==================================================
