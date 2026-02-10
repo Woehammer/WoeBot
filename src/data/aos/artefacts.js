@@ -660,6 +660,34 @@ export const ARTEFACTS_AOS = [
       "flasks of congealed maw-juices",
     ],
   },
+  {
+    name: "Eye-biter Ash",
+    faction: "Kruleboyz",
+    aliases: [
+      "eye-biter ash",
+    ],
+  },
+  {
+    name: "Mork's Eye Pebble",
+    faction: "Kruleboyz",
+    aliases: [
+      "mork's eye pebble",
+    ],
+  },
+  {
+    name: "Swamp Staff",
+    faction: "Kruleboyz",
+    aliases: [
+      "swamp staff",
+    ],
+  },
+  {
+    name: "Skinwriggla Larvae",
+    faction: "Kruleboyz",
+    aliases: [
+      "skinwriggla larvae",
+    ],
+  },
 ];
 
 // ==================================================
