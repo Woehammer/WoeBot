@@ -732,6 +732,48 @@ export const FORMATIONS_AOS = [
       "the roving maw",
     ],
   },
+   {
+    name: "Badmouthing Baiterz",
+    faction: "Kruleboyz",
+    aliases: [
+      "badmouthing baiterz",
+    ],
+  },
+  {
+    name: "Swamphorde Bullies",
+    faction: "Kruleboyz",
+    aliases: [
+      "swamphorde bullies",
+    ],
+  },
+  {
+    name: "Kruleboyz Klaw",
+    faction: "Kruleboyz",
+    aliases: [
+       "kruleboyz klaw",
+    ],
+  },
+  {
+    name: "Light Finga",
+    faction: "Kruleboyz",
+    aliases: [
+      "light finga",
+    ],
+  },
+  {
+    name: "Middul Finga",
+    faction: "Kruleboyz",
+    aliases: [
+      "middul finga",
+    ],
+  },
+  {
+    name: "Trophy Finga",
+    faction: "Kruleboyz",
+    aliases: [
+      "trophy finga",
+    ],
+  },
 ];
 
 // ==================================================
