@@ -688,6 +688,41 @@ export const ARTEFACTS_AOS = [
       "skinwriggla larvae",
     ],
   },
+  {
+    name: "Amberbone Whetstone",
+    faction: "Ironjawz",
+    aliases: [
+      "amberbone whetstone",
+    ],
+  },
+  {
+    name: "Armour of Gork",
+    faction: "Ironjawz",
+    aliases: [
+      "armour of gork",
+    ],
+  },
+  {
+    name: "Trophy Skulls",
+    faction: "Ironjawz",
+    aliases: [
+      "trophy skulls",
+    ],
+  },
+  {
+    name: "Da Boom Skull",
+    faction: "Ironjawz",
+    aliases: [
+      "da boom skull",
+    ],
+  },
+  {
+    name: "Da Great Wolloper",
+    faction: "Ironjawz",
+    aliases: [
+      "da great wollopa",
+    ],
+  },
 ];
 
 // ==================================================
