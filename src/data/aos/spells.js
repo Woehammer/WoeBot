@@ -194,6 +194,12 @@ export const SPELLS_AOS = [
       "zoggrok's ironmongerz spell lore",
     ],
   },
+   {
+    name: "Big Waaagh! Spell Lore",
+    aliases: [
+      "big waaagh! spell lore",
+    ],
+  },
 ];
 
 // ==================================================
