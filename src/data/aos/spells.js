@@ -170,6 +170,18 @@ export const SPELLS_AOS = [
       "the roving maw spell lore",
     ],
   },
+  {
+    name: "Lore of the Swamp",
+    aliases: [
+      "lore of the swamp",
+    ],
+  },
+  {
+    name: "Murkvast Menagerie Spell Lore",
+    aliases: [
+      "murkvast menagerie spell lore",
+    ],
+  },
 ];
 
 // ==================================================
