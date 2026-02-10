@@ -212,6 +212,18 @@ export const SPELLS_AOS = [
       "lore of necrotheurgy",
     ],
   },
+  {
+    name: "Lore of Celestial Manipulation",
+    aliases: [
+      "lore of celestial manipulation",
+    ],
+  },
+  {
+    name: "Lore of Primal Jungles",
+    aliases: [
+      "lore of primal jungles",
+    ],
+  },
 ];
 
 // ==================================================
