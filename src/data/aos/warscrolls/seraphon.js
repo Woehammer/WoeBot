@@ -61,7 +61,7 @@ const SERAPHON = [
     name: "Skink Oracle on Troglodon",
     faction: "Seraphon",
 	aliases: [
-      "skink oracle on troglodon,
+      "skink oracle on troglodon",
     ],
   },
   {
