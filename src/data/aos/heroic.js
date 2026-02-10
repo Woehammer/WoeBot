@@ -843,6 +843,69 @@ export const HEROIC_TRAITS_AOS = [
       "mighty archaeossian",
     ],
   },
+   {
+    name: "Beastmaster",
+    faction: "Seraphon",
+    aliases: [
+      "beastmaster",
+    ],
+  },
+   {
+    name: "Being of the Stars",
+    faction: "Seraphon",
+    aliases: [
+      "being of the stars",
+    ],
+  },
+   {
+    name: "Reptilian Cunning",
+    faction: "Seraphon",
+    aliases: [
+      "reptilian cunning",
+    ],
+  },
+   {
+    name: "Child of the Stars",
+    faction: "Seraphon",
+    aliases: [
+      "child of the stars",
+    ],
+  },
+   {
+    name: "Chosen of Quetzl",
+    faction: "Seraphon",
+    aliases: [
+      "chosen of quetzl",
+    ],
+  },
+   {
+    name: "Keeper of the Old Ways",
+    faction: "Seraphon",
+    aliases: [
+      "keeper of the old ways",
+    ],
+  },
+   {
+    name: "Ancient Defender",
+    faction: "Seraphon",
+    aliases: [
+      "ancient defender",
+    ],
+  },
+   {
+    name: "Armour Cruncher",
+    faction: "Seraphon",
+    aliases: [
+      "armour cruncher",
+    ],
+  },
+   {
+    name: "Titan of the Land",
+    faction: "Seraphon",
+    aliases: [
+      "titan of the land",
+    ],
+  },
 ];
 
 // ==================================================
