@@ -134,6 +134,12 @@ export const PRAYERS_AOS = [
       "warbeats",
     ],
   },
+  {
+    name: "Big Waaagh! Prayer Lore",
+    aliases: [
+      "big waaagh! prayer lore",
+    ],
+  },
 ];
 
 // ==================================================
