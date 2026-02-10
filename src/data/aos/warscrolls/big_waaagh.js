@@ -141,6 +141,146 @@ const BIG_WAAAGH = [
       "scourge of ghyran gore-gruntas",
     ],
   },
+        {
+    name: "Breaka-boss on Mirebrute Troggoth",
+    faction: "Big Waaagh!",
+    aliases: [
+      "breaka-boss on mirebrute troggoth",
+    ],
+  },
+{
+    name: "Gobsprakk, the Mouth of Mork",
+    faction: "Big Waaagh!",
+    aliases: [
+      "gobsprakk, the mouth of mork",
+    ],
+  },
+{
+    name: "Hobgrot Slittaboss",
+    faction: "Big Waaagh!",
+    aliases: [
+      "hobgrot slittaboss",
+    ],
+  },
+{
+    name: "Killaboss on Corpse-rippa Vulcha",
+    faction: "Big Waaagh!",
+    aliases: [
+      "killaboss on corpse-rippa vulcha",
+    ],
+  },
+{
+    name: "Killaboss on Great Gnashtoof",
+    faction: "Big Waaagh!",
+    aliases: [
+      "killaboss on great gnashtoof",
+    ],
+  },
+{
+    name: "Killaboss with Stab-grot",
+    faction: "Big Waaagh!",
+    aliases: [
+      "killaboss with stab-grot",
+    ],
+  },
+{
+    name: "Kragnos, the End of Empires",
+    faction: "Big Waaagh!",
+    aliases: [
+      "kragnos, the end of empires",
+    ],
+  },
+{
+    name: "Murknob with Belcha-banna",
+    faction: "Big Waaagh!",
+    aliases: [
+      "murknob with belcha-banna",
+    ],
+  },
+{
+    name: "Snatchaboss on Sludgeraker Beast",
+    faction: "Big Waaagh!",
+    aliases: [
+      "snatchaboss on sludgeraker beast",
+    ],
+  },
+{
+    name: "Swampboss Skumdrekk",
+    faction: "Big Waaagh!",
+    aliases: [
+      "swampboss skumdrekk",
+    ],
+  },
+{
+    name: "Swampcalla Shaman with Pot-grot",
+    faction: "Big Waaagh!",
+    aliases: [
+      "swampcalla shaman with pot-grot",
+    ],
+  },
+{
+    name: "Gutrippaz",
+    faction: "Big Waaagh!",
+    aliases: [
+      "gutrippaz",
+    ],
+  },
+{
+    name: "Hobgrot Slittaz",
+    faction: "Big Waaagh!",
+    aliases: [
+      "hobgrot slittaz",
+    ],
+  },
+{
+    name: "Kruleboyz Monsta-Killaz",
+    faction: "Big Waaagh!",
+    aliases: [
+      "kruleboyz monsta-killaz",
+    ],
+  },
+{
+    name: "Man-skewer Boltboyz",
+    faction: "Big Waaagh!",
+    aliases: [
+      "man-skewer boltboyz",
+    ],
+  },
+{
+    name: "Beast-skewer Killbow",
+    faction: "Big Waaagh!",
+    aliases: [
+      "beast-skewer killbow",
+    ],
+  },
+{
+    name: "Marshcrawla Sloggoth",
+    faction: "Big Waaagh!",
+    aliases: [
+      "marshcrawla sloggoth",
+    ],
+  },
+{
+    name: "Skaregob Totem",
+    faction: "Big Waaagh!",
+    aliases: [
+      "skaregob totem",
+    ],
+  },
+{
+    name: "Scourge of Ghyran Killaboss on Great Gnashtoof",
+    faction: "Big Waaagh!",
+    aliases: [
+      "scourge of ghyran killaboss on great gnashtoof",
+    ],
+  },
+  {
+    name: "Scourge of Ghyran Swampboss Skumdrekk",
+    faction: "Big Waaagh!",
+    aliases: [
+      "scourge of ghyran swampboss skumdrekk",
+    ],
+  },
 ];
 
 // ==================================================
