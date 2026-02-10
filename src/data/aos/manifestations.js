@@ -158,6 +158,12 @@ export const MANIFESTATIONS_AOS = [
       "big waaagh! manifestation lore",
     ],
   },
+  {
+    name: "Horrors of the Necropolis",
+    aliases: [
+      "horrors of the necropolis",
+    ],
+  },
 ];
 
 // ==================================================
