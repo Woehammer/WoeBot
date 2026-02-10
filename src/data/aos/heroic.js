@@ -689,6 +689,55 @@ export const HEROIC_TRAITS_AOS = [
       "prime gutserver",
     ],
   },
+  {
+    name: "Mean 'Un",
+    faction: "Kruleboyz",
+    aliases: [
+      "mean 'un",
+    ],
+  },
+  {
+    name: "Sneaky 'Un",
+    faction: "Kruleboyz",
+    aliases: [
+      "msneaky 'un",
+    ],
+  },
+  {
+    name: "Tough 'Un",
+    faction: "Kruleboyz",
+    aliases: [
+      "tough 'un",
+    ],
+  },
+  {
+    name: "Backstabba",
+    faction: "Kruleboyz",
+    aliases: [
+      "backstabba",
+    ],
+  },
+  {
+    name: "Egomaniak",
+    faction: "Kruleboyz",
+    aliases: [
+      "egomaniak",
+    ],
+  },
+  {
+    name: "Slippery Skumbag",
+    faction: "Kruleboyz",
+    aliases: [
+      "slippery skumbag",
+    ],
+  },
+  {
+    name: "Grim Diet",
+    faction: "Kruleboyz",
+    aliases: [
+      "grim diet",
+    ],
+  },
 ];
 
 // ==================================================
