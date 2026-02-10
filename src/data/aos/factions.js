@@ -167,6 +167,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "big_waaagh",
   },
+  {
+    key: "ossiarch_bonereapers",
+    name: "Ossiarch Bonereapers",
+    grandAlliance: "Death",
+    aliases: [
+      "ossiarch bonereapers",
+    ],
+    iconkey: "ossiarch_bonereapers",
+  },
 ];
 
 // ==================================================
