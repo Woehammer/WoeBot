@@ -774,6 +774,69 @@ export const FORMATIONS_AOS = [
       "trophy finga",
     ],
   },
+    {
+    name: "Bigsnikkaz",
+    faction: "Ironjawz",
+    aliases: [
+      "bigsnikkaz",
+    ],
+  },
+    {
+    name: "Brutefist",
+    faction: "Ironjawz",
+    aliases: [
+      "brutefist",
+    ],
+  },
+  {
+    name: "Grunta Stampede",
+    faction: "Ironjawz",
+    aliases: [
+      "grunta stampede",
+    ],
+  },
+  {
+    name: "Ironfist",
+    faction: "Ironjawz",
+    aliases: [
+      "ironfist",
+    ],
+  },
+  {
+    name: "Ironjawz Brawl",
+    faction: "Ironjawz",
+    aliases: [
+      "ironjawz brawl",
+    ],
+  },
+  {
+    name: "Weirdfist",
+    faction: "Ironjawz",
+    aliases: [
+      "weirdfist",
+    ],
+  },
+  {
+    name: "Krazogg's Grunta Stampede",
+    faction: "Ironjawz",
+    aliases: [
+      "krazogg's grunta stampede",
+    ],
+  },
+  {
+    name: "Zoggrok's Ironmongerz",
+    faction: "Ironjawz",
+    aliases: [
+      "zoggrok's ironmongerz",
+    ],
+  },
+  {
+    name: "Murkvast Menagerie",
+    faction: "Kruleboyz",
+    aliases: [
+      "murkvast menagerie",
+    ],
+  },
 ];
 
 // ==================================================
