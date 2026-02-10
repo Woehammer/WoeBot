@@ -176,6 +176,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "ossiarch_bonereapers",
   },
+  {
+    key: "seraphon",
+    name: "Seraphon",
+    grandAlliance: "Order",
+    aliases: [
+      "seraphon",
+    ],
+    iconkey: "seraphon",
+  },
 ];
 
 // ==================================================
