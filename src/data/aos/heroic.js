@@ -640,6 +640,55 @@ export const HEROIC_TRAITS_AOS = [
       "damned vessel",
     ],
   },
+  {
+    name: "Booming Roar",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "booming roar",
+    ],
+  },
+   {
+    name: "Great Gutlord",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "great gutlord",
+    ],
+  },
+   {
+    name: "Touched by the Everwinter",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "touched by the everwinter",
+    ],
+  },
+   {
+    name: "Gutslugger",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "gutslugger",
+    ],
+  },
+   {
+    name: "Mage-swallower",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "mage-swallower",
+    ],
+  },
+   {
+    name: "Megagobbler",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "megagobbler",
+    ],
+  },
+   {
+    name: "Prime Gutserver",
+    faction: "Ogor Mawtribes",
+    aliases: [
+      "prime gutserver",
+    ],
+  },
 ];
 
 // ==================================================
