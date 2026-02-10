@@ -794,6 +794,34 @@ export const HEROIC_TRAITS_AOS = [
       "oi! back to it!",
     ],
   },
+  {
+    name: "A Proper Sneak",
+    faction: "Big Waaagh!",
+    aliases: [
+      "a proper sneak",
+    ],
+  },
+  {
+    name: "Da Old One-Two",
+    faction: "Big Waaagh!",
+    aliases: [
+      "da old one-two",
+    ],
+  },
+  {
+    name: "Get Krumpin'!",
+    faction: "Big Waaagh!",
+    aliases: [
+      "get krumpin'!",
+    ],
+  },
+  {
+    name: "Takin' Names",
+    faction: "Big Waaagh!",
+    aliases: [
+      "takin' names",
+    ],
+  },
 ];
 
 // ==================================================
