@@ -837,6 +837,48 @@ export const FORMATIONS_AOS = [
       "murkvast menagerie",
     ],
   },
+  {
+    name: "Kavalos Lance",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "kavalos lance",
+    ],
+  },
+  {
+    name: "Mortek Ballistari",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "mortek ballistari",
+    ],
+  },
+  {
+    name: "Mortek Phalanx",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "mortek phalanx",
+    ],
+  },
+  {
+    name: "Mortisan Council",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "mortisan council",
+    ],
+  },
+  {
+    name: "Hekatos Drillmasters",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "hekatos drillmasters",
+    ],
+  },
+  {
+    name: "Tithe Guards",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "tithe guards",
+    ],
+  },
 ];
 
 // ==================================================
