@@ -9,136 +9,136 @@
 
 const BIG_WAAAGH = [
     {
-    name: "Auric Flamekeeper",
-    faction: "Fyreslayers",
+    name: "Ardboy Bog Boss",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric flamekeeper",
+      "ardboy big boss",
     ],
   },
 {
-    name: "Auric Runefather",
-    faction: "Fyreslayers",
+    name: "Gordrakk, the Fist of Gork",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric runefather",
+      "gordrakk, the fist of gork",
     ],
   },
 {
-    name: "Auric Runefather on Magmadroth",
-    faction: "Fyreslayers",
+    name: "Kragnos, the End of Empires",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric runefather on magmadroth",
+      "kragnos, the end of empires",
     ],
   },
 {
-    name: "Auric Runemaster",
-    faction: "Fyreslayers",
+    name: "Megaboss",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric runemaster",
+      "megaboss",
     ],
   },
 {
-    name: "Auric Runesmiter",
-    faction: "Fyreslayers",
+    name: "Megaboss on Maw-Krusha",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric runesmiter",
+      "megaboss on maw-krusha",
     ],
   },
 {
-    name: "Auric Runesmiter on Magmadroth",
-    faction: "Fyreslayers",
+    name: "Tuskboss on Maw-grunta",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric runesmiter on magmadroth",
+      "tuskboss on maw-grunta",
     ],
   },
 {
-    name: "Auric Runeson",
-    faction: "Fyreslayers",
+    name: "Warchanter",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric runeson",
+      "warchanter",
     ],
   },
 {
-    name: "Auric Runeson on Magmadroth",
-    faction: "Fyreslayers",
+    name: "Weirdnob Shaman",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric runeson on magmadroth",
+      "weirdnob shaman",
     ],
   },
 {
-    name: "Battlesmith",
-    faction: "Fyreslayers",
+    name: "Zoggrok Anvilsmasha",
+    faction: "Big Waaagh!",
     aliases: [
-      "battlesmith",
+      "zoggrok anvilsmasha",
     ],
   },
 {
-    name: "Doomseeker",
-    faction: "Fyreslayers",
+    name: "Ardboyz",
+    faction: "Big Waaagh!",
     aliases: [
-      "doomseeker",
+      "ardboyz",
     ],
   },
 {
-    name: "Grimhold Exile",
-    faction: "Fyreslayers",
+    name: "Brute Ragerz",
+    faction: "Big Waaagh!",
     aliases: [
-      "grimhold exile",
+      "brute ragerz",
     ],
   },
 {
-    name: "Grimwrath Berzerker",
-    faction: "Fyreslayers",
+    name: "Brutes",
+    faction: "Big Waaagh!",
     aliases: [
-      "grimwrath berzerker",
+      "brutes",
     ],
   },
 {
-    name: "Auric Hearthguard",
-    faction: "Fyreslayers",
+    name: "Weirdbrute Wrekkaz",
+    faction: "Big Waaagh!",
     aliases: [
-      "auric hearthguard",
+      "weirdbrute wrekkaz",
     ],
   },
 {
-    name: "Hearthguard Berzerkers with Berzerker Broadaxes",
-    faction: "Fyreslayers",
+    name: "Gore-gruntas",
+    faction: "Big Waaagh!",
     aliases: [
-      "hearthguard berzerkers with berzerker broadaxes",
+      "gore-gruntas",
     ],
   },
 {
-    name: "Hearthguard Berzerkers with Flamestrike Poleaxes",
-    faction: "Fyreslayers",
+    name: "Maw-grunta Gougers",
+    faction: "Big Waaagh!",
     aliases: [
-      "hearthguard berzerkers with flamestrike poleaxes",
+      "maw-grunta gougers",
     ],
   },
 {
-    name: "Vulkite Berzerkers with Bladed Slingshields",
-    faction: "Fyreslayers",
+    name: "Maw-grunta with Hakkin' Krew",
+    faction: "Big Waaagh!",
     aliases: [
-      "vulkite berzerkers with bladed slingshields",
+      "maw-grunta with hakkin' krew",
     ],
   },
 {
-    name: "Vulkite Berzerkers with Fyresteel Weapons",
-    faction: "Fyreslayers",
+    name: "Bossrokk Tower",
+    faction: "Big Waaagh!",
     aliases: [
-      "vulkite berzerkers with fyresteel weapons",
+      "bossrokk tower",
     ],
   },
 {
-    name: "Vulkyn Flameseekers",
-    faction: "Fyreslayers",
+    name: "Scourge of Ghyran Weirdbrute Wrekkaz",
+    faction: "Big Waaagh!",
     aliases: [
-      "vulkyn flameseekers",
+      "scourge of ghyran weirdbrute wrekkaz",
     ],
   },
-{
-    name: "Magmic Battleforge",
-    faction: "Fyreslayers",
+  {
+    name: "Scourge of Ghyran Gore-gruntas",
+    faction: "Big Waaagh!",
     aliases: [
-      "magmic battleforge",
+      "scourge of ghyran gore-gruntas",
     ],
   },
 ];
