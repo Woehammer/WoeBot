@@ -200,6 +200,12 @@ export const SPELLS_AOS = [
       "big waaagh! spell lore",
     ],
   },
+  {
+    name: "Lore of Ossian Sorcery",
+    aliases: [
+      "lore of ossian sorcery",
+    ],
+  },
 ];
 
 // ==================================================
