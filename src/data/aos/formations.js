@@ -879,6 +879,34 @@ export const FORMATIONS_AOS = [
       "tithe guards",
     ],
   },
+    {
+    name: "Eternal Starhost",
+    faction: "Seraphon",
+    aliases: [
+      "eternal starhost",
+    ],
+  },
+  {
+    name: "Shadowstrike Starhost",
+    faction: "Seraphon",
+    aliases: [
+      "shadowstrike starhost",
+    ],
+  },
+  {
+    name: "Sunclaw Starhost",
+    faction: "Seraphon",
+    aliases: [
+      "sunclaw starhost",
+    ],
+  },
+  {
+    name: "Thunderquake Starhost",
+    faction: "Seraphon",
+    aliases: [
+      "thunderquake starhost",
+    ],
+  },
 ];
 
 // ==================================================
