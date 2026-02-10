@@ -730,6 +730,27 @@ export const ARTEFACTS_AOS = [
       "da sneaky stab-slab",
     ],
   },
+  {
+    name: "Helm of Tyranny",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "helm of tyranny",
+    ],
+  },
+  {
+    name: "Lode of Saturation",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "lode of saturation",
+    ],
+  },
+  {
+    name: "Marrowpact",
+    faction: "Ossiarch Bonereapers",
+    aliases: [
+      "marrowpact",
+    ],
+  },
 ];
 
 // ==================================================
