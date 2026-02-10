@@ -158,6 +158,18 @@ export const SPELLS_AOS = [
       "the eternal nightmare spell lore",
     ],
   },
+  {
+    name: "Lore of Maw-magic",
+    aliases: [
+      "lore of maw-magic",
+    ],
+  },
+  {
+    name: "The Roving Maw Spell Lore",
+    aliases: [
+      "the roving maw spell lore",
+    ],
+  },
 ];
 
 // ==================================================
