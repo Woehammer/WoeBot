@@ -751,6 +751,27 @@ export const ARTEFACTS_AOS = [
       "marrowpact",
     ],
   },
+  {
+    name: "Bloodrage Pendant",
+    faction: "Seraphon",
+    aliases: [
+      "bloodrage pendant",
+    ],
+  },
+   {
+    name: "Coatl Familiar",
+    faction: "Seraphon",
+    aliases: [
+      "coatl familiar",
+    ],
+  },
+   {
+    name: "Incandescent Rectrices",
+    faction: "Seraphon",
+    aliases: [
+      "incandescent rectrices",
+    ],
+  },
 ];
 
 // ==================================================
