@@ -122,6 +122,18 @@ export const PRAYERS_AOS = [
       "everwinter prayers",
     ],
   },
+  {
+    name: "Zoggrok's Ironmongerz Prayer Lore",
+    aliases: [
+      "zoggrok's ironmongerz prayer lore",
+    ],
+  },
+  {
+    name: "Warbeats",
+    aliases: [
+      "warbeats",
+    ],
+  },
 ];
 
 // ==================================================
