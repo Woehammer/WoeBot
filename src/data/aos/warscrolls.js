@@ -22,6 +22,7 @@ import kruleboyz from "./warscrolls/kruleboyz.js";
 import ironjawz from "./warscrolls/ironjawz.js";
 import bigWaaagh from "./warscrolls/big_waaagh.js";
 import ossiarchBonereapers from "./warscrolls/ossiarch_bonereapers.js";
+import seraphon from "./warscrolls/seraphon.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -47,6 +48,7 @@ export const WARSCROLLS_AOS = [
   ...ironjawz,
   ...bigWaaagh,
   ...ossiarchBonereapers,
+  ...seraphon,
 ];
 
 // ==================================================
