@@ -182,6 +182,18 @@ export const SPELLS_AOS = [
       "murkvast menagerie spell lore",
     ],
   },
+  {
+    name: "Lore of the Weird",
+    aliases: [
+      "lore of the weird",
+    ],
+  },
+  {
+    name: "Zoggrok's Ironmongerz Spell Lore",
+    aliases: [
+      "zoggrok's ironmongerz spell lore",
+    ],
+  },
 ];
 
 // ==================================================
