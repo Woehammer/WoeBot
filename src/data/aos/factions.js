@@ -149,6 +149,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "kruleboyz",
   },
+  {
+    key: "ironjawz",
+    name: "Ironjawz",
+    grandAlliance: "Destruction",
+    aliases: [
+      "ironjawz",
+    ],
+    iconkey: "ironjawz",
+  },
 ];
 
 // ==================================================
