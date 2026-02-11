@@ -956,10 +956,10 @@ export const HEROIC_TRAITS_AOS = [
     ],
   },
   {
-    name: "Deafening Frenzy",
+    name: "Harbringer of the Great Ascendancy",
     faction: "Skaven",
     aliases: [
-      "deafening frenzy",
+      "harbringer of the great ascendancy",
     ],
   },
 ];
