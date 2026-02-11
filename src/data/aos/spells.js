@@ -242,6 +242,18 @@ export const SPELLS_AOS = [
       "the great-grand gnawhorde spell lore",
     ],
   },
+{
+    name: "Lore of the Damned",
+    aliases: [
+      "lore of the damned",
+    ],
+  },
+  {
+    name: "Legion of the First Prince Spell Lore",
+    aliases: [
+      "legion of the first prince spell lore",
+    ],
+  },
 ];
 
 // ==================================================
