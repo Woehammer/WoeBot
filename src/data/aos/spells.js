@@ -224,6 +224,24 @@ export const SPELLS_AOS = [
       "lore of primal jungles",
     ],
   },
+  {
+    name: "Lore of Ruin",
+    aliases: [
+      "lore of ruin",
+    ],
+  },
+  {
+    name: "Thanquol's Muatated Menagerie Spell Lore",
+    aliases: [
+      "thaquol's mutated menagerie spell lore",
+    ],
+  },
+  {
+    name: "The Great-Grand Gnawhorde Spell Lore",
+    aliases: [
+      "the great-grand gnawhorde spell lore",
+    ],
+  },
 ];
 
 // ==================================================
