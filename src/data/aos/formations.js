@@ -1026,6 +1026,55 @@ export const FORMATIONS_AOS = [
       "tribes of the snow peaks",
     ],
   },
+{	
+    name: "King Brodd's Stomp",
+    faction: "Sons of Behemat",
+    aliases: [
+      "king brodd's stomp",
+    ],
+  },
+  {
+    name: "Big Toes",
+    faction: "Sons of Behemat",
+    aliases: [
+      "big toes",
+    ],
+  },
+  {
+    name: "Manskittle Mob",
+    faction: "Sons of Behemat",
+    aliases: [
+      "manskittle mob",
+    ],
+  },
+  {
+    name: "Boss Tribe",
+    faction: "Sons of Behemat",
+    aliases: [
+      "boss tribe",
+    ],
+  },
+  {
+    name: "Breaker Tribe",
+    faction: "Sons of Behemat",
+    aliases: [
+      "breaker tribe",
+    ],
+  },
+  {
+    name: "Stomper Tribe",
+    faction: "Sons of Behemat",
+    aliases: [
+      "stomper tribe",
+    ],
+  },
+  {
+    name: "Taker Tribe",
+    faction: "Sons of Behemat",
+    aliases: [
+      "taker tribe",
+    ],
+  },
 ];
 
 // ==================================================
