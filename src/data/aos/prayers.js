@@ -140,6 +140,18 @@ export const PRAYERS_AOS = [
       "big waaagh! prayer lore",
     ],
   },
+  {
+    name: "Noxious Prayers",
+    aliases: [
+      "noxious prayers",
+    ],
+  },
+  {
+    name: "The Great-Grand Gnawhorde Prayer Lore",
+    aliases: [
+      "the great-grand gnawhorde prayer lore",
+    ],
+  },
 ];
 
 // ==================================================
