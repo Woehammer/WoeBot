@@ -807,6 +807,96 @@ export const ARTEFACTS_AOS = [
       "icon of great-total supremacy",
     ],
   },
+ {
+    name: "Infernal Puppet",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "infernal puppet",
+    ],
+  },
+  {
+    name: "Realmwarper's Twist-rune",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "realmwarper's twist-rune",
+    ],
+  },
+  {
+    name: "The Conqueror's Crown",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the conqueror's crown",
+    ],
+  },
+  {
+    name: "Amulet of Chaos",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "amulet of chaos",
+    ],
+  },
+  {
+    name: "Head of the Unworthy",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "head of the unworthy",
+    ],
+  },{
+    name: "The Varanite Shackle",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the varanite shackle",
+    ],
+  },
+  {
+    name: "Black Ritual Dagger",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "black ritual dagger",
+    ],
+  },
+  {
+    name: "Grand Offering",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "grand offering",
+    ],
+  },
+  {
+    name: "The Banner of Rage",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the banner of rage",
+    ],
+  },
+  {
+    name: "The Banner of Screaming Flesh",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the banner of screaming flesh",
+    ],
+  },
+  {
+    name: "The Blasted Standard",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the blasted standard",
+    ],
+  },
+  {
+    name: "The Dread Banner",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the dread banner",
+    ],
+  },
+  {
+    name: "The Eroding Icon",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the eroding icon",
+    ],
+  },
 ];
 
 // ==================================================
