@@ -164,6 +164,24 @@ export const MANIFESTATIONS_AOS = [
       "horrors of the necropolis",
     ],
   },
+  {
+    name: "Manifestations of Doom",
+    aliases: [
+      "manifestations of doom",
+    ],
+  },
+  {
+    name: "Thanquol's Mutated Menagerie Manifestation Lore",
+    aliases: [
+      "thanquol's mutated menagerie manifestation lore",
+    ],
+  },
+  {
+    name: "The Great-Grand Gnawhorde Manifestation Lore",
+    aliases: [
+      "the great-grand gnawhorde manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
