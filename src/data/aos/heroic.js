@@ -906,6 +906,62 @@ export const HEROIC_TRAITS_AOS = [
       "titan of the land",
     ],
   },
+  {
+    name: "Scurry Away",
+    faction: "Skaven",
+    aliases: [
+      "scurry away",
+    ],
+  },
+  {
+    name: "Short-tempered",
+    faction: "Skaven",
+    aliases: [
+      "short-tempered",
+    ],
+  },
+  {
+    name: "Skilled Manipulator",
+    faction: "Skaven",
+    aliases: [
+      "skilled manipulator",
+    ],
+  },
+  {
+    name: "Devious Underling",
+    faction: "Skaven",
+    aliases: [
+      "devious underling",
+    ],
+  },
+  {
+    name: "Fleshmeddler",
+    faction: "Skaven",
+    aliases: [
+      "fleshmeddler",
+    ],
+  },
+  {
+    name: "Pit Tinkerer",
+    faction: "Skaven",
+    aliases: [
+      "pit tinkerer",
+    ],
+  },
+  {
+    name: "Pack Tactics",
+    faction: "Skaven",
+    aliases: [
+      "pack tactics",
+    ],
+  },
+  {
+    name: "Deafening Frenzy",
+    faction: "Skaven",
+    aliases: [
+      "deafening frenzy",
+    ],
+  },
 ];
 
 // ==================================================
