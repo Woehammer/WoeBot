@@ -152,6 +152,12 @@ export const PRAYERS_AOS = [
       "the great-grand gnawhorde prayer lore",
     ],
   },
+  {
+    name: "High Expectations",
+    aliases: [
+      "high expectations",
+    ],
+  },
 ];
 
 // ==================================================
