@@ -203,6 +203,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "slaves_to_darkness",
   },
+{
+    key: "sons_of_behemat",
+    name: "Sons of Behemat",
+    grandAlliance: "Destruction",
+    aliases: [
+      "sons of behemat",
+    ],
+    iconkey: "sons_of_behemat",
+  },
 ];
 
 // ==================================================
