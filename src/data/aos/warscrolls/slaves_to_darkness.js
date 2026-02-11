@@ -245,7 +245,8 @@ const SLAVES_TO_DARKNESS = [
 	aliases: [
       "fomoroid crusher",
     ],
-  },{
+  },
+  {
     name: "Mindstealer Sphiranx",
     faction: "Slaves to Darkness",
 	aliases: [
@@ -285,7 +286,6 @@ const SLAVES_TO_DARKNESS = [
 	aliases: [
       "nexus chaotica",
     ],
-  },
   },
   {
     name: "Scourge of Ghyran Abraxia, Spear of the Everchosen",
