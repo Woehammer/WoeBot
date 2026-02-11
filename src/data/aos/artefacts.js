@@ -772,6 +772,41 @@ export const ARTEFACTS_AOS = [
       "incandescent rectrices",
     ],
   },
+  {
+    name: "Foulhide",
+    faction: "Skaven",
+    aliases: [
+      "foulhide",
+    ],
+  },
+  {
+    name: "skavenbrew",
+    faction: "Skaven",
+    aliases: [
+      "skavenbrew",
+    ],
+  },
+  {
+    name: "Warpstone Charm",
+    faction: "Skaven",
+    aliases: [
+      "warpstone charm",
+    ],
+  },
+  {
+    name: "Warpstone Innards",
+    faction: "Skaven",
+    aliases: [
+      "warpstone innards",
+    ],
+  },
+  {
+    name: "Icon of Great-total Supremacy",
+    faction: "Skaven",
+    aliases: [
+      "icon of great-total supremacy",
+    ],
+  },
 ];
 
 // ==================================================
