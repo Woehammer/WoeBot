@@ -182,6 +182,18 @@ export const MANIFESTATIONS_AOS = [
       "the great-grand gnawhorde manifestation lore",
     ],
   },
+{
+    name: "Manifestations of Malevolence",
+    aliases: [
+      "manifestatations of malevolence",
+    ],
+  },
+{
+    name: "Legion of the First Prince Manifestation Lore",
+    aliases: [
+      "legion of the first prince manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
