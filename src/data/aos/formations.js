@@ -907,6 +907,62 @@ export const FORMATIONS_AOS = [
       "thunderquake starhost",
     ],
   },
+  {
+    name: "Claw-horde",
+    faction: "Skaven",
+    aliases: [
+      "claw-horde",
+    ],
+  },
+  {
+    name: "Fleshmeld Menagerie",
+    faction: "Skaven",
+    aliases: [
+      "fleshmeld menagerie",
+    ],
+  },
+  {
+    name: "Virulent Procession",
+    faction: "Skaven",
+    aliases: [
+      "virulent procession",
+    ],
+  },
+  {
+    name: "Warpcog Convocation",
+    faction: "Skaven",
+    aliases: [
+      "warpcog convocation",
+    ],
+  },
+  {
+    name: "Envoys of the Deepengnaw",
+    faction: "Skaven",
+    aliases: [
+      "envoys of the deepengnaw",
+    ],
+  },
+  {
+    name: "Gathering of the Clans",
+    faction: "Skaven",
+    aliases: [
+      "gathering of the clans",
+    ],
+  },
+  {
+    name: "Thanquol's Mutated Menagerie",
+    faction: "Skaven",
+    aliases: [
+      "thanquol's mutated menagerie",
+    ],
+  },
+  {
+    name: "The Great-Grand Gnawhorde",
+    faction: "Skaven",
+    aliases: [
+      "the great-grand gnawhorde",
+    ],
+  },
 ];
 
 // ==================================================
