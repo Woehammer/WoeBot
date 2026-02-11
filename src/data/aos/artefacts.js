@@ -897,6 +897,54 @@ export const ARTEFACTS_AOS = [
       "the eroding icon",
     ],
   },
+{
+    name: "Amberbone Totem",
+    faction: "Sons of Behemat",
+    aliases: [
+      "amberbone totem",
+    ],
+  },
+  {
+    name: "Extra-calloused Feet",
+    faction: "Sons of Behemat",
+    aliases: [
+      "extra-calloused feet",
+    ],
+  },
+  {
+    name: "Glowy Lantern",
+    faction: "Sons of Behemat",
+    aliases: [
+      "glowy lantern",
+    ],
+  },
+  {
+    name: "Glowy Shield of Protectiness",
+    faction: "Sons of Behemat",
+    aliases: [
+      "glowy shield of protectiness",
+    ],
+  },
+  {
+    name: "Kingslaughter Cowl",
+    faction: "Sons of Behemat",
+    aliases: [
+      "kingslaughter cowl",
+    ],
+  },{
+    name: "Mantle of Tusk and Horns",
+    faction: "Sons of Behemat",
+    aliases: [
+      "mantle of tusk and horns",
+    ],
+  },
+  {
+    name: "Lucky Shiny Hat",
+    faction: "Sons of Behemat",
+    aliases: [
+      "lucky shiny hat",
+    ],
+  },
 ];
 
 // ==================================================
