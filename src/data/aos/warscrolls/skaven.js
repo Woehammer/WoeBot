@@ -288,6 +288,20 @@ const SKAVEN = [
       "gnawhole",
     ],
   },
+	 {
+    name: "Scourge of Ghyran Grey Seer on Screaming Bell",
+    faction: "Skaven",
+	aliases: [
+      "scourge of ghyran grey seer on screaming bell",
+    ],
+  },
+	 {
+    name: "Scourge of Ghyran Brood Terror",
+    faction: "Skaven",
+	aliases: [
+      "scourge of ghyran brood terror",
+    ],
+  },
 ];
 
 // ==================================================
