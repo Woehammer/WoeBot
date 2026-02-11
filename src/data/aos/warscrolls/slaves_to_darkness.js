@@ -259,6 +259,7 @@ const SLAVES_TO_DARKNESS = [
 	aliases: [
       "mutalith vortex beast",
     ],
+ },
 	{
     name: "Slaughterbrute",
     faction: "Slaves to Darkness",
