@@ -962,6 +962,76 @@ export const HEROIC_TRAITS_AOS = [
       "harbringer of the great ascendancy",
     ],
   },
+ {
+    name: "Deathmonger",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "deathmonger",
+    ],
+  },
+  {
+    name: "Favoured of the Pantheon",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "favoured of the pantheon",
+    ],
+  },
+  {
+    name: "Radiance of Dark Glory",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "radiance of dark glory",
+    ],
+  },
+  {
+    name: "Dread Marshal",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "dread marshal",
+    ],
+  },
+  {
+   name: "Betrayers of the Anvilking",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "betrayers of the anvilking",
+    ],
+  },
+  {
+    name: "Tamers of Haradh's Torment",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "tamers of haradh's torment",
+    ],
+  },
+  {
+    name: "The Blackstorm Apostates",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the blackstorm apostates",
+    ],
+  },
+  {
+    name: "The Grimroot Order",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the grimroot order",
+    ],
+  },
+  {
+    name: "The Hounds Apocalypse",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the hounds apocalypse",
+    ],
+  },
+  {
+    name: "Oath of Kinship",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "oath of kinship",
+    ],
+  },
 ];
 
 // ==================================================
