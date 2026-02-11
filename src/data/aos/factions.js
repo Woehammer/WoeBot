@@ -185,6 +185,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "seraphon",
   },
+  {
+    key: "skaven",
+    name: "Skaven",
+    grandAlliance: "Chaos",
+    aliases: [
+      "skaven",
+    ],
+    iconkey: "skaven",
+  },
 ];
 
 // ==================================================
