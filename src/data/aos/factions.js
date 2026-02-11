@@ -194,6 +194,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "skaven",
   },
+{
+    key: "slaves_to_darkness",
+    name: "Slaves to Darkness",
+    grandAlliance: "Chaos",
+    aliases: [
+      "slaves to darkness",
+    ],
+    iconkey: "slaves_to_darkness",
+  },
 ];
 
 // ==================================================
