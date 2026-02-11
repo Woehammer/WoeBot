@@ -24,6 +24,7 @@ import bigWaaagh from "./warscrolls/big_waaagh.js";
 import ossiarchBonereapers from "./warscrolls/ossiarch_bonereapers.js";
 import seraphon from "./warscrolls/seraphon.js";
 import skaven from "./warscrolls/skaven.js";
+import slavesToDarkness from "./warscrolls/slaves_to_darkness.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -51,6 +52,7 @@ export const WARSCROLLS_AOS = [
   ...ossiarchBonereapers,
   ...seraphon,
   ...skaven,
+  ...slavesToDarkness,
 ];
 
 // ==================================================
