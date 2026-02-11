@@ -1032,6 +1032,55 @@ export const HEROIC_TRAITS_AOS = [
       "oath of kinship",
     ],
   },
+{
+    name: "Furious Temper",
+    faction: "Sons of Behemat",
+    aliases: [
+      "furious temper",
+    ],
+  },
+  {
+    name: "Monstrously Tough",
+    faction: "Sons of Behemat",
+    aliases: [
+      "monstrously tough",
+    ],
+  },
+  {
+    name: "Rabble Rouser",
+    faction: "Sons of Behemat",
+    aliases: [
+      "rabble rouser",
+    ],
+  },
+  {
+    name: "Grabby",
+    faction: "Sons of Behemat",
+    aliases: [
+      "grabby",
+    ],
+  },
+  {
+   name: "Mega-grump",
+    faction: "Sons of Behemat",
+    aliases: [
+      "mega-grump",
+    ],
+  },
+  {
+    name: "Terrifying Hulk",
+    faction: "Sons of Behemat",
+    aliases: [
+      "terrifying hulk",
+    ],
+  },
+  {
+    name: "I Can Do That Better",
+    faction: "Sons of Behemat",
+    aliases: [
+      "i can do that better",
+    ],
+  },
 ];
 
 // ==================================================
