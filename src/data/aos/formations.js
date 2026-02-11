@@ -963,6 +963,69 @@ export const FORMATIONS_AOS = [
       "the great-grand gnawhorde",
     ],
   },
+{	
+    name: "Darkoath Horde",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "darkoath horde",
+    ],
+  },
+  {
+    name: "Despoilers",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "despoilers",
+    ],
+  },
+  {
+    name: "Godswrath Warband",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "godswrath warband",
+    ],
+  },
+  {
+    name: "Legion of Chaos",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "legion of chaos",
+    ],
+  },
+  {
+    name: "Champions of Chaos",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "champions of chaos",
+    ],
+  },
+  {
+    name: "Chaos Horde",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "chaos horde",
+    ],
+  },
+  {
+    name: "Legion of the First Prince",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "legion of the first prince",
+    ],
+  },
+  {
+    name: "The Swords of Chaos",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "the swords of chaos",
+    ],
+  },
+  {
+    name: "Tribes of the Snow Peaks",
+    faction: "Slaves to Darkness",
+    aliases: [
+      "tribes of the snow peaks",
+    ],
+  },
 ];
 
 // ==================================================
