@@ -254,6 +254,23 @@ export const SPELLS_AOS = [
       "legion of the first prince spell lore",
     ],
   },
+{
+    name: "Lore of Undeath",
+    aliases: [
+      "lore of undeath",
+    ],
+  },
+  {
+    name: "Scions of Nulahmia Spell Lore",
+    aliases: [
+      "scions of nulahmia spell lore",
+    ],
+  {
+    name: "Knights of the Crimson Keep Spell Lore",
+    aliases: [
+      "knights of the crimson keep spell lore",
+    ],
+  },  
 ];
 
 // ==================================================
