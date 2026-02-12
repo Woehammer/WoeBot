@@ -1145,6 +1145,55 @@ export const FORMATIONS_AOS = [
       "legions of ulfenkarn",
     ],
   },
+{	
+    name: "Lightning Echelon",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "lightning echelon",
+    ],
+  },
+  {
+    name: "Sentinels of the Bleak Citadels",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "sentinels of the bleak citadels",
+    ],
+  },
+  {
+    name: "Thunderhead Host",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "thunderhead host",
+    ],
+  },
+  {
+    name: "Vanguard Wing",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "vanguard wing",
+    ],
+  },
+  {
+    name: "Draconith Skywing",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "draconith skywing",
+    ],
+  },
+  {
+    name: "Heroes of the First-Forged",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "heroes of the first-forged",
+    ],
+  },
+  {
+    name: "Ruination Brotherhood",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "ruination brotherhood",
+    ],
+  },
 ];
 
 // ==================================================
