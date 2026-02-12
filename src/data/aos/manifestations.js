@@ -206,6 +206,24 @@ export const MANIFESTATIONS_AOS = [
       "knights of the crimson keep manifestation lore",
     ],
   },
+  {
+    name: "Manifestations of the Storm",
+    aliases: [
+      "manifestatations of the storm",
+    ],
+  },
+  {
+    name: "Heroes of the First-Forged Manifestation Lore",
+    aliases: [
+      "heroes of the first-forged manifestation lore",
+    ],
+  },
+  {
+    name: "Draconith Skywing Manifestation Lore",
+    aliases: [
+      "draconith skywing manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
