@@ -1075,6 +1075,76 @@ export const FORMATIONS_AOS = [
       "taker tribe",
     ],
   },
+{	
+    name: "Bacchanal of Blood",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "bacchanal of blood",
+    ],
+  },
+  {
+    name: "Deathmarch",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "deathmarch",
+    ],
+  },
+  {
+    name: "Deathstench Drove",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "deathstench drove",
+    ],
+  },
+  {
+    name: "Legion of Shyish",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "legion of shyish",
+    ],
+  },
+  {
+    name: "Cryptmasters",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "cryptmasters",
+    ],
+  },
+  {
+    name: "Skinshifters",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "skinshifters",
+    ],
+  },
+  {
+    name: "Barrow Legion",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "barrow legion",
+    ],
+  },
+  {
+    name: "Knights of the Crimson Keep",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "knights of the crimson keep",
+    ],
+  },
+  {
+    name: "Scions of Nulahmia",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "scions of nulahmia",
+    ],
+  },
+  {
+    name: "Legions of Ulfenkarn",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "legions of ulfenkarn",
+    ],
+  },
 ];
 
 // ==================================================
