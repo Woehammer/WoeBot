@@ -270,7 +270,24 @@ export const SPELLS_AOS = [
     aliases: [
       "knights of the crimson keep spell lore",
     ],
-  },  
+  },
+{
+    name: "Lore of the Storm",
+    aliases: [
+      "lore of the storm",
+    ],
+  },
+  {
+    name: "Draconith Skywing Spell Lore",
+    aliases: [
+      "draconith skywing spell lore",
+    ],
+  {
+    name: "Heroes of the First-Forged Spell Lore",
+    aliases: [
+      "heroes of the first-forged spell lore",
+    ],
+  },
 ];
 
 // ==================================================
