@@ -26,6 +26,7 @@ import seraphon from "./warscrolls/seraphon.js";
 import skaven from "./warscrolls/skaven.js";
 import slavesToDarkness from "./warscrolls/slaves_to_darkness.js";
 import sonsOfBehemat from "./warscrolls/sons_of_behemat.js";
+import soulblightGravelords from "./warscrolls/soulblight_gravelords.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -55,6 +56,7 @@ export const WARSCROLLS_AOS = [
   ...skaven,
   ...slavesToDarkness,
   ...sonsOfBehemat,
+  ...soulblightGravelords,
 ];
 
 // ==================================================
