@@ -945,6 +945,75 @@ export const ARTEFACTS_AOS = [
       "lucky shiny hat",
     ],
   },
+{
+    name: "Amulet of Graves",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "amulet of graves",
+    ],
+  },
+  {
+    name: "Shard of Night",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "shard of night",
+    ],
+  },
+  {
+    name: "Terminus Clock",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "terminus clock",
+    ],
+  },
+  {
+    name: "Amulet of Nightmares",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "amulet of nightmares",
+    ],
+  },
+  {
+    name: "Crown of Cold Command",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "crown of cold command",
+    ],
+  },{
+    name: "Crypt Dagger",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "crypt dagger",
+    ],
+  },
+  {
+    name: "Grave-sand Pendant",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "grave-sand pendant",
+    ],
+  },
+  {
+    name: "Ring of Stricken Souls",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "ring of stricken souls",
+    ],
+  },
+  {
+    name: "Chalice of the Blood Dragon",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "chalice of the blood dragon",
+    ],
+  },
+  {
+    name: "Amulet of Leeches",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "amulet of leeches",
+    ],
+  },
 ];
 
 // ==================================================
