@@ -158,6 +158,30 @@ export const PRAYERS_AOS = [
       "high expectations",
     ],
   },
+  {
+    name: "Prayers of the Stormhosts",
+    aliases: [
+      "prayers of the stormhosts",
+    ],
+  },
+  {
+    name: "Draconith Skywing Prayer Lore",
+    aliases: [
+      "draconith skywing prayer lore",
+    ],
+  },
+  {
+    name: "Heroes of the First-Forged Prayer Lore",
+    aliases: [
+      "heroes of the first-forged prayer lore",
+    ],
+  },
+  {
+    name: "Ruination Brotherhood Prayer Lore",
+    aliases: [
+      "ruination brotherhood prayer lore",
+    ],
+  },
 ];
 
 // ==================================================
