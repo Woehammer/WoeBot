@@ -278,7 +278,7 @@ const STORMCAST_ETERNALS = [
     name: "Stormcoven",
     faction: "Stormcast Eternals",
 	aliases: [
-      stormcoven",
+      "stormcoven",
     ],
   },
   {
