@@ -28,6 +28,7 @@ import slavesToDarkness from "./warscrolls/slaves_to_darkness.js";
 import sonsOfBehemat from "./warscrolls/sons_of_behemat.js";
 import soulblightGravelords from "./warscrolls/soulblight_gravelords.js";
 import stormcastEternals from "./warscrolls/stormcast_eternals.js";
+import sylvaneth from "./warscrolls/sylvaneth.js";
 
 // ==================================================
 // WARSCROLL DEFINITIONS (MERGED)
@@ -59,6 +60,7 @@ export const WARSCROLLS_AOS = [
   ...sonsOfBehemat,
   ...soulblightGravelords,
   ...stormcastEternals,
+  ...sylvaneth,
 ];
 
 // ==================================================
