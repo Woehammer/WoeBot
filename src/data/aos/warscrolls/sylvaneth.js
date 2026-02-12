@@ -34,6 +34,7 @@ const SYLVANETH = [
     faction: "Sylvaneth",
 	aliases: [
       "branchwych",
+],
   },
    {
     name: "Drycha Hamadreth",
