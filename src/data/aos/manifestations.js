@@ -194,6 +194,18 @@ export const MANIFESTATIONS_AOS = [
       "legion of the first prince manifestation lore",
     ],
   },
+ {
+    name: "Manifestations of the Grave",
+    aliases: [
+      "manifestatations of the grave",
+    ],
+  },
+  {
+    name: "Knights of the Crimson Keep Prince Manifestation Lore",
+    aliases: [
+      "knights of the crimson keep manifestation lore",
+    ],
+  },
 ];
 
 // ==================================================
