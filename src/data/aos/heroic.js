@@ -1158,6 +1158,69 @@ export const HEROIC_TRAITS_AOS = [
       "keeper of the royal menagerie",
     ],
   },
+ {
+    name: "Envoy of the Heavens",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "envoy of the heavens",
+    ],
+  },
+  {
+    name: "Shock and Awe",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "shock and awe",
+    ],
+  },
+  {
+    name: "Staunch Defender",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "staunch defender",
+    ],
+  },
+  {
+    name: "Hour of Glory",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "hour of glory",
+    ],
+  },
+  {
+    name: "Intense Piety",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "intense piety",
+    ],
+  },
+  {
+    name: "Legendary Tenacity",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "legendary tenacity",
+    ],
+  },
+  {
+    name: "Fearless Fliers",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "fearless fliers",
+    ],
+  },
+  {
+    name: "Thegn of Bellicos",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "thegn of bellicos",
+    ],
+  },
+  {
+    name: "Corven Lord",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "corven lord",
+    ],
+  },
 ];
 
 // ==================================================
