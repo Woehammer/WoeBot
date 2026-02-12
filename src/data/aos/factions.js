@@ -212,6 +212,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "sons_of_behemat",
   },
+{
+    key: "soulblight_gravelords",
+    name: "Soulblight Gravelords",
+    grandAlliance: "Death",
+    aliases: [
+      "soulblight gravelords",
+    ],
+    iconkey: "soulblight_gravelords",
+  },
 ];
 
 // ==================================================
