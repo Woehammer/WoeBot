@@ -1221,6 +1221,34 @@ export const HEROIC_TRAITS_AOS = [
       "corven lord",
     ],
   },
+ {
+    name: "Radiant Spirit",
+    faction: "Sylvaneth",
+    aliases: [
+      "radiant spirit",
+    ],
+  },
+  {
+    name: "Spellsinger",
+    faction: "Sylvaneth",
+    aliases: [
+      "spellsinger",
+    ],
+  },
+  {
+    name: "Warsinger",
+    faction: "Sylvaneth",
+    aliases: [
+      "warsinger",
+    ],
+  },
+  {
+    name: "Sapwood Leader",
+    faction: "Sylvaneth",
+    aliases: [
+      "sapwood leader",
+    ],
+  },
 ];
 
 // ==================================================
