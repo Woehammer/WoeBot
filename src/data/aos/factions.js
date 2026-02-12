@@ -230,6 +230,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "stormcast_eternals",
   },
+{
+    key: "sylvaneth",
+    name: "Sylvaneth",
+    grandAlliance: "Order",
+    aliases: [
+      "sylvaneth",
+    ],
+    iconkey: "sylvaneth",
+  },
 ];
 
 // ==================================================
