@@ -1194,6 +1194,55 @@ export const FORMATIONS_AOS = [
       "ruination brotherhood",
     ],
   },
+{	
+    name: "Forest Folk",
+    faction: "Sylvaneth",
+    aliases: [
+      "forest folk",
+    ],
+  },
+  {
+    name: "Free Spirits",
+    faction: "Sylvaneth",
+    aliases: [
+      "free spirits",
+    ],
+  },
+  {
+    name: "Lords of the Clan",
+    faction: "Sylvaneth",
+    aliases: [
+      "lords of the clan",
+    ],
+  },
+  {
+    name: "Outcasts",
+    faction: "Sylvaneth",
+    aliases: [
+      "outcasts",
+    ],
+  },
+  {
+    name: "Wargrove of Everdusk",
+    faction: "Sylvaneth",
+    aliases: [
+      "wargrove of everdusk",
+    ],
+  },
+  {
+    name: "Wargrove of the Burgeoning",
+    faction: "Sylvaneth",
+    aliases: [
+      "wargrove of the burgeoning",
+    ],
+  },
+  {
+    name: "The Evergreen Hunt",
+    faction: "Sylvaneth",
+    aliases: [
+      "the evergreen hunt",
+    ],
+  },
 ];
 
 // ==================================================
