@@ -288,6 +288,12 @@ export const SPELLS_AOS = [
       "heroes of the first-forged spell lore",
     ],
   },
+{
+    name: "Lore of the Deepwood",
+    aliases: [
+      "lore of the deepwood",
+    ],
+  },
 ];
 
 // ==================================================
