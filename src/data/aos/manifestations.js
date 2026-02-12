@@ -224,6 +224,12 @@ export const MANIFESTATIONS_AOS = [
       "draconith skywing manifestation lore",
     ],
   },
+{
+    name: "Manifestations of the Deepwood",
+    aliases: [
+      "manifestatations of the deepwood",
+    ],
+  },
 ];
 
 // ==================================================
