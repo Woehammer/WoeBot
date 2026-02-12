@@ -1014,6 +1014,69 @@ export const ARTEFACTS_AOS = [
       "amulet of leeches",
     ],
   },
+ {
+    name: "Mirrorshield",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "mirrorshield",
+    ],
+  },
+  {
+    name: "Null Pendant",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "null pendant",
+    ],
+  },
+  {
+    name: "Quicksilver Draught",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "quicksilver draught",
+    ],
+  },
+  {
+    name: "Banner of Sigmar",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "banner of sigmar",
+    ],
+  },
+  {
+    name: "Beacon of Azyr",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "beacon of azyr",
+    ],
+  },
+  {
+    name: "Sigil of Morrda",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "sigil of morrda",
+    ],
+  },
+  {
+    name: "Celestium Ensign",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "celestium ensign",
+    ],
+  },
+  {
+    name: "Shield of Skjordamar",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "shield of skjordamar",
+    ],
+  },
+  {
+    name: "Hallowed Scrolls",
+    faction: "Stormcast Eternals",
+    aliases: [
+      "hallowed scrolls",
+    ],
+  },
 ];
 
 // ==================================================
