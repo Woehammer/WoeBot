@@ -221,6 +221,15 @@ export const FACTIONS_AOS = [
     ],
     iconkey: "soulblight_gravelords",
   },
+{
+    key: "stormcast_eternals",
+    name: "Stormcast Eternals",
+    grandAlliance: "Order",
+    aliases: [
+      "stormcast eternals",
+    ],
+    iconkey: "stormcast_eternals",
+  },
 ];
 
 // ==================================================
