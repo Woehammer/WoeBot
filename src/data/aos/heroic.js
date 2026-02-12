@@ -1081,6 +1081,83 @@ export const HEROIC_TRAITS_AOS = [
       "i can do that better",
     ],
   },
+{
+    name: "Lash of the Sire",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "lash of the sire",
+    ],
+  },
+  {
+    name: "Unbending Will",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "unbending will",
+    ],
+  },
+  {
+    name: "Unhinged Rampager",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "unhinged rampager",
+    ],
+  },
+  {
+    name: "A Wastrel and a Vagabond",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "a wastrel and a vagabond",
+    ],
+  },
+  {
+    name: "Frightening Vitality",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "frightening vitality",
+    ],
+  },
+  {
+    name: "Immortal Ego",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "immortal ego",
+    ],
+  },
+  {
+    name: "Lord of the Arcane Aegis",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "lord of the arcane aegis",
+    ],
+  },
+  {
+    name: "Restless Tyrant",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "restless tyrant",
+    ],
+  },
+  {
+    name: "Spirit-eater",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "spirit-eater",
+    ],
+  },
+  {
+    name: "Immortal Dedication",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "immortal dedication",
+    ],
+  },
+  {
+    name: "Keeper of the Royal Menagerie",
+    faction: "Soulblight Gravelords",
+    aliases: [
+      "keeper of the royal menagerie",
+    ],
+  },
 ];
 
 // ==================================================
