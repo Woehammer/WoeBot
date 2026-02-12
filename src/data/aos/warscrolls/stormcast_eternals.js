@@ -34,6 +34,7 @@ const STORMCAST_ETERNALS = [
     faction: "Stormcast Eternals",
 	aliases: [
       "ionus cryptborn, warden of lost souls",
+],
   },
    {
     name: "Iridan the Witness",
