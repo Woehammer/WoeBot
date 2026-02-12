@@ -1077,6 +1077,55 @@ export const ARTEFACTS_AOS = [
       "hallowed scrolls",
     ],
   },
+ {
+    name: "Crown of Fell Bowers",
+    faction: "Sylvaneth",
+    aliases: [
+      "crown of fell bowers",
+    ],
+  },
+  {
+    name: "Greenwood Gladius",
+    faction: "Sylvaneth",
+    aliases: [
+      "greenwood gladius",
+    ],
+  },
+  {
+    name: "Seed of Rebirth",
+    faction: "Sylvaneth",
+    aliases: [
+      "seed of rebirth",
+    ],
+  },
+  {
+    name: "Acorn of the Ages",
+    faction: "Sylvaneth",
+    aliases: [
+      "acorn of the ages",
+    ],
+  },
+  {
+    name: "Glamourweave",
+    faction: "Sylvaneth",
+    aliases: [
+      "glamourweave",
+    ],
+  },
+  {
+    name: "Ranu's Lamentiri",
+    faction: "Sylvaneth",
+    aliases: [
+      "ranu's lamentiri",
+    ],
+  },
+  {
+    name: "Heartwood Hunting Horn",
+    faction: "Sylvaneth",
+    aliases: [
+      "heartwood hunting horn",
+    ],
+  },
 ];
 
 // ==================================================
