@@ -3,6 +3,7 @@
 // PURPOSE: Build and cache fast lookup indexes over dataset rows
 //          + provide common summary helpers (faction + warscroll)
 //          + formation-aware slicing for /faction
+//          + battleplan breakdown for /battleplan
 // ==================================================
 
 // ==================================================
@@ -52,6 +53,52 @@ function getFormation(row) {
     row["Battleformation"] ??
     null
   );
+}
+
+// ==================================================
+// HELPERS: BATTLEPLAN + ROUND ACCESSORS
+// ==================================================
+function getBattlescroll(row) {
+  return row.Battlescroll ?? row.battlescroll ?? null;
+}
+
+function parseRoundResult(raw) {
+  // Expected: 1 = win, 0 = loss, optional draws later
+  const v = safeKey(raw);
+  if (v === "1") return "W";
+  if (v === "0") return "L";
+  if (v === "d" || v === "draw" || v === "0.5") return "D";
+  return null;
+}
+
+function extractBattleplanGamesFromRow(row) {
+  // Returns [{ battleplan, result }, ...]
+  const out = [];
+
+  for (let i = 1; i <= 8; i++) {
+    const bp =
+      row[`BP${i}`] ??
+      row[`bp${i}`] ??
+      row[`Battleplan${i}`] ??
+      row[`battleplan${i}`] ??
+      null;
+
+    if (!bp) continue;
+
+    const res =
+      row[`R${i}`] ??
+      row[`r${i}`] ??
+      row[`Round${i}`] ??
+      row[`round${i}`] ??
+      null;
+
+    const result = parseRoundResult(res);
+    if (!result) continue;
+
+    out.push({ battleplan: String(bp).trim(), result });
+  }
+
+  return out;
 }
 
 // ==================================================
@@ -209,6 +256,11 @@ function createService({ dataset }) {
     return indexes.byFaction.get(key) || [];
   }
 
+  function formationRows(formationName) {
+    const key = safeKey(formationName);
+    return indexes.byFormation.get(key) || [];
+  }
+
   function factionRowsInFormation(factionName, formationName) {
     const fKey = safeKey(factionName);
     const formKey = safeKey(formationName);
@@ -267,6 +319,71 @@ function createService({ dataset }) {
     return computeWithWithout({ rows, warscrollName, topN });
   }
 
+  // --------------------------------------------------
+  // BATTLEPLAN BREAKDOWN (for /battleplan)
+  // --------------------------------------------------
+  function battleplanBreakdown({ scope, name, battlescroll = null, minGames = 5 } = {}) {
+    if (!scope || !name) return [];
+
+    const bsKey = battlescroll ? safeKey(battlescroll) : null;
+    const mg = Number(minGames) || 1;
+
+    // Decide which rows to use
+    let baseRows = [];
+    if (scope === "faction") {
+      baseRows = factionRows(name);
+    } else if (scope === "formation") {
+      baseRows = formationRows(name);
+    } else {
+      return [];
+    }
+
+    // Aggregate by battleplan
+    const map = new Map(); // bpKey -> { battleplan, games, w, d, l }
+
+    for (const row of baseRows) {
+      if (bsKey) {
+        const rowBS = getBattlescroll(row);
+        if (safeKey(rowBS) !== bsKey) continue;
+      }
+
+      const games = extractBattleplanGamesFromRow(row);
+      for (const g of games) {
+        const bpKey = safeKey(g.battleplan);
+        if (!bpKey) continue;
+
+        const cur =
+          map.get(bpKey) ?? {
+            battleplan: g.battleplan,
+            games: 0,
+            w: 0,
+            d: 0,
+            l: 0,
+          };
+
+        cur.games += 1;
+        if (g.result === "W") cur.w += 1;
+        else if (g.result === "D") cur.d += 1;
+        else if (g.result === "L") cur.l += 1;
+
+        map.set(bpKey, cur);
+      }
+    }
+
+    // Finalise list + winRate
+    const out = [];
+    for (const v of map.values()) {
+      if (v.games < mg) continue;
+      const winRate = safeRate(v.w + 0.5 * v.d, v.games);
+      out.push({ ...v, winRate });
+    }
+
+    // Default sort: games desc then winRate desc
+    out.sort((a, b) => b.games - a.games || b.winRate - a.winRate);
+
+    return out;
+  }
+
   return {
     refresh,
     get,
@@ -274,6 +391,7 @@ function createService({ dataset }) {
     // rows
     warscrollRows,
     factionRows,
+    formationRows,
     factionRowsInFormation,
 
     // summaries
@@ -285,6 +403,9 @@ function createService({ dataset }) {
     // formation helpers
     formationsAll,
     formationsForFaction,
+
+    // battleplan helpers
+    battleplanBreakdown,
   };
 }
 
