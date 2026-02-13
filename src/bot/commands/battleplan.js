@@ -13,7 +13,7 @@ import {
   findFactionName,
 } from "./_warscrollListBase.js";
 
-import { BATTLEPLANS } from "../../data/aoa/battleplans.js";
+import { BATTLEPLANS } from "../../data/aos/battleplans.js";
 
 // ==================================================
 // HELPERS
