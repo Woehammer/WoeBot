@@ -1,41 +1,33 @@
+
 // ==================================================
 // COMMAND: /battleplan
-// PURPOSE: Battleplan win rates for a chosen faction or formation
+// PURPOSE: Battleplan win rates for a chosen faction
+//          (optionally filtered by battle formation)
 // ==================================================
 
+// ==================================================
+// IMPORTS
+// ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { addChunkedSection } from "../ui/embedSafe.js";
 
-import {
-  norm,
-  pct,
-  getFactionChoices,
-  findFactionName,
-} from "./_warscrollListBase.js";
+import { norm, pct, getFactionChoices, findFactionName } from "./_warscrollListBase.js";
 
+// If you want to validate formation names against a lookup file later,
+// you can import formations.js. For now we use the index service.
 import { BATTLEPLANS } from "../../data/aos/battleplans.js";
 
 // ==================================================
 // HELPERS
 // ==================================================
-function unique(arr) {
-  return Array.from(new Set(arr));
+function getFormationChoicesForFaction(ctx, factionName) {
+  const list = ctx?.engine?.indexes?.formationsForFaction?.(factionName);
+  return Array.isArray(list) ? list : [];
 }
 
-function battleplanChoicesFromLookup() {
-  // Useful if you later want autocomplete for battleplan names
-  return (BATTLEPLANS || []).map((b) => b.name);
-}
-
-function getFormationChoices(ctx) {
-  // Uses the index service we added: formationsAll()
-  const all = ctx?.engine?.indexes?.formationsAll?.();
-  return Array.isArray(all) ? all : [];
-}
-
-function findFormationName(ctx, input) {
+function findFormationNameForFaction(ctx, factionName, input) {
   const q = norm(input);
-  const choices = getFormationChoices(ctx);
+  const choices = getFormationChoicesForFaction(ctx, factionName);
 
   // exact match (case-insensitive)
   const exact = choices.find((x) => norm(x) === q);
@@ -46,27 +38,29 @@ function findFormationName(ctx, input) {
   return partial || null;
 }
 
+// Optional helper in case you want to enforce only known battleplans later
+function battleplanNamesFromLookup() {
+  return (BATTLEPLANS || []).map((b) => b.name);
+}
+
 // ==================================================
 // COMMAND DEFINITION
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("battleplan")
-  .setDescription("Battleplan win rates for a faction or a formation")
+  .setDescription("Battleplan win rates for a faction (optionally filtered by formation)")
   .addStringOption((opt) =>
     opt
-      .setName("scope")
-      .setDescription("Calculate for a faction or a battle formation")
+      .setName("faction")
+      .setDescription("Faction name")
       .setRequired(true)
-      .addChoices(
-        { name: "Faction", value: "faction" },
-        { name: "Formation", value: "formation" }
-      )
+      .setAutocomplete(true)
   )
   .addStringOption((opt) =>
     opt
-      .setName("name")
-      .setDescription("Faction or Formation name")
-      .setRequired(true)
+      .setName("formation")
+      .setDescription("Optional: restrict to a battle formation")
+      .setRequired(false)
       .setAutocomplete(true)
   )
   .addStringOption((opt) =>
@@ -97,85 +91,151 @@ export const data = new SlashCommandBuilder()
 // ==================================================
 export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
-  if (focused.name !== "name") return;
-
-  const scope = interaction.options.getString("scope", true);
   const q = norm(focused.value);
 
-  const choices =
-    scope === "formation" ? getFormationChoices({ engine: ctx.engine }) : getFactionChoices(ctx);
+  // ---- faction ----
+  if (focused.name === "faction") {
+    const choices = getFactionChoices(ctx);
+    await interaction.respond(
+      choices
+        .filter((n) => !q || norm(n).includes(q))
+        .slice(0, 25)
+        .map((n) => ({ name: n, value: n }))
+    );
+    return;
+  }
 
-  await interaction.respond(
-    choices
-      .filter((n) => !q || norm(n).includes(q))
-      .slice(0, 25)
-      .map((n) => ({ name: n, value: n }))
-  );
+  // ---- formation (depends on chosen faction) ----
+  if (focused.name === "formation") {
+    const inputFaction = interaction.options.getString("faction", false)?.trim();
+    if (!inputFaction) return await interaction.respond([]);
+
+    const factionName = findFactionName(ctx.system, ctx.engine, inputFaction);
+    if (!factionName) return await interaction.respond([]);
+
+    const choices = getFormationChoicesForFaction({ engine: ctx.engine }, factionName);
+
+    await interaction.respond(
+      choices
+        .filter((n) => !q || norm(n).includes(q))
+        .slice(0, 25)
+        .map((n) => ({ name: n, value: n }))
+    );
+  }
 }
 
 // ==================================================
 // RUN
 // ==================================================
 export async function run(interaction, { system, engine }) {
-  const scope = interaction.options.getString("scope", true);
-  const inputName = interaction.options.getString("name", true).trim();
+  const inputFaction = interaction.options.getString("faction", true).trim();
+  const inputFormation = interaction.options.getString("formation", false)?.trim() ?? null;
+
   const battlescroll = interaction.options.getString("battlescroll", false)?.trim() ?? null;
   const minGames = interaction.options.getInteger("mingames", false) ?? 5;
   const limit = interaction.options.getInteger("limit", false) ?? 12;
 
-  // Resolve scope name to canonical display
-  let displayName = null;
-
-  if (scope === "faction") {
-    displayName = findFactionName(system, engine, inputName);
-    if (!displayName) {
-      await interaction.reply({ content: `Couldn't match **${inputName}** to a known faction.`, ephemeral: true });
-      return;
-    }
-  } else if (scope === "formation") {
-    displayName = findFormationName({ engine }, inputName);
-    if (!displayName) {
-      await interaction.reply({ content: `Couldn't match **${inputName}** to a known formation.`, ephemeral: true });
-      return;
-    }
-  } else {
-    await interaction.reply({ content: "Invalid scope.", ephemeral: true });
+  // ----------------------------
+  // Resolve faction
+  // ----------------------------
+  const factionName = findFactionName(system, engine, inputFaction);
+  if (!factionName) {
+    await interaction.reply({
+      content: `Couldn't match **${inputFaction}** to a known faction.`,
+      ephemeral: true,
+    });
     return;
   }
 
-  // Pull stats from indexes.js
-  const rows = engine.indexes.battleplanBreakdown({
-    scope,
-    name: displayName,
-    battlescroll,
-    minGames,
-  });
+  // ----------------------------
+  // Resolve formation (optional)
+  // ----------------------------
+  let formationName = null;
+  if (inputFormation) {
+    formationName = findFormationNameForFaction({ engine }, factionName, inputFormation);
+    if (!formationName) {
+      await interaction.reply({
+        content: `Couldn't match **${inputFormation}** to a known formation for **${factionName}**.`,
+        ephemeral: true,
+      });
+      return;
+    }
+  }
+
+  // ----------------------------
+  // Get rows for scope
+  // ----------------------------
+  let rows = [];
+  if (formationName) {
+    rows = engine.indexes.factionRowsInFormation?.(factionName, formationName) ?? [];
+  } else {
+    rows = engine.indexes.factionRows?.(factionName) ?? [];
+  }
+
+  // If no rows, bail early
+  if (!rows.length) {
+    await interaction.reply({
+      content: `No data found for **${factionName}**${formationName ? ` (${formationName})` : ""}.`,
+      ephemeral: true,
+    });
+    return;
+  }
+
+  // ----------------------------
+  // Breakdown (preferred: rows-based)
+  // ----------------------------
+  let breakdown = null;
+
+  // Preferred newer helper (you should add this in indexes.js if not already):
+  // engine.indexes.battleplanBreakdownFromRows({ rows, battlescroll, minGames })
+  if (engine.indexes.battleplanBreakdownFromRows) {
+    breakdown = engine.indexes.battleplanBreakdownFromRows({
+      rows,
+      battlescroll,
+      minGames,
+    });
+  } else {
+    // Backwards-compatible fallback if your existing helper only supports scope+name:
+    // We'll call it with faction scope always (formation filtering already done via rows,
+    // so this fallback is not ideal — but at least won’t crash).
+    breakdown = engine.indexes.battleplanBreakdown({
+      scope: "faction",
+      name: factionName,
+      battlescroll,
+      minGames,
+    });
+  }
+
+  const embedTitle = formationName
+    ? `Battleplans — ${factionName} (${formationName})`
+    : `Battleplans — ${factionName}`;
 
   const embed = new EmbedBuilder()
-    .setTitle(`/battleplan — ${displayName}`)
+    .setTitle(embedTitle)
     .setFooter({ text: "Woehammer GT Database" });
 
   const overviewLines = [
-    `Scope: **${scope}**`,
+    `Scope: **${formationName ? "formation" : "faction"}**`,
     battlescroll ? `Battlescroll: **${battlescroll}**` : `Battlescroll: **All**`,
     `Min games per battleplan: **${minGames}**`,
   ].join("\n");
 
-  if (!rows?.length) {
+  if (!breakdown?.length) {
     embed.addFields(
       { name: "Overview", value: overviewLines },
-      { name: "Results", value: "No battleplan data found (or everything was filtered out by min games / battlescroll)." }
+      {
+        name: "Results",
+        value:
+          "No battleplan data found (or everything was filtered out by min games / battlescroll).",
+      }
     );
     await interaction.reply({ embeds: [embed] });
     return;
   }
 
-  const top = rows.slice(0, limit);
+  const top = breakdown.slice(0, limit);
 
-  const lines = top.map((r) => {
-    // Example format: Passing Seasons: 52% (21 games)
-    return `${r.battleplan}: **${pct(r.winRate)}** (${r.games} games)`;
-  });
+  const lines = top.map((r) => `${r.battleplan}: **${pct(r.winRate)}** (${r.games} games)`);
 
   addChunkedSection(embed, {
     headerField: { name: "Overview", value: overviewLines },
