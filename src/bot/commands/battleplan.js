@@ -1,29 +1,61 @@
 // ==================================================
 // COMMAND: /battleplan
-// PURPOSE: Show win rate by battleplan for a faction OR formation
-// NOTE: Uses engine indexes (not direct CSV fetch)
+// PURPOSE: Battleplan win rates for a chosen faction or formation
 // ==================================================
 
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { addChunkedSection } from "../ui/embedSafe.js";
 
-import { norm, pct, getFactionChoices, findFactionName } from "./_warscrollListBase.js";
+import {
+  norm,
+  pct,
+  getFactionChoices,
+  findFactionName,
+} from "./_warscrollListBase.js";
 
-// If you have a formations lookup helper already, import it.
-// If not, we’ll do a simple fallback matcher below.
-import { getFormationChoices, findFormationName } from "./_formationBase.js"; 
-// ^ If you DON'T have this file, remove these imports and use the fallback helper at bottom.
+import { BATTLEPLANS } from "../../data/battleplans.js";
 
 // ==================================================
-// SLASH COMMAND DEFINITION
+// HELPERS
+// ==================================================
+function unique(arr) {
+  return Array.from(new Set(arr));
+}
+
+function battleplanChoicesFromLookup() {
+  // Useful if you later want autocomplete for battleplan names
+  return (BATTLEPLANS || []).map((b) => b.name);
+}
+
+function getFormationChoices(ctx) {
+  // Uses the index service we added: formationsAll()
+  const all = ctx?.engine?.indexes?.formationsAll?.();
+  return Array.isArray(all) ? all : [];
+}
+
+function findFormationName(ctx, input) {
+  const q = norm(input);
+  const choices = getFormationChoices(ctx);
+
+  // exact match (case-insensitive)
+  const exact = choices.find((x) => norm(x) === q);
+  if (exact) return exact;
+
+  // contains match
+  const partial = choices.find((x) => norm(x).includes(q));
+  return partial || null;
+}
+
+// ==================================================
+// COMMAND DEFINITION
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("battleplan")
-  .setDescription("Battleplan win rates for a faction or formation.")
+  .setDescription("Battleplan win rates for a faction or a formation")
   .addStringOption((opt) =>
     opt
       .setName("scope")
-      .setDescription("Analyse by faction or formation")
+      .setDescription("Calculate for a faction or a battle formation")
       .setRequired(true)
       .addChoices(
         { name: "Faction", value: "faction" },
@@ -33,20 +65,20 @@ export const data = new SlashCommandBuilder()
   .addStringOption((opt) =>
     opt
       .setName("name")
-      .setDescription("Faction or formation name")
+      .setDescription("Faction or Formation name")
       .setRequired(true)
       .setAutocomplete(true)
   )
   .addStringOption((opt) =>
     opt
       .setName("battlescroll")
-      .setDescription("Optional battlescroll filter (e.g. 2025-12)")
+      .setDescription("Optional battlescroll filter (exact text match)")
       .setRequired(false)
   )
   .addIntegerOption((opt) =>
     opt
-      .setName("min_games")
-      .setDescription("Hide battleplans with fewer games (default 5, max 50)")
+      .setName("mingames")
+      .setDescription("Hide battleplans with fewer games (default 5)")
       .setRequired(false)
       .setMinValue(1)
       .setMaxValue(50)
@@ -70,13 +102,8 @@ export async function autocomplete(interaction, ctx) {
   const scope = interaction.options.getString("scope", true);
   const q = norm(focused.value);
 
-  let choices = [];
-  if (scope === "faction") {
-    choices = getFactionChoices(ctx);
-  } else {
-    // If you don't have formation choices helper yet, return empty to avoid bad UX
-    choices = typeof getFormationChoices === "function" ? getFormationChoices(ctx) : [];
-  }
+  const choices =
+    scope === "formation" ? getFormationChoices({ engine: ctx.engine }) : getFactionChoices(ctx);
 
   await interaction.respond(
     choices
@@ -92,97 +119,66 @@ export async function autocomplete(interaction, ctx) {
 export async function run(interaction, { system, engine }) {
   const scope = interaction.options.getString("scope", true);
   const inputName = interaction.options.getString("name", true).trim();
-
   const battlescroll = interaction.options.getString("battlescroll", false)?.trim() ?? null;
-  const minGames = interaction.options.getInteger("min_games", false) ?? 5;
+  const minGames = interaction.options.getInteger("mingames", false) ?? 5;
   const limit = interaction.options.getInteger("limit", false) ?? 12;
 
-  // ----------------------------
-  // Resolve name to canonical
-  // ----------------------------
-  let resolvedName = null;
+  // Resolve scope name to canonical display
+  let displayName = null;
 
   if (scope === "faction") {
-    resolvedName = findFactionName(system, engine, inputName);
-    if (!resolvedName) {
-      await interaction.reply({
-        content: `Couldn't match **${inputName}** to a known faction.`,
-        ephemeral: true,
-      });
+    displayName = findFactionName(system, engine, inputName);
+    if (!displayName) {
+      await interaction.reply({ content: `Couldn't match **${inputName}** to a known faction.`, ephemeral: true });
+      return;
+    }
+  } else if (scope === "formation") {
+    displayName = findFormationName({ engine }, inputName);
+    if (!displayName) {
+      await interaction.reply({ content: `Couldn't match **${inputName}** to a known formation.`, ephemeral: true });
       return;
     }
   } else {
-    if (typeof findFormationName === "function") {
-      resolvedName = findFormationName(system, engine, inputName);
-    } else {
-      // Fallback: accept raw input and let engine handle matching (or fail cleanly)
-      resolvedName = inputName;
-    }
-
-    if (!resolvedName) {
-      await interaction.reply({
-        content: `Couldn't match **${inputName}** to a known formation.`,
-        ephemeral: true,
-      });
-      return;
-    }
+    await interaction.reply({ content: "Invalid scope.", ephemeral: true });
+    return;
   }
 
-  // ----------------------------
-  // Pull breakdown from engine
-  // ----------------------------
-  // Expected return: [{ battleplan, games, winRate, w, d, l }, ...]
-  const rows = engine?.indexes?.battleplanBreakdown?.({
+  // Pull stats from indexes.js
+  const rows = engine.indexes.battleplanBreakdown({
     scope,
-    name: resolvedName,
+    name: displayName,
     battlescroll,
     minGames,
   });
 
-  if (!Array.isArray(rows) || !rows.length) {
-    const hint =
-      `No battleplan breakdown found for **${resolvedName}**.\n` +
-      `This usually means the events in the slice didn't publish BP1..BP8.`;
-    await interaction.reply({ content: hint, ephemeral: true });
+  const embed = new EmbedBuilder()
+    .setTitle(`/battleplan — ${displayName}`)
+    .setFooter({ text: "Woehammer GT Database" });
+
+  const overviewLines = [
+    `Scope: **${scope}**`,
+    battlescroll ? `Battlescroll: **${battlescroll}**` : `Battlescroll: **All**`,
+    `Min games per battleplan: **${minGames}**`,
+  ].join("\n");
+
+  if (!rows?.length) {
+    embed.addFields(
+      { name: "Overview", value: overviewLines },
+      { name: "Results", value: "No battleplan data found (or everything was filtered out by min games / battlescroll)." }
+    );
+    await interaction.reply({ embeds: [embed] });
     return;
   }
 
-  // Sort by games desc (stable UX)
-  rows.sort((a, b) => Number(b.games ?? 0) - Number(a.games ?? 0));
-
   const top = rows.slice(0, limit);
 
-  // ----------------------------
-  // Build embed
-  // ----------------------------
-  const embed = new EmbedBuilder()
-    .setTitle(`Battleplan win rates — ${resolvedName}`)
-    .setFooter({ text: "Woehammer GT Database" });
-
-  const overviewParts = [];
-  overviewParts.push(`Scope: **${scope}**`);
-  if (battlescroll) overviewParts.push(`Battlescroll: **${battlescroll}**`);
-  overviewParts.push(`Min games: **${minGames}**`);
-  overviewParts.push(`Showing: **${top.length}**`);
-
-  const overview = overviewParts.join(" | ");
-
   const lines = top.map((r) => {
-    const bp = r.battleplan ?? "Unknown";
-    const games = Number(r.games ?? 0);
-    const wr = Number(r.winRate ?? 0);
-
-    // Optional: show W-D-L if present
-    const w = r.w != null ? Number(r.w) : null;
-    const d = r.d != null ? Number(r.d) : null;
-    const l = r.l != null ? Number(r.l) : null;
-
-    const wdl = (w != null && d != null && l != null) ? ` — ${w}-${d}-${l}` : "";
-    return `**${bp}**: ${pct(wr)} (${games} games)${wdl}`;
+    // Example format: Passing Seasons: 52% (21 games)
+    return `${r.battleplan}: **${pct(r.winRate)}** (${r.games} games)`;
   });
 
   addChunkedSection(embed, {
-    headerField: { name: "Overview", value: overview },
+    headerField: { name: "Overview", value: overviewLines },
     lines,
   });
 
