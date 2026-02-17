@@ -1,9 +1,8 @@
 // ==================================================
 // COMMAND: /lookup
-// PURPOSE: Unified lookup + analysis for anything that appears in a list
-//          (warscrolls, terrain, artefacts, heroic traits, manifestations,
-//           spell lores, prayer lores, battle tactics, regiments of renown)
-//          Same style output as /warscroll (included/without/baseline/co-includes/elo)
+// PURPOSE: Unified lookup + analysis for list elements
+//          Uses engine indexes for warscrolls (reliable)
+//          Uses list-text matching for other lookups
 // ==================================================
 
 // ==================================================
@@ -14,11 +13,12 @@ import { addChunkedSection } from "../ui/embedSafe.js"; // adjust if your path d
 
 // ==================================================
 // COMMAND DEFINITION
-// NOTE: Required options MUST come before optional options (Discord rule)
+// NOTE: Required options MUST come before optional options
+// NOTE: Descriptions must be <= 100 chars
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("lookup")
-  .setDescription("Unified lookup + analysis for list elements")
+  .setDescription("Lookup stats for warscrolls and list options")
   .addStringOption((opt) =>
     opt
       .setName("faction")
@@ -29,14 +29,14 @@ export const data = new SlashCommandBuilder()
   .addStringOption((opt) =>
     opt
       .setName("type")
-      .setDescription("What kind of thing are you looking up?")
+      .setDescription("What are you looking up?")
       .setRequired(true)
       .addChoices(
         { name: "Warscroll", value: "warscroll" },
         { name: "Faction Terrain", value: "terrain" },
         { name: "Heroic Trait", value: "heroicTrait" },
         { name: "Artefact", value: "artefact" },
-        { name: "Manifestation Lore", value: "manifestation" },
+        { name: "Manifestation", value: "manifestation" },
         { name: "Spell Lore", value: "spellLore" },
         { name: "Prayer Lore", value: "prayerLore" },
         { name: "Battle Tactic", value: "battleTactic" },
@@ -60,7 +60,7 @@ export const data = new SlashCommandBuilder()
   .addIntegerOption((opt) =>
     opt
       .setName("co")
-      .setDescription("How many co-includes to show (default 3, max 10)")
+      .setDescription("Co-includes to show (default 3)")
       .setRequired(false)
       .setMinValue(0)
       .setMaxValue(10)
@@ -90,13 +90,26 @@ function fmtInt(x) {
   return `${Math.round(x)}`;
 }
 
+function pp(deltaWinRate) {
+  if (!Number.isFinite(deltaWinRate)) return "—";
+  const v = deltaWinRate * 100;
+  return `${v >= 0 ? "+" : ""}${v.toFixed(1)}pp`;
+}
+
 function escapeRegExp(s) {
   return String(s ?? "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// --------------------------------------------------
+// “word-ish” boundaries that work inside sentences like:
+// "Battle Tactic Cards: Master the Paths, Intercept and Recover"
+function phraseRegexFragment(phrase) {
+  const esc = escapeRegExp(String(phrase).toLowerCase().trim());
+  return `(?<![a-z0-9])${esc}(?![a-z0-9])`;
+}
+
+// ==================================================
 // DATA ACCESS
-// --------------------------------------------------
+// ==================================================
 function getListText(row) {
   return (
     row["Refined List"] ??
@@ -116,12 +129,12 @@ function getRowWins(r) {
   return Number(r.Won ?? 0) || 0;
 }
 
-function getClosingElo(r) {
+function getClosingElo(row) {
   const candidates = [
-    r["Closing Elo"],
-    r.ClosingElo,
-    r.closingElo,
-    r["ClosingElo"],
+    row["Closing Elo"],
+    row.ClosingElo,
+    row.closingElo,
+    row["ClosingElo"],
   ];
   for (const c of candidates) {
     const v = Number(c);
@@ -130,10 +143,10 @@ function getClosingElo(r) {
   return null;
 }
 
-function median(nums) {
-  const arr = (nums || []).filter(Number.isFinite);
-  if (!arr.length) return null;
-  const a = [...arr].sort((x, y) => x - y);
+function median(arr) {
+  const nums = (arr || []).filter(Number.isFinite);
+  if (!nums.length) return null;
+  const a = [...nums].sort((x, y) => x - y);
   const m = Math.floor(a.length / 2);
   return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
 }
@@ -146,9 +159,17 @@ function eloSummary(rows) {
   return { avg, med };
 }
 
-// --------------------------------------------------
-// FACTION MATCHING
-// --------------------------------------------------
+function confidenceFromGames(games) {
+  const g = Number(games ?? 0);
+  if (g < 10) return "Very low confidence: tiny sample, likely noisy.";
+  if (g < 30) return "Low confidence: small sample, directional only.";
+  if (g < 100) return "Medium confidence: decent sample, still volatile.";
+  return "High confidence: large sample, reasonably stable.";
+}
+
+// ==================================================
+// FACTION MATCHING (same pattern as your other commands)
+// ==================================================
 function getFactionChoices({ system, engine }) {
   let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
   if (choices.length) return choices;
@@ -159,7 +180,6 @@ function getFactionChoices({ system, engine }) {
       .map((rows) => rows?.[0]?.Faction ?? rows?.[0]?.faction)
       .filter(Boolean);
   }
-
   return [];
 }
 
@@ -191,10 +211,10 @@ function findFactionName(system, engine, inputName) {
   return null;
 }
 
-// --------------------------------------------------
+// ==================================================
 // TYPE -> LOOKUP ARRAY
-// IMPORTANT: these keys must exist in SYSTEMS.aos.lookups
-// --------------------------------------------------
+// (must match keys in SYSTEMS.aos.lookups)
+// ==================================================
 function getLookupArray(system, type) {
   const lookups = system?.lookups ?? {};
   switch (type) {
@@ -221,42 +241,35 @@ function getLookupArray(system, type) {
   }
 }
 
-// Faction scoping rules by type
 function isFactionScopedType(type) {
   return type === "warscroll" || type === "terrain" || type === "heroicTrait" || type === "artefact";
 }
 
-// Special scoping for regiments (allowedFactions array)
+// Regiments aren’t “owned” by a single faction but have eligibility.
 function regimentAllowedForFaction(item, factionName) {
-  const allowed = item?.allowedFactions ?? item?.allowed_factions ?? null;
-  if (!Array.isArray(allowed) || !allowed.length) return true; // if missing, don't block
+  const allowed = item?.allowedFactions ?? [];
+  if (!Array.isArray(allowed) || !allowed.length) return true;
   return allowed.some((f) => norm(f) === norm(factionName));
 }
 
-// --------------------------------------------------
-// Find canonical item by name/alias within a lookup
-// --------------------------------------------------
+// Find canonical item by name/alias within a lookup (with scoping rules)
 function findLookupItem(system, type, inputName, factionName = null) {
   const q = norm(inputName);
   const arr = getLookupArray(system, type);
 
   let candidates = arr;
 
-  // faction scoped types use item.faction
   if (isFactionScopedType(type) && factionName) {
     candidates = arr.filter((it) => !it?.faction || norm(it.faction) === norm(factionName));
   }
 
-  // regiments use allowedFactions
   if (type === "regimentOfRenown" && factionName) {
     candidates = arr.filter((it) => regimentAllowedForFaction(it, factionName));
   }
 
-  // direct name
   for (const it of candidates) {
     if (norm(it?.name) === q) return it;
   }
-  // alias
   for (const it of candidates) {
     for (const a of it?.aliases ?? []) {
       if (norm(a) === q) return it;
@@ -265,7 +278,7 @@ function findLookupItem(system, type, inputName, factionName = null) {
   return null;
 }
 
-// Build a regex that matches any of the phrases (name + aliases)
+// Build regex that matches item name/aliases anywhere in the list text (not just pipe lines)
 function buildAnyPhraseRegex(item) {
   const phrases = [item?.name, ...(item?.aliases ?? [])]
     .filter(Boolean)
@@ -274,13 +287,11 @@ function buildAnyPhraseRegex(item) {
 
   if (!phrases.length) return null;
 
-  const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
-
-  // match at start or after a pipe/newline, then phrase, then end/pipe/newline
-  return new RegExp(`(^|[|\\n\\r])\\s*(?:${alts})(?=$|[|\\n\\r])`, "i");
+  const alts = phrases.map(phraseRegexFragment).join("|");
+  return new RegExp(alts, "i");
 }
 
-// Count occurrences of this item in the list text (for avg occurrences)
+// Count occurrences (rough) for avg occurrences per list
 function countOccurrencesInText(item, text) {
   const phrases = [item?.name, ...(item?.aliases ?? [])]
     .filter(Boolean)
@@ -289,18 +300,16 @@ function countOccurrencesInText(item, text) {
 
   if (!phrases.length) return 0;
 
-  const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
-  const re = new RegExp(`(^|[|\\n\\r])\\s*(?:${alts})(?=$|[|\\n\\r])`, "ig");
+  const alts = phrases.map(phraseRegexFragment).join("|");
+  const re = new RegExp(alts, "ig");
 
   let n = 0;
-  const s = String(text ?? "");
+  const s = String(text ?? "").toLowerCase();
   while (re.exec(s)) n++;
   return n;
 }
 
-// --------------------------------------------------
 // Slice rows for faction (+ optional formation)
-// --------------------------------------------------
 function sliceRows(engine, factionName, formationName = null) {
   if (formationName) {
     const rows = engine.indexes.factionRowsInFormation(factionName, formationName);
@@ -310,10 +319,8 @@ function sliceRows(engine, factionName, formationName = null) {
   return { rows, scopeLabel: "Overall" };
 }
 
-// --------------------------------------------------
-// Compute included/without stats for arbitrary “item matched in list text”
-// --------------------------------------------------
-function computeItemStats({ rows, item }) {
+// Compute included/without via list text matching (for non-warscroll types)
+function computeItemStatsByText({ rows, item }) {
   const re = buildAnyPhraseRegex(item);
   if (!re) {
     return {
@@ -337,7 +344,7 @@ function computeItemStats({ rows, item }) {
 
   for (const r of rows || []) {
     const text = String(getListText(r) ?? "");
-    const has = text ? re.test(text) : false;
+    const has = text ? re.test(text.toLowerCase()) : false;
 
     const g = getRowGames(r);
     const w = getRowWins(r);
@@ -380,9 +387,7 @@ function computeItemStats({ rows, item }) {
   };
 }
 
-// --------------------------------------------------
-// Co-includes (warscrolls only, from included rows)
-// --------------------------------------------------
+// Co-includes warscrolls (from included rows, by list text)
 function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN = 3 } = {}) {
   const ws = system?.lookups?.warscrolls ?? [];
   if (!ws.length) return [];
@@ -392,14 +397,14 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
     .map((w) => {
       const phrases = [w.name, ...(w.aliases ?? [])].filter(Boolean);
       if (!phrases.length) return null;
-      const alts = phrases.map((p) => escapeRegExp(String(p).toLowerCase())).join("|");
-      const re = new RegExp(`(^|[|\\n\\r])\\s*(?:${alts})(?=$|[|\\n\\r])`, "i");
+      const alts = phrases.map(phraseRegexFragment).join("|");
+      const re = new RegExp(alts, "i");
       return { name: w.name, key: norm(w.name), re };
     })
     .filter(Boolean);
 
   const excludeKey = excludeName ? norm(excludeName) : null;
-  const counts = new Map(); // key -> { name, listsTogether }
+  const counts = new Map();
 
   for (const r of includedRows || []) {
     const text = String(getListText(r) ?? "");
@@ -407,7 +412,7 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
 
     for (const it of compiled) {
       if (excludeKey && it.key === excludeKey) continue;
-      if (it.re.test(text)) {
+      if (it.re.test(text.toLowerCase())) {
         const cur = counts.get(it.key);
         counts.set(it.key, {
           name: it.name,
@@ -420,6 +425,21 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
   return [...counts.values()]
     .sort((a, b) => b.listsTogether - a.listsTogether)
     .slice(0, topN);
+}
+
+function typeLabel(type) {
+  switch (type) {
+    case "warscroll": return "Warscroll";
+    case "terrain": return "Faction Terrain";
+    case "heroicTrait": return "Heroic Trait";
+    case "artefact": return "Artefact";
+    case "manifestation": return "Manifestation";
+    case "spellLore": return "Spell Lore";
+    case "prayerLore": return "Prayer Lore";
+    case "battleTactic": return "Battle Tactic";
+    case "regimentOfRenown": return "Regiment of Renown";
+    default: return type;
+  }
 }
 
 // ==================================================
@@ -465,31 +485,24 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // name autocomplete depends on type + faction
+  // name autocomplete (depends on type + faction)
   if (focused.name === "name") {
     const { system, engine } = ctx;
-    const type = interaction.options.getString("type", false); // IMPORTANT: don't force true in autocomplete
-    if (!type) {
-      await interaction.respond([]); // can't suggest without knowing which list
-      return;
-    }
-
+    const type = interaction.options.getString("type", true);
     const factionInput = (interaction.options.getString("faction") ?? "").trim();
     const factionName = factionInput ? findFactionName(system, engine, factionInput) : null;
 
-    const arr = getLookupArray(system, type);
-
-    let filtered = arr;
+    let arr = getLookupArray(system, type);
 
     if (isFactionScopedType(type) && factionName) {
-      filtered = arr.filter((it) => !it?.faction || norm(it.faction) === norm(factionName));
+      arr = arr.filter((it) => !it?.faction || norm(it.faction) === norm(factionName));
     }
 
     if (type === "regimentOfRenown" && factionName) {
-      filtered = arr.filter((it) => regimentAllowedForFaction(it, factionName));
+      arr = arr.filter((it) => regimentAllowedForFaction(it, factionName));
     }
 
-    const choices = filtered
+    const choices = arr
       .map((it) => it?.name)
       .filter(Boolean)
       .filter((n) => !q || norm(n).includes(q))
@@ -522,7 +535,7 @@ export async function run(interaction, { system, engine }) {
   const item = findLookupItem(system, type, inputName, factionName);
   if (!item) {
     await interaction.reply({
-      content: `Couldn't match **${inputName}** for **${type}** in scope **${factionName}**.`,
+      content: `Couldn't match **${inputName}** for **${typeLabel(type)}** in **${factionName}**.`,
       ephemeral: true,
     });
     return;
@@ -539,98 +552,145 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  // Faction baseline (same scope as rows)
-  let factionGames = 0;
-  let factionWins = 0;
+  // Faction baseline (same scope)
+  let baselineGames = 0;
+  let baselineWins = 0;
   for (const r of rows) {
-    factionGames += getRowGames(r);
-    factionWins += getRowWins(r);
+    baselineGames += getRowGames(r);
+    baselineWins += getRowWins(r);
   }
-  const factionWinRate = factionGames > 0 ? factionWins / factionGames : 0;
+  const factionWinRate = baselineGames > 0 ? baselineWins / baselineGames : 0;
 
-  // Item stats
-  const stats = computeItemStats({ rows, item });
+  const embed = new EmbedBuilder()
+    .setTitle(`/lookup — ${item.name}`)
+    .setFooter({ text: "Woehammer GT Database" });
 
+  const header =
+    `Scope: **${factionName}** — **${scopeLabel}**\n` +
+    `Lookup: **${typeLabel(type)}** • **${item.name}**`;
+
+  // ==================================================
+  // SPECIAL CASE: WARSCROLLS USE INDEXES (LIKE /WARSCR0LL)
+  // ==================================================
+  if (type === "warscroll") {
+    const summary = engine.indexes.warscrollSummaryInFaction(item.name, factionName, coN);
+
+    const includedGames = summary.included.games;
+    const includedWR = summary.included.winRate;
+    const withoutGames = summary.without.games;
+    const withoutWR = summary.without.winRate;
+    const avgOcc = summary.included.avgOccurrencesPerList;
+    const reinforcedPct = summary.included.reinforcedPct ?? 0;
+
+    const vsFaction = includedWR - factionWinRate;
+    const vsWithout = includedWR - withoutWR;
+
+    const co = summary.included.topCoIncludes || [];
+    const coText =
+      co.length > 0
+        ? co.map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`).join("\n")
+        : "—";
+
+    // Elo context (same as warscroll.js style)
+    const wsRowsAll = engine.indexes.warscrollRows(item.name) ?? [];
+    const wsRowsScope = wsRowsAll.filter((r) => norm(r.Faction ?? r.faction) === norm(factionName));
+    const wsElo = eloSummary(wsRowsScope);
+    const factionRows = engine.indexes.factionRows(factionName) ?? [];
+    const factionElo = eloSummary(factionRows);
+
+    const meaning = [
+      `When included, this posts **${pct(includedWR)}** versus faction baseline **${pct(factionWinRate)}** (${pp(vsFaction)}).`,
+      `Compared to lists without it (**${pct(withoutWR)}**), that’s **${pp(vsWithout)}** — *sample size matters*.`,
+      `**Confidence:** ${confidenceFromGames(includedGames)}`,
+    ].join("\n\n");
+
+    const lines = [
+      `**Included**`,
+      `Games: **${fmtInt(includedGames)}**`,
+      `Win rate: **${pct(includedWR)}**`,
+      `Avg occurrences (per list): **${fmt(avgOcc, 2)}**`,
+      `Reinforced in: **${pct(reinforcedPct)}** of lists`,
+      HR,
+      `**Faction baseline (same scope)**`,
+      `Games: **${fmtInt(baselineGames)}**`,
+      `Win rate: **${pct(factionWinRate)}**`,
+      `Impact (vs faction): **${pp(vsFaction)}**`,
+      HR,
+      `**Without (same scope)**`,
+      `Games: **${fmtInt(withoutGames)}**`,
+      `Win rate: **${pct(withoutWR)}**`,
+      HR,
+      `**Commonly included with (Top ${coN})**`,
+      coText,
+      HR,
+      `**Player Elo Context**`,
+      `Players using this (avg/med): **${fmt(wsElo.avg ?? NaN, 1)} / ${fmt(wsElo.med ?? NaN, 1)}**`,
+      `Faction baseline (avg/med): **${fmt(factionElo.avg ?? NaN, 1)} / ${fmt(factionElo.med ?? NaN, 1)}**`,
+      HR,
+      `**What this means**`,
+      meaning,
+    ];
+
+    addChunkedSection(embed, {
+      headerField: { name: "Overview", value: header },
+      lines,
+    });
+
+    await interaction.reply({ embeds: [embed] });
+    return;
+  }
+
+  // ==================================================
+  // DEFAULT: NON-WARSCROLL TYPES USE TEXT MATCHING
+  // ==================================================
+  const stats = computeItemStatsByText({ rows, item });
+
+  const includedWR = stats.included.winRate ?? null;
+  const withoutWR = stats.without.winRate ?? null;
+
+  const vsFaction = Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
   const usedPct = stats.totalRows > 0 ? stats.included.rows / stats.totalRows : 0;
-  const includedWR = stats.included.winRate ?? 0;
-  const impactPP = (includedWR - factionWinRate) * 100;
-  const impactText = `${impactPP >= 0 ? "+" : ""}${impactPP.toFixed(1)} pp`;
 
-  // Elo layer
+  // Elo layer (scope vs included)
   const eloAll = eloSummary(rows);
   const eloInc = eloSummary(stats.includedRows);
 
-  // Co-includes (warscrolls only)
-  const co =
-    coN > 0
-      ? coIncludesWarscrolls(system, stats.includedRows, {
-          excludeName: type === "warscroll" ? item.name : null,
-          topN: coN,
-        })
-      : [];
+  // Co-includes warscrolls from included rows
+  const co = coN > 0
+    ? coIncludesWarscrolls(system, stats.includedRows, { topN: coN })
+    : [];
 
   const coText =
     co.length > 0
       ? co.map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`).join("\n")
       : "—";
 
-  const typeLabel = (() => {
-    switch (type) {
-      case "warscroll":
-        return "Warscroll";
-      case "terrain":
-        return "Faction Terrain";
-      case "heroicTrait":
-        return "Heroic Trait";
-      case "artefact":
-        return "Artefact";
-      case "manifestation":
-        return "Manifestation Lore";
-      case "spellLore":
-        return "Spell Lore";
-      case "prayerLore":
-        return "Prayer Lore";
-      case "battleTactic":
-        return "Battle Tactic";
-      case "regimentOfRenown":
-        return "Regiment of Renown";
-      default:
-        return type;
-    }
-  })();
-
-  const header =
-    `Scope: **${factionName}** — **${scopeLabel}**\n` +
-    `Lookup: **${typeLabel}** • **${item.name}**`;
-
-  const lines = [];
-  lines.push(
+  const lines = [
     `**Included**`,
     `Used in: **${pct(usedPct)}** (*${stats.included.rows}/${stats.totalRows} lists*)`,
     `Games: **${fmtInt(stats.included.games)}**`,
-    `Win rate: **${pct(stats.included.winRate)}**`,
-    `Avg occurrences (per list): **${fmt(stats.included.avgOcc ?? NaN, 2)}**`,
+    `Win rate: **${Number.isFinite(includedWR) ? pct(includedWR) : "—"}**`,
+    `Avg occurrences (per list): **${Number.isFinite(stats.included.avgOcc) ? fmt(stats.included.avgOcc, 2) : "—"}**`,
     HR,
     `**Faction baseline (same scope)**`,
-    `Games: **${fmtInt(factionGames)}**`,
+    `Games: **${fmtInt(baselineGames)}**`,
     `Win rate: **${pct(factionWinRate)}**`,
-    `Impact (vs faction): **${impactText}**`,
+    `Impact (vs faction): **${Number.isFinite(vsFaction) ? pp(vsFaction) : "—"}**`,
     HR,
     `**Without (same scope)**`,
     `Games: **${fmtInt(stats.without.games)}**`,
-    `Win rate: **${pct(stats.without.winRate)}**`,
+    `Win rate: **${Number.isFinite(withoutWR) ? pct(withoutWR) : "—"}**`,
     HR,
     `**Closing Elo (scope vs included)**`,
-    `Scope avg/med: **${fmt(eloAll.avg ?? NaN, 1)}** / **${fmt(eloAll.med ?? NaN, 1)}**`,
-    `Included avg/med: **${fmt(eloInc.avg ?? NaN, 1)}** / **${fmt(eloInc.med ?? NaN, 1)}**`,
+    `Scope avg/med: **${fmt(eloAll.avg ?? NaN, 1)} / ${fmt(eloAll.med ?? NaN, 1)}**`,
+    `Included avg/med: **${fmt(eloInc.avg ?? NaN, 1)} / ${fmt(eloInc.med ?? NaN, 1)}**`,
     HR,
     `**Commonly included with (Top ${coN})**`,
-    coText
-  );
-
-  const embed = new EmbedBuilder()
-    .setTitle(`/lookup — ${item.name}`)
-    .setFooter({ text: "Woehammer GT Database" });
+    coText,
+    HR,
+    `**Confidence**`,
+    confidenceFromGames(stats.included.games),
+  ];
 
   addChunkedSection(embed, {
     headerField: { name: "Overview", value: header },
