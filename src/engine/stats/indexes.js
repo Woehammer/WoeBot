@@ -405,6 +405,20 @@ function createService({ dataset }) {
     return Array.from(new Set(out));
   }
 
+  // ✅ NEW: for /list autocomplete: only show events the chosen player attended
+  function eventsForPlayer(playerName) {
+    const pKey = safeKey(playerName);
+    const rows = indexes.byPlayer.get(pKey) || [];
+
+    const out = [];
+    for (const r of rows || []) {
+      const e = getEventName(r);
+      if (e) out.push(String(e));
+    }
+
+    return Array.from(new Set(out));
+  }
+
   function battlescrollsAll() {
     const out = [];
     for (const r of rowsCache || []) {
@@ -442,19 +456,6 @@ function createService({ dataset }) {
   function listForPlayerAtEvent(playerName, eventName, battlescroll = null) {
     const pKey = safeKey(playerName);
     const rows = eventRows(eventName, battlescroll);
-
-function eventsForPlayer(playerName) {
-  const pKey = safeKey(playerName);
-  const rows = indexes.byPlayer.get(pKey) || [];
-
-  const out = [];
-  for (const r of rows) {
-    const e = getEventName(r);
-    if (e) out.push(String(e));
-  }
-
-  return Array.from(new Set(out));
-}
 
     // try exact match on player key first
     let match = rows.find((r) => safeKey(getPlayer(r)) === pKey) || null;
@@ -588,11 +589,11 @@ function eventsForPlayer(playerName) {
 
     // event helpers
     eventsAll,
+    eventsForPlayer, // ✅ export it
     playersAll,
     battlescrollsAll,
     battlescrollsForEvent,
     playersForEvent,
-    eventsForPlayer,
 
     // list helper
     listForPlayerAtEvent,
