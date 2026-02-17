@@ -6,16 +6,16 @@
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { addChunkedSection } from "../ui/embedSafe.js";
 
+// ==================================================
+// HELPERS
+// ==================================================
 function norm(x) {
   return (x ?? "").toString().trim().toLowerCase();
 }
 
-function pct(x) {
-  const v = Number(x);
-  if (!Number.isFinite(v)) return "0.0%";
-  return `${(v * 100).toFixed(1)}%`;
-}
-
+// ==================================================
+// COMMAND DEFINITION
+// ==================================================
 export const data = new SlashCommandBuilder()
   .setName("event")
   .setDescription("List players at an event with faction + W/D/L (paged)")
@@ -40,7 +40,6 @@ export const data = new SlashCommandBuilder()
       .setRequired(false)
       .addChoices(
         { name: "Wins (desc)", value: "wins" },
-        { name: "Win rate (desc)", value: "wr" },
         { name: "Name (A→Z)", value: "name" }
       )
   )
@@ -61,6 +60,9 @@ export const data = new SlashCommandBuilder()
       .setMaxValue(80)
   );
 
+// ==================================================
+// AUTOCOMPLETE
+// ==================================================
 export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
 
@@ -106,6 +108,9 @@ export async function autocomplete(interaction, ctx) {
   }
 }
 
+// ==================================================
+// RUN
+// ==================================================
 export async function run(interaction, { engine }) {
   const eventName = interaction.options.getString("event", true).trim();
   const battlescroll = interaction.options.getString("battlescroll", false)?.trim() ?? null;
@@ -130,12 +135,16 @@ export async function run(interaction, { engine }) {
     return;
   }
 
-  // sort
+  // ----------------------------
+  // SORT
+  // ----------------------------
   const sorted = [...rows];
-  if (sort === "name") sorted.sort((a, b) => a.player.localeCompare(b.player));
-  else if (sort === "wr") sorted.sort((a, b) => (b.winRate ?? 0) - (a.winRate ?? 0));
-  else sorted.sort((a, b) => (b.won ?? 0) - (a.won ?? 0)); // wins
+  if (sort === "name") sorted.sort((a, b) => (a.player ?? "").localeCompare(b.player ?? ""));
+  else sorted.sort((a, b) => (b.won ?? 0) - (a.won ?? 0)); // wins desc
 
+  // ----------------------------
+  // PAGINATION
+  // ----------------------------
   const total = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const clampedPage = Math.min(Math.max(page, 1), totalPages);
@@ -145,8 +154,10 @@ export async function run(interaction, { engine }) {
 
   const slice = sorted.slice(start, end);
 
+  // ----------------------------
+  // EMBED
+  // ----------------------------
   const embed = new EmbedBuilder()
-    .setTitle("Battleplans") // lol no. This is /event. Keep it simple.
     .setTitle(`Event — ${eventName}`)
     .setFooter({ text: "Woehammer GT Database" });
 
@@ -160,10 +171,8 @@ export async function run(interaction, { engine }) {
     const w = p.won ?? 0;
     const d = p.drawn ?? 0;
     const l = p.lost ?? 0;
-    const g = p.played ?? (w + d + l);
     const f = p.faction ?? "Unknown";
-    const wr = pct(p.winRate ?? (g ? (w + 0.5 * d) / g : 0));
-    return `**${p.player}** — ${f} — **${w}-${d}-${l}** (${g}g, ${wr})`;
+    return `**${p.player}** — ${f} — **${w}-${d}-${l}**`;
   });
 
   addChunkedSection(embed, {
