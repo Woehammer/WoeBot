@@ -1,7 +1,8 @@
 // ==================================================
 // COMMAND: /list
-// PURPOSE: Show a player's submitted list from a specific event
-//          (with event + player autocompletes)
+// PURPOSE: Pull a player's list from a chosen event (with optional battlescroll)
+//          + show record + Elo (Starting/Closing/Change)
+//          + format list with dividers before key sections
 // ==================================================
 
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
@@ -14,73 +15,71 @@ function norm(x) {
   return (x ?? "").toString().trim().toLowerCase();
 }
 
-function n(x) {
+function fmtNum(x, dp = 1) {
   const v = Number(x);
-  return Number.isFinite(v) ? v : 0;
+  if (!Number.isFinite(v)) return "—";
+  return v.toFixed(dp);
 }
 
-function safeKey(x) {
-  return norm(x);
+function fmtEloLine(startingElo, closingElo, change) {
+  // If CSV provides Change use it. Otherwise compute if possible.
+  const s = Number(startingElo);
+  const c = Number(closingElo);
+
+  const hasS = Number.isFinite(s);
+  const hasC = Number.isFinite(c);
+  const hasChg = Number.isFinite(Number(change));
+
+  const chg =
+    hasChg ? Number(change) : hasS && hasC ? c - s : null;
+
+  if (!hasS && !hasC && !Number.isFinite(chg)) return "Elo: —";
+
+  // Use arrow like you asked
+  const left = hasS ? fmtNum(s, 1) : "—";
+  const right = hasC ? fmtNum(c, 1) : "—";
+  const delta = Number.isFinite(chg) ? fmtNum(chg, 1) : "—";
+
+  return `Elo: ${left}→${right} (${delta})`;
 }
 
-function getEventName(row) {
-  return row["Event Name"] ?? row.eventName ?? row.Event ?? row.event ?? null;
-}
+// Insert a divider BEFORE any line that contains certain section words.
+// You asked: regiment, battle tactics, faction terrains
+function prettifyListText(raw) {
+  if (!raw) return "No list text found for this row.";
 
-function getPlayer(row) {
-  return row.Player ?? row.player ?? row["Player Name"] ?? row.playerName ?? null;
-}
+  const HR = "──────────────";
 
-function getBattlescroll(row) {
-  return row.Battlescroll ?? row.battlescroll ?? null;
-}
+  const lines = String(raw)
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n");
 
-function getListText(row) {
-  return (
-    row.List ??
-    row.list ??
-    row["Army List"] ??
-    row["Army"] ??
-    row["List Text"] ??
-    row.listText ??
-    null
-  );
-}
+  const out = [];
+  for (const line of lines) {
+    const t = line.trim();
 
-function getFaction(row) {
-  return row.Faction ?? row.faction ?? null;
-}
+    // Skip totally empty lines (keeps it tighter)
+    if (!t) continue;
 
-function getRecord(row) {
-  const w = n(row.Won ?? row.won);
-  const d = n(row.Drawn ?? row.drawn);
-  const l = n(row.Lost ?? row.lost);
-  return { w, d, l, played: w + d + l };
-}
+    // trigger divider before these sections
+    const trigger =
+      /\bregiment\b/i.test(t) ||
+      /\bbattle tactic/i.test(t) ||
+      /\bbattle tactics/i.test(t) ||
+      /\bfaction terrain/i.test(t) ||
+      /\bfaction terrains/i.test(t);
 
-function splitLines(text) {
-  const raw = (text ?? "").toString().replace(/\r\n/g, "\n").trim();
-  if (!raw) return [];
-  return raw
-    .split("\n")
-    .map((s) => s.trimEnd())
-    .filter((s) => s.trim().length);
-}
-
-function pickBestRow(rows) {
-  // Prefer the row with the most games recorded (some scrapes duplicate partials)
-  let best = null;
-  let bestScore = -1;
-
-  for (const r of rows || []) {
-    const { played } = getRecord(r);
-    const score = played || n(r.Played) || 0;
-    if (score > bestScore) {
-      bestScore = score;
-      best = r;
+    if (trigger) {
+      // avoid stacking dividers
+      const prev = out[out.length - 1];
+      if (prev !== HR) out.push(HR);
     }
+
+    out.push(t);
   }
-  return best;
+
+  return out.join("\n");
 }
 
 // ==================================================
@@ -88,14 +87,7 @@ function pickBestRow(rows) {
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("list")
-  .setDescription("Show a player's list from an event")
-  .addStringOption((opt) =>
-    opt
-      .setName("event")
-      .setDescription("Event name")
-      .setRequired(true)
-      .setAutocomplete(true)
-  )
+  .setDescription("Show a player's list from a specific event")
   .addStringOption((opt) =>
     opt
       .setName("player")
@@ -105,8 +97,15 @@ export const data = new SlashCommandBuilder()
   )
   .addStringOption((opt) =>
     opt
+      .setName("event")
+      .setDescription("Event name")
+      .setRequired(true)
+      .setAutocomplete(true)
+  )
+  .addStringOption((opt) =>
+    opt
       .setName("battlescroll")
-      .setDescription("Optional battlescroll filter (if event has multiple entries)")
+      .setDescription("Optional battlescroll filter (defaults to All)")
       .setRequired(false)
       .setAutocomplete(true)
   );
@@ -116,10 +115,24 @@ export const data = new SlashCommandBuilder()
 // ==================================================
 export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
+  const q = norm(focused.value);
 
-  // EVENT
+  // Player autocomplete (global list of players)
+  if (focused.name === "player") {
+    const players = ctx?.engine?.indexes?.playersAll?.() ?? [];
+    const choices = Array.isArray(players) ? players : [];
+
+    await interaction.respond(
+      choices
+        .filter((n) => !q || norm(n).includes(q))
+        .slice(0, 25)
+        .map((n) => ({ name: n, value: n }))
+    );
+    return;
+  }
+
+  // Event autocomplete
   if (focused.name === "event") {
-    const q = norm(focused.value);
     const events = ctx?.engine?.indexes?.eventsAll?.() ?? [];
     const choices = Array.isArray(events) ? events : [];
 
@@ -132,34 +145,8 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // PLAYER (prefer players within selected event)
-  if (focused.name === "player") {
-    const q = norm(focused.value);
-    const eventName = interaction.options.getString("event", false)?.trim() ?? null;
-    const battlescroll = interaction.options.getString("battlescroll", false)?.trim() ?? null;
-
-    let players = [];
-    if (eventName && ctx?.engine?.indexes?.playersForEvent) {
-      const rows = ctx.engine.indexes.playersForEvent(eventName, battlescroll) || [];
-      players = rows.map((r) => r.player).filter(Boolean);
-    } else if (ctx?.engine?.indexes?.playersAll) {
-      players = ctx.engine.indexes.playersAll() || [];
-    }
-
-    const uniq = Array.from(new Set(players));
-
-    await interaction.respond(
-      uniq
-        .filter((n) => !q || norm(n).includes(q))
-        .slice(0, 25)
-        .map((n) => ({ name: n, value: n }))
-    );
-    return;
-  }
-
-  // BATTLESCROLL (prefer battlescrolls present IN the chosen event)
+  // Battlescroll autocomplete (prefer battlescrolls for selected event)
   if (focused.name === "battlescroll") {
-    const q = norm(focused.value);
     const eventName = interaction.options.getString("event", false)?.trim() ?? null;
 
     let choices = [];
@@ -183,112 +170,52 @@ export async function autocomplete(interaction, ctx) {
 // RUN
 // ==================================================
 export async function run(interaction, { engine }) {
-  const eventInput = interaction.options.getString("event", true).trim();
   const playerInput = interaction.options.getString("player", true).trim();
+  const eventName = interaction.options.getString("event", true).trim();
   const battlescroll = interaction.options.getString("battlescroll", false)?.trim() ?? null;
 
-  // Pull event rows from indexes (raw map is fastest and avoids adding new helpers)
-  const idx = engine?.indexes?.get?.();
-  const byEvent = idx?.byEvent;
-
-  if (!byEvent) {
+  if (!engine?.indexes?.listForPlayerAtEvent) {
     await interaction.reply({
-      content: "Indexes not ready (missing byEvent). Try again in a moment.",
+      content: "listForPlayerAtEvent() is missing in indexes.js.",
       ephemeral: true,
     });
     return;
   }
 
-  // Resolve event name case-insensitively (use existing canonical list if available)
-  const eventsAll = engine?.indexes?.eventsAll?.() ?? [];
-  const eventKey = safeKey(eventInput);
-  const canonicalEvent =
-    (Array.isArray(eventsAll) ? eventsAll : []).find((e) => safeKey(e) === eventKey) ||
-    (Array.isArray(eventsAll) ? eventsAll : []).find((e) => safeKey(e).includes(eventKey)) ||
-    eventInput;
+  const data = engine.indexes.listForPlayerAtEvent(playerInput, eventName, battlescroll);
 
-  const eventRows = byEvent.get(safeKey(canonicalEvent)) || byEvent.get(eventKey) || [];
-
-  if (!eventRows.length) {
-    const embed = new EmbedBuilder()
-      .setTitle("List")
-      .setFooter({ text: "Woehammer GT Database" })
-      .addFields({
-        name: "Results",
-        value: `No data found for event **${canonicalEvent}**.`,
-      });
-
-    await interaction.reply({ embeds: [embed] });
+  if (!data) {
+    await interaction.reply({
+      content: `No list found for **${playerInput}** at **${eventName}**${battlescroll ? ` on **${battlescroll}**` : ""}.`,
+      ephemeral: true,
+    });
     return;
   }
 
-  // Filter rows for player (and battlescroll if given)
-  const pKey = safeKey(playerInput);
-  const bsKey = battlescroll ? safeKey(battlescroll) : null;
+  const w = data.record?.won ?? 0;
+  const d = data.record?.drawn ?? 0;
+  const l = data.record?.lost ?? 0;
 
-  const matches = eventRows.filter((r) => {
-    const p = getPlayer(r);
-    if (!p || safeKey(p) !== pKey) return false;
-
-    if (bsKey) {
-      const bs = getBattlescroll(r);
-      if (safeKey(bs) !== bsKey) return false;
-    }
-    return true;
-  });
-
-  if (!matches.length) {
-    const embed = new EmbedBuilder()
-      .setTitle("List")
-      .setFooter({ text: "Woehammer GT Database" })
-      .addFields({
-        name: "Results",
-        value: bsKey
-          ? `Couldn't find **${playerInput}** in **${canonicalEvent}** on **${battlescroll}**.`
-          : `Couldn't find **${playerInput}** in **${canonicalEvent}**.`,
-      });
-
-    await interaction.reply({ embeds: [embed] });
-    return;
-  }
-
-  const row = pickBestRow(matches);
-
-  const player = getPlayer(row) ?? playerInput;
-  const eventName = getEventName(row) ?? canonicalEvent;
-  const faction = getFaction(row) ?? "Unknown";
-
-  const { w, d, l } = getRecord(row);
-  const recordStr = `${w}-${d}-${l}`;
-
-  const listText = getListText(row);
-
-  const embed = new EmbedBuilder()
-    .setTitle(`List — ${player}`)
-    .setFooter({ text: "Woehammer GT Database" });
+  const eloLine = fmtEloLine(data.startingElo, data.closingElo, data.change);
 
   const overview =
-    `Player: **${player}**\n` +
-    `Event: **${eventName}**\n` +
-    `Faction: **${faction}**\n` +
-    `Record: **${recordStr}**\n` +
-    `Battlescroll: **${battlescroll ?? "All"}**`;
+    `Player: **${data.player}**\n` +
+    `Event: **${data.event}**\n` +
+    `Faction: **${data.faction ?? "Unknown"}**\n` +
+    `Record: **${w}-${d}-${l}**\n` +
+    `${eloLine}\n` +
+    `Battlescroll: **${data.battlescroll ?? battlescroll ?? "All"}**`;
 
-  if (!listText || !String(listText).trim()) {
-    embed.addFields(
-      { name: "Overview", value: overview },
-      { name: "List", value: "No list text found for this entry." }
-    );
-    await interaction.reply({ embeds: [embed] });
-    return;
-  }
+  const listText = prettifyListText(data.list);
 
-  const lines = splitLines(listText);
+  const embed = new EmbedBuilder()
+    .setTitle(`List — ${data.player}`)
+    .setFooter({ text: "Woehammer GT Database" });
 
+  // Put list into chunked section so it doesn't explode embeds
   addChunkedSection(embed, {
     headerField: { name: "Overview", value: overview },
-    // This renders as a big “List” section (chunked safely)
-    lines: ["**List**", ...lines],
+    lines: listText.split("\n"),
   });
 
   await interaction.reply({ embeds: [embed] });
