@@ -1,6 +1,11 @@
 // ==================================================
 // COMMAND: /event
-// PURPOSE: Show players at an event + faction + W/D/L + (optional) pre/post Elo (paged)
+// PURPOSE: Show players at an event + faction + W/D/L + Elo change (paged)
+// FORMAT:
+// ---
+// **Name** — Faction
+// W-D-L Elo:pre→post (Δ)
+// ---
 // ==================================================
 
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
@@ -13,73 +18,59 @@ function norm(x) {
   return (x ?? "").toString().trim().toLowerCase();
 }
 
-function n(x) {
+function fmt(x, dp = 1) {
   const v = Number(x);
-  return Number.isFinite(v) ? v : null;
+  if (!Number.isFinite(v)) return "—";
+  return v.toFixed(dp);
 }
 
-function fmtElo(v) {
-  const num = n(v);
-  return num === null ? null : num.toFixed(1);
-}
+function getOpeningElo(row) {
+  const candidates = [
+    row["Opening Elo"],
+    row.OpeningElo,
+    row.openingElo,
+    row["Starting Elo"],
+    row.StartingElo,
+    row.startingElo,
+    row["Pre Elo"],
+    row.PreElo,
+    row.preElo,
+  ];
 
-function pick(obj, keys) {
-  for (const k of keys) {
-    if (obj && obj[k] !== undefined && obj[k] !== null && `${obj[k]}`.trim() !== "") return obj[k];
+  for (const c of candidates) {
+    const v = Number(c);
+    if (Number.isFinite(v)) return v;
   }
   return null;
 }
 
-function extractPrePostElo(p) {
-  // Be tolerant: your sheet field names WILL drift.
-  const pre = pick(p, [
-    "preElo",
-    "eloPre",
-    "openingElo",
-    "startingElo",
-    "elo_before",
-    "eloBefore",
-    "pre_tournament_elo",
-    "preTournamentElo",
-    "Elo Pre",
-    "Pre Elo",
-    "Opening Elo",
-    "Starting Elo",
-    "Elo Before",
-    "Pre-tournament Elo",
-  ]);
+function getClosingElo(row) {
+  const candidates = [
+    row["Closing Elo"],
+    row.ClosingElo,
+    row.closingElo,
+    row["ClosingElo"],
+  ];
 
-  const post = pick(p, [
-    "postElo",
-    "eloPost",
-    "closingElo",
-    "endingElo",
-    "elo_after",
-    "eloAfter",
-    "post_tournament_elo",
-    "postTournamentElo",
-    "Elo Post",
-    "Post Elo",
-    "Closing Elo",
-    "Ending Elo",
-    "Elo After",
-    "Post-tournament Elo",
-  ]);
-
-  const preN = n(pre);
-  const postN = n(post);
-
-  return {
-    pre: preN,
-    post: postN,
-  };
+  for (const c of candidates) {
+    const v = Number(c);
+    if (Number.isFinite(v)) return v;
+  }
+  return null;
 }
 
-function fmtDelta(pre, post) {
-  if (pre === null || post === null) return null;
-  const d = post - pre;
-  const sign = d > 0 ? "+" : "";
-  return `${sign}${d.toFixed(1)}`;
+function getBestEloForPlayerEvent(p) {
+  // Prefer values returned by indexes.playersForEvent()
+  const pre = Number.isFinite(Number(p.openingElo)) ? Number(p.openingElo) : null;
+  const post = Number.isFinite(Number(p.closingElo)) ? Number(p.closingElo) : null;
+
+  // If indexes didn't supply, try reading raw row if present
+  const rowPre =
+    pre ?? (p.__row ? getOpeningElo(p.__row) : null);
+  const rowPost =
+    post ?? (p.__row ? getClosingElo(p.__row) : null);
+
+  return { pre: rowPre, post: rowPost };
 }
 
 // ==================================================
@@ -87,7 +78,7 @@ function fmtDelta(pre, post) {
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("event")
-  .setDescription("List players at an event with faction + W/D/L (+ optional Elo) (paged)")
+  .setDescription("List players at an event with faction + W/D/L + Elo change (paged)")
   .addStringOption((opt) =>
     opt
       .setName("event")
@@ -135,16 +126,13 @@ export const data = new SlashCommandBuilder()
 export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
 
-  // ----------------------------
   // EVENT AUTOCOMPLETE
-  // ----------------------------
   if (focused.name === "event") {
     const q = norm(focused.value);
     const events = ctx?.engine?.indexes?.eventsAll?.() ?? [];
-    const choices = Array.isArray(events) ? events : [];
 
     await interaction.respond(
-      choices
+      events
         .filter((n) => !q || norm(n).includes(q))
         .slice(0, 25)
         .map((n) => ({ name: n, value: n }))
@@ -152,10 +140,7 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // ----------------------------
-  // BATTLESCROLL AUTOCOMPLETE
-  // (prefers battlescrolls present IN the chosen event)
-  // ----------------------------
+  // BATTLESCROLL AUTOCOMPLETE (prefer those present in chosen event)
   if (focused.name === "battlescroll") {
     const q = norm(focused.value);
     const eventName = interaction.options.getString("event", false)?.trim() ?? null;
@@ -168,12 +153,11 @@ export async function autocomplete(interaction, ctx) {
     }
 
     await interaction.respond(
-      (choices || [])
+      choices
         .filter((n) => !q || norm(n).includes(q))
         .slice(0, 25)
         .map((n) => ({ name: n, value: n }))
     );
-    return;
   }
 }
 
@@ -187,7 +171,7 @@ export async function run(interaction, { engine }) {
   const page = interaction.options.getInteger("page", false) ?? 1;
   const pageSize = interaction.options.getInteger("pagesize", false) ?? 40;
 
-  // Expecting: [{ player, faction, won, drawn, lost, (optional) preElo/postElo }, ...]
+  // Expect: [{ player, faction, won, drawn, lost, openingElo?, closingElo?, __row? }, ...]
   const rows = engine.indexes.playersForEvent(eventName, battlescroll);
 
   if (!rows?.length) {
@@ -205,10 +189,13 @@ export async function run(interaction, { engine }) {
     return;
   }
 
-  // sort
+  // Sort
   const sorted = [...rows];
-  if (sort === "name") sorted.sort((a, b) => (a.player ?? "").localeCompare(b.player ?? ""));
-  else sorted.sort((a, b) => (b.won ?? 0) - (a.won ?? 0)); // wins
+  if (sort === "name") {
+    sorted.sort((a, b) => (a.player ?? "").localeCompare(b.player ?? ""));
+  } else {
+    sorted.sort((a, b) => (b.won ?? 0) - (a.won ?? 0));
+  }
 
   const total = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -230,28 +217,26 @@ export async function run(interaction, { engine }) {
 
   const lines = [];
   for (const p of slice) {
+    const player = p.player ?? "Unknown";
+    const faction = p.faction ?? "Unknown";
     const w = p.won ?? 0;
     const d = p.drawn ?? 0;
     const l = p.lost ?? 0;
-    const f = p.faction ?? "Unknown";
 
-    const { pre, post } = extractPrePostElo(p);
-    const preTxt = pre === null ? null : fmtElo(pre);
-    const postTxt = post === null ? null : fmtElo(post);
-    const deltaTxt = fmtDelta(pre, post);
-
-    let eloPart = "";
-    if (preTxt || postTxt) {
-      const arrow = "→";
-      const left = preTxt ?? "?";
-      const right = postTxt ?? "?";
-      eloPart = ` — Elo: **${left}${arrow}${right}**${deltaTxt ? ` (**${deltaTxt}**)` : ""}`;
+    const { pre, post } = getBestEloForPlayerEvent(p);
+    let eloLine = "Elo: —";
+    if (Number.isFinite(pre) && Number.isFinite(post)) {
+      const delta = post - pre;
+      eloLine = `Elo:${fmt(pre)}→${fmt(post)} (${fmt(delta)})`;
+    } else if (Number.isFinite(post)) {
+      eloLine = `Elo:→${fmt(post)}`;
     }
 
-    lines.push(`**${p.player}** — ${f} — **${w}-${d}-${l}**${eloPart}`);
     lines.push("---");
+    lines.push(`**${player}** — ${faction}`);
+    lines.push(`**${w}-${d}-${l}** ${eloLine}`);
   }
-  if (lines.length) lines.pop(); // remove trailing separator
+  lines.push("---");
 
   addChunkedSection(embed, {
     headerField: { name: "Overview", value: overview },
