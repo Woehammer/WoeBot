@@ -3,6 +3,7 @@
 // PURPOSE: Pull a player's list from a chosen event (with optional battlescroll)
 //          + show record + Elo (Starting/Closing/Change)
 //          + format list with dividers before key sections
+//          + event autocomplete filtered to selected player's attended events
 // ==================================================
 
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
@@ -22,7 +23,6 @@ function fmtNum(x, dp = 1) {
 }
 
 function fmtEloLine(startingElo, closingElo, change) {
-  // If CSV provides Change use it. Otherwise compute if possible.
   const s = Number(startingElo);
   const c = Number(closingElo);
 
@@ -30,12 +30,10 @@ function fmtEloLine(startingElo, closingElo, change) {
   const hasC = Number.isFinite(c);
   const hasChg = Number.isFinite(Number(change));
 
-  const chg =
-    hasChg ? Number(change) : hasS && hasC ? c - s : null;
+  const chg = hasChg ? Number(change) : hasS && hasC ? c - s : null;
 
   if (!hasS && !hasC && !Number.isFinite(chg)) return "Elo: —";
 
-  // Use arrow like you asked
   const left = hasS ? fmtNum(s, 1) : "—";
   const right = hasC ? fmtNum(c, 1) : "—";
   const delta = Number.isFinite(chg) ? fmtNum(chg, 1) : "—";
@@ -43,8 +41,6 @@ function fmtEloLine(startingElo, closingElo, change) {
   return `Elo: ${left}→${right} (${delta})`;
 }
 
-// Insert a divider BEFORE any line that contains certain section words.
-// You asked: regiment, battle tactics, faction terrains
 function prettifyListText(raw) {
   if (!raw) return "No list text found for this row.";
 
@@ -58,11 +54,8 @@ function prettifyListText(raw) {
   const out = [];
   for (const line of lines) {
     const t = line.trim();
-
-    // Skip totally empty lines (keeps it tighter)
     if (!t) continue;
 
-    // trigger divider before these sections
     const trigger =
       /\bregiment\b/i.test(t) ||
       /\bbattle tactic/i.test(t) ||
@@ -71,7 +64,6 @@ function prettifyListText(raw) {
       /\bfaction terrains/i.test(t);
 
     if (trigger) {
-      // avoid stacking dividers
       const prev = out[out.length - 1];
       if (prev !== HR) out.push(HR);
     }
@@ -98,7 +90,7 @@ export const data = new SlashCommandBuilder()
   .addStringOption((opt) =>
     opt
       .setName("event")
-      .setDescription("Event name")
+      .setDescription("Event name (filtered to this player)")
       .setRequired(true)
       .setAutocomplete(true)
   )
@@ -117,7 +109,9 @@ export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
   const q = norm(focused.value);
 
-  // Player autocomplete (global list of players)
+  // ----------------------------
+  // PLAYER AUTOCOMPLETE
+  // ----------------------------
   if (focused.name === "player") {
     const players = ctx?.engine?.indexes?.playersAll?.() ?? [];
     const choices = Array.isArray(players) ? players : [];
@@ -131,13 +125,22 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // Event autocomplete
+  // ----------------------------
+  // EVENT AUTOCOMPLETE
+  // - If player is selected, only show events they've attended
+  // ----------------------------
   if (focused.name === "event") {
-    const events = ctx?.engine?.indexes?.eventsAll?.() ?? [];
-    const choices = Array.isArray(events) ? events : [];
+    const playerName = interaction.options.getString("player", false)?.trim() ?? null;
+
+    let choices = [];
+    if (playerName && ctx?.engine?.indexes?.eventsForPlayer) {
+      choices = ctx.engine.indexes.eventsForPlayer(playerName) || [];
+    } else if (ctx?.engine?.indexes?.eventsAll) {
+      choices = ctx.engine.indexes.eventsAll() || [];
+    }
 
     await interaction.respond(
-      choices
+      (choices || [])
         .filter((n) => !q || norm(n).includes(q))
         .slice(0, 25)
         .map((n) => ({ name: n, value: n }))
@@ -145,7 +148,10 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // Battlescroll autocomplete (prefer battlescrolls for selected event)
+  // ----------------------------
+  // BATTLESCROLL AUTOCOMPLETE
+  // (prefer battlescrolls present IN the chosen event)
+  // ----------------------------
   if (focused.name === "battlescroll") {
     const eventName = interaction.options.getString("event", false)?.trim() ?? null;
 
@@ -186,7 +192,9 @@ export async function run(interaction, { engine }) {
 
   if (!data) {
     await interaction.reply({
-      content: `No list found for **${playerInput}** at **${eventName}**${battlescroll ? ` on **${battlescroll}**` : ""}.`,
+      content: `No list found for **${playerInput}** at **${eventName}**${
+        battlescroll ? ` on **${battlescroll}**` : ""
+      }.`,
       ephemeral: true,
     });
     return;
@@ -198,13 +206,14 @@ export async function run(interaction, { engine }) {
 
   const eloLine = fmtEloLine(data.startingElo, data.closingElo, data.change);
 
+  // NOTE: extra blank line added after Battlescroll line
   const overview =
     `Player: **${data.player}**\n` +
     `Event: **${data.event}**\n` +
     `Faction: **${data.faction ?? "Unknown"}**\n` +
     `Record: **${w}-${d}-${l}**\n` +
     `${eloLine}\n` +
-    `Battlescroll: **${data.battlescroll ?? battlescroll ?? "All"}**`;
+    `Battlescroll: **${data.battlescroll ?? battlescroll ?? "All"}**\n\n`;
 
   const listText = prettifyListText(data.list);
 
@@ -212,7 +221,6 @@ export async function run(interaction, { engine }) {
     .setTitle(`List — ${data.player}`)
     .setFooter({ text: "Woehammer GT Database" });
 
-  // Put list into chunked section so it doesn't explode embeds
   addChunkedSection(embed, {
     headerField: { name: "Overview", value: overview },
     lines: listText.split("\n"),
