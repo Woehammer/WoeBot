@@ -21,7 +21,7 @@ import joke from "./commands/joke.js";
 import battleplan from "./commands/battleplan.js";
 import event from "./commands/event.js";
 import list from "./commands/list.js";
-import lookup from "./commamds/lookup.js";
+import lookup from "./commands/lookup.js";
 
 // ==================================================
 // COMMAND REGISTRY
