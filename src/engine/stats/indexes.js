@@ -443,6 +443,19 @@ function createService({ dataset }) {
     const pKey = safeKey(playerName);
     const rows = eventRows(eventName, battlescroll);
 
+function eventsForPlayer(playerName) {
+  const pKey = safeKey(playerName);
+  const rows = indexes.byPlayer.get(pKey) || [];
+
+  const out = [];
+  for (const r of rows) {
+    const e = getEventName(r);
+    if (e) out.push(String(e));
+  }
+
+  return Array.from(new Set(out));
+}
+
     // try exact match on player key first
     let match = rows.find((r) => safeKey(getPlayer(r)) === pKey) || null;
 
@@ -579,6 +592,7 @@ function createService({ dataset }) {
     battlescrollsAll,
     battlescrollsForEvent,
     playersForEvent,
+    eventsForPlayer,
 
     // list helper
     listForPlayerAtEvent,
