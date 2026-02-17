@@ -7,9 +7,6 @@
 //          + event helpers for /event + /list
 // ==================================================
 
-// ==================================================
-// IMPORTS
-// ==================================================
 import { computeWithWithout } from "./withWithout.js";
 
 // ==================================================
@@ -44,7 +41,6 @@ function getEventName(row) {
 }
 
 function getFormation(row) {
-  // Make this tolerant – your sheet naming WILL change at some point.
   return (
     row["Battle Formation"] ??
     row.BattleFormation ??
@@ -56,15 +52,73 @@ function getFormation(row) {
   );
 }
 
-// ==================================================
-// HELPERS: BATTLEPLAN + ROUND ACCESSORS
-// ==================================================
 function getBattlescroll(row) {
   return row.Battlescroll ?? row.battlescroll ?? null;
 }
 
+// Elo columns in your CSV: "Starting Elo", "Closing Elo", "Change"
+function getStartingElo(row) {
+  const candidates = [
+    row["Starting Elo"],
+    row.StartingElo,
+    row.startingElo,
+    row["StartingElo"],
+  ];
+  for (const c of candidates) {
+    const v = Number(c);
+    if (Number.isFinite(v)) return v;
+  }
+  return null;
+}
+
+function getClosingElo(row) {
+  const candidates = [
+    row["Closing Elo"],
+    row.ClosingElo,
+    row.closingElo,
+    row["ClosingElo"],
+  ];
+  for (const c of candidates) {
+    const v = Number(c);
+    if (Number.isFinite(v)) return v;
+  }
+  return null;
+}
+
+function getEloChange(row) {
+  const candidates = [
+    row["Change"],
+    row.Change,
+    row.change,
+    row["Elo Change"],
+    row.eloChange,
+  ];
+  for (const c of candidates) {
+    const v = Number(c);
+    if (Number.isFinite(v)) return v;
+  }
+  return null;
+}
+
+function getListText(row) {
+  const candidates = [
+    row.List,
+    row.list,
+    row["Army List"],
+    row["army list"],
+    row["Roster"],
+    row.roster,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim()) return c;
+  }
+  return null;
+}
+
+// ==================================================
+// HELPERS: BATTLEPLAN + ROUND ACCESSORS
+// ==================================================
 function parseRoundResult(raw) {
-  // Expected: 1 = win, 0 = loss, optional draws later
   const v = safeKey(raw);
   if (v === "1") return "W";
   if (v === "0") return "L";
@@ -73,7 +127,6 @@ function parseRoundResult(raw) {
 }
 
 function extractBattleplanGamesFromRow(row) {
-  // Returns [{ battleplan, result }, ...]
   const out = [];
 
   for (let i = 1; i <= 8; i++) {
@@ -110,13 +163,8 @@ function buildIndexes(rows) {
   const byPlayer = new Map();
   const byEvent = new Map();
 
-  // warscroll name lowercased -> rows that include it
   const byWarscroll = new Map();
-
-  // formation name lowercased -> rows (all factions)
   const byFormation = new Map();
-
-  // factionKey -> (formationKey -> rows)
   const byFactionFormation = new Map();
 
   for (const row of rows || []) {
@@ -132,52 +180,33 @@ function buildIndexes(rows) {
     const formationRaw = getFormation(row);
     const formationKey = safeKey(formationRaw);
 
-    // ------------------------------
-    // INDEX: FACTION
-    // ------------------------------
     if (factionKey) {
       if (!byFaction.has(factionKey)) byFaction.set(factionKey, []);
       byFaction.get(factionKey).push(row);
     }
 
-    // ------------------------------
-    // INDEX: PLAYER
-    // ------------------------------
     if (playerKey) {
       if (!byPlayer.has(playerKey)) byPlayer.set(playerKey, []);
       byPlayer.get(playerKey).push(row);
     }
 
-    // ------------------------------
-    // INDEX: EVENT
-    // ------------------------------
     if (eventKey) {
       if (!byEvent.has(eventKey)) byEvent.set(eventKey, []);
       byEvent.get(eventKey).push(row);
     }
 
-    // ------------------------------
-    // INDEX: FORMATION (global)
-    // ------------------------------
     if (formationKey) {
       if (!byFormation.has(formationKey)) byFormation.set(formationKey, []);
       byFormation.get(formationKey).push(row);
     }
 
-    // ------------------------------
-    // INDEX: FACTION + FORMATION (nested)
-    // ------------------------------
     if (factionKey && formationKey) {
       if (!byFactionFormation.has(factionKey)) byFactionFormation.set(factionKey, new Map());
       const inner = byFactionFormation.get(factionKey);
-
       if (!inner.has(formationKey)) inner.set(formationKey, []);
       inner.get(formationKey).push(row);
     }
 
-    // ------------------------------
-    // INDEX: WARSCROLL (from parsed list units)
-    // ------------------------------
     const units = row.__units || [];
     for (const u of units) {
       const key = safeKey(u);
@@ -218,7 +247,7 @@ function factionSummaryFromRows(factionName, rows, formationName = null) {
 // HELPERS: EVENT AGGREGATION
 // ==================================================
 function aggregatePlayers(rows) {
-  // playerKey -> { player, faction, won, drawn, lost, played, winRate }
+  // playerKey -> { player, faction, won, drawn, lost, played, startingElo, closingElo, change }
   const map = new Map();
 
   for (const r of rows || []) {
@@ -227,9 +256,14 @@ function aggregatePlayers(rows) {
     if (!pKey) continue;
 
     const faction = getFaction(r) ?? "Unknown";
+
     const won = n(r.Won ?? r.won);
     const drawn = n(r.Drawn ?? r.drawn);
     const lost = n(r.Lost ?? r.lost);
+
+    const sElo = getStartingElo(r);
+    const cElo = getClosingElo(r);
+    const chg = getEloChange(r);
 
     const cur =
       map.get(pKey) ?? {
@@ -239,10 +273,13 @@ function aggregatePlayers(rows) {
         drawn: 0,
         lost: 0,
         played: 0,
-        winRate: 0,
+
+        // Elo (prefer actual values from CSV)
+        startingElo: null,
+        closingElo: null,
+        change: null,
       };
 
-    // Keep first non-Unknown faction we see (events should be consistent anyway)
     if ((cur.faction === "Unknown" || !cur.faction) && faction) cur.faction = faction;
 
     cur.won += won;
@@ -250,16 +287,16 @@ function aggregatePlayers(rows) {
     cur.lost += lost;
     cur.played += won + drawn + lost;
 
+    // For Elo: events should usually be one row per player,
+    // but if there are duplicates, keep the first valid values we see.
+    if (cur.startingElo === null && Number.isFinite(sElo)) cur.startingElo = sElo;
+    if (cur.closingElo === null && Number.isFinite(cElo)) cur.closingElo = cElo;
+    if (cur.change === null && Number.isFinite(chg)) cur.change = chg;
+
     map.set(pKey, cur);
   }
 
-  // finalize winRate
-  const out = [];
-  for (const v of map.values()) {
-    v.winRate = safeRate(v.won + 0.5 * v.drawn, v.played);
-    out.push(v);
-  }
-  return out;
+  return [...map.values()];
 }
 
 // ==================================================
@@ -377,6 +414,15 @@ function createService({ dataset }) {
     return Array.from(new Set(out));
   }
 
+  function eventRows(eventName, battlescroll = null) {
+    const eKey = safeKey(eventName);
+    const base = indexes.byEvent.get(eKey) || [];
+    if (!battlescroll) return base;
+
+    const bsKey = safeKey(battlescroll);
+    return base.filter((r) => safeKey(getBattlescroll(r)) === bsKey);
+  }
+
   function battlescrollsForEvent(eventName) {
     const rows = eventRows(eventName, null);
     const out = [];
@@ -387,18 +433,42 @@ function createService({ dataset }) {
     return Array.from(new Set(out));
   }
 
-  function eventRows(eventName, battlescroll = null) {
-    const eKey = safeKey(eventName);
-    const base = indexes.byEvent.get(eKey) || [];
-    if (!battlescroll) return base;
-
-    const bsKey = safeKey(battlescroll);
-    return base.filter((r) => safeKey(getBattlescroll(r)) === bsKey);
-  }
-
   function playersForEvent(eventName, battlescroll = null) {
     const rows = eventRows(eventName, battlescroll);
     return aggregatePlayers(rows);
+  }
+
+  // For /list: find the single row for (event + player) and return list text + record + faction, etc.
+  function listForPlayerAtEvent(playerName, eventName, battlescroll = null) {
+    const pKey = safeKey(playerName);
+    const rows = eventRows(eventName, battlescroll);
+
+    // try exact match on player key first
+    let match = rows.find((r) => safeKey(getPlayer(r)) === pKey) || null;
+
+    // fallback: contains match (helps when users type partial names)
+    if (!match && pKey) {
+      match = rows.find((r) => safeKey(getPlayer(r)).includes(pKey)) || null;
+    }
+
+    if (!match) return null;
+
+    const won = n(match.Won ?? match.won);
+    const drawn = n(match.Drawn ?? match.drawn);
+    const lost = n(match.Lost ?? match.lost);
+
+    return {
+      player: String(getPlayer(match) ?? playerName).trim(),
+      event: String(getEventName(match) ?? eventName).trim(),
+      battlescroll: getBattlescroll(match) ?? null,
+      faction: getFaction(match) ?? "Unknown",
+      record: { won, drawn, lost },
+      startingElo: getStartingElo(match),
+      closingElo: getClosingElo(match),
+      change: getEloChange(match),
+      list: getListText(match) ?? "No list text found for this row.",
+      source: match.Source ?? match.source ?? null,
+    };
   }
 
   // --------------------------------------------------
@@ -509,6 +579,9 @@ function createService({ dataset }) {
     battlescrollsAll,
     battlescrollsForEvent,
     playersForEvent,
+
+    // list helper
+    listForPlayerAtEvent,
   };
 }
 
@@ -520,7 +593,4 @@ export function createIndexService({ dataset }) {
   return createService({ dataset });
 }
 
-// ==================================================
-// EXPORTS
-// ==================================================
 export default { createIndexService };
