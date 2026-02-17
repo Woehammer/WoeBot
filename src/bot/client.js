@@ -20,6 +20,7 @@ import enhancements from "./commands/enhancements.js";
 import joke from "./commands/joke.js";
 import battleplan from "./commands/battleplan.js";
 import event from "./commands/event.js";
+import list from "./commands/list.js";
 
 // ==================================================
 // COMMAND REGISTRY
@@ -37,6 +38,7 @@ export const COMMANDS = [
   joke,
   battleplan,
   event,
+  list,
 ];
 
 // ==================================================
