@@ -1,11 +1,10 @@
 // ==================================================
 // COMMAND: /event
-// PURPOSE: Show players at an event + faction + W/D/L + Elo change (paged)
-// FORMAT:
+// PURPOSE: Show players at an event + faction + W/D/L + Elo (paged)
+// FORMAT (per player):
 // ---
 // **Name** — Faction
-// W-D-L Elo:pre→post (Δ)
-// ---
+// **W-D-L** Elo:Start→Close (Δ)
 // ==================================================
 
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
@@ -24,53 +23,17 @@ function fmt(x, dp = 1) {
   return v.toFixed(dp);
 }
 
-function getOpeningElo(row) {
-  const candidates = [
-    row["Opening Elo"],
-    row.OpeningElo,
-    row.openingElo,
-    row["Starting Elo"],
-    row.StartingElo,
-    row.startingElo,
-    row["Pre Elo"],
-    row.PreElo,
-    row.preElo,
-  ];
+function buildEloLine(p) {
+  const s = Number(p?.startingElo);
+  const c = Number(p?.closingElo);
 
-  for (const c of candidates) {
-    const v = Number(c);
-    if (Number.isFinite(v)) return v;
-  }
-  return null;
-}
+  // if either missing, keep it clean
+  if (!Number.isFinite(s) || !Number.isFinite(c)) return "Elo: —";
 
-function getClosingElo(row) {
-  const candidates = [
-    row["Closing Elo"],
-    row.ClosingElo,
-    row.closingElo,
-    row["ClosingElo"],
-  ];
+  const changeRaw = Number(p?.change);
+  const delta = Number.isFinite(changeRaw) ? changeRaw : c - s;
 
-  for (const c of candidates) {
-    const v = Number(c);
-    if (Number.isFinite(v)) return v;
-  }
-  return null;
-}
-
-function getBestEloForPlayerEvent(p) {
-  // Prefer values returned by indexes.playersForEvent()
-  const pre = Number.isFinite(Number(p.openingElo)) ? Number(p.openingElo) : null;
-  const post = Number.isFinite(Number(p.closingElo)) ? Number(p.closingElo) : null;
-
-  // If indexes didn't supply, try reading raw row if present
-  const rowPre =
-    pre ?? (p.__row ? getOpeningElo(p.__row) : null);
-  const rowPost =
-    post ?? (p.__row ? getClosingElo(p.__row) : null);
-
-  return { pre: rowPre, post: rowPost };
+  return `Elo:${fmt(s)}→${fmt(c)} (${fmt(delta)})`;
 }
 
 // ==================================================
@@ -78,7 +41,7 @@ function getBestEloForPlayerEvent(p) {
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("event")
-  .setDescription("List players at an event with faction + W/D/L + Elo change (paged)")
+  .setDescription("List players at an event with faction + W/D/L + Elo (paged)")
   .addStringOption((opt) =>
     opt
       .setName("event")
@@ -100,6 +63,7 @@ export const data = new SlashCommandBuilder()
       .setRequired(false)
       .addChoices(
         { name: "Wins (desc)", value: "wins" },
+        { name: "Elo change (desc)", value: "elo" },
         { name: "Name (A→Z)", value: "name" }
       )
   )
@@ -126,13 +90,16 @@ export const data = new SlashCommandBuilder()
 export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
 
+  // ----------------------------
   // EVENT AUTOCOMPLETE
+  // ----------------------------
   if (focused.name === "event") {
     const q = norm(focused.value);
     const events = ctx?.engine?.indexes?.eventsAll?.() ?? [];
+    const choices = Array.isArray(events) ? events : [];
 
     await interaction.respond(
-      events
+      choices
         .filter((n) => !q || norm(n).includes(q))
         .slice(0, 25)
         .map((n) => ({ name: n, value: n }))
@@ -140,7 +107,10 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // BATTLESCROLL AUTOCOMPLETE (prefer those present in chosen event)
+  // ----------------------------
+  // BATTLESCROLL AUTOCOMPLETE
+  // (prefers battlescrolls present IN the chosen event)
+  // ----------------------------
   if (focused.name === "battlescroll") {
     const q = norm(focused.value);
     const eventName = interaction.options.getString("event", false)?.trim() ?? null;
@@ -153,11 +123,12 @@ export async function autocomplete(interaction, ctx) {
     }
 
     await interaction.respond(
-      choices
+      (choices || [])
         .filter((n) => !q || norm(n).includes(q))
         .slice(0, 25)
         .map((n) => ({ name: n, value: n }))
     );
+    return;
   }
 }
 
@@ -171,7 +142,14 @@ export async function run(interaction, { engine }) {
   const page = interaction.options.getInteger("page", false) ?? 1;
   const pageSize = interaction.options.getInteger("pagesize", false) ?? 40;
 
-  // Expect: [{ player, faction, won, drawn, lost, openingElo?, closingElo?, __row? }, ...]
+  if (!engine?.indexes?.playersForEvent) {
+    await interaction.reply({
+      content: "Missing indexes.playersForEvent(). Update indexes.js first.",
+      ephemeral: true,
+    });
+    return;
+  }
+
   const rows = engine.indexes.playersForEvent(eventName, battlescroll);
 
   if (!rows?.length) {
@@ -189,14 +167,39 @@ export async function run(interaction, { engine }) {
     return;
   }
 
-  // Sort
+  // ----------------------------
+  // SORT
+  // ----------------------------
   const sorted = [...rows];
+
   if (sort === "name") {
-    sorted.sort((a, b) => (a.player ?? "").localeCompare(b.player ?? ""));
+    sorted.sort((a, b) => String(a.player ?? "").localeCompare(String(b.player ?? "")));
+  } else if (sort === "elo") {
+    // sort by Elo change desc (falls back to computed delta)
+    sorted.sort((a, b) => {
+      const as = Number(a?.startingElo);
+      const ac = Number(a?.closingElo);
+      const bs = Number(b?.startingElo);
+      const bc = Number(b?.closingElo);
+
+      const aDelta = Number.isFinite(Number(a?.change))
+        ? Number(a.change)
+        : (Number.isFinite(ac) && Number.isFinite(as) ? ac - as : -Infinity);
+
+      const bDelta = Number.isFinite(Number(b?.change))
+        ? Number(b.change)
+        : (Number.isFinite(bc) && Number.isFinite(bs) ? bc - bs : -Infinity);
+
+      return bDelta - aDelta;
+    });
   } else {
-    sorted.sort((a, b) => (b.won ?? 0) - (a.won ?? 0));
+    // wins desc (default)
+    sorted.sort((a, b) => (Number(b.won) || 0) - (Number(a.won) || 0));
   }
 
+  // ----------------------------
+  // PAGINATION
+  // ----------------------------
   const total = sorted.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const clampedPage = Math.min(Math.max(page, 1), totalPages);
@@ -205,6 +208,9 @@ export async function run(interaction, { engine }) {
   const end = Math.min(start + pageSize, total);
   const slice = sorted.slice(start, end);
 
+  // ----------------------------
+  // EMBED
+  // ----------------------------
   const embed = new EmbedBuilder()
     .setTitle(`Event — ${eventName}`)
     .setFooter({ text: "Woehammer GT Database" });
@@ -215,26 +221,19 @@ export async function run(interaction, { engine }) {
     `Sort: **${sort}**\n` +
     `Battlescroll: **${battlescroll ?? "All"}**`;
 
+  // Build lines in the exact style requested
   const lines = [];
+
   for (const p of slice) {
     const player = p.player ?? "Unknown";
     const faction = p.faction ?? "Unknown";
-    const w = p.won ?? 0;
-    const d = p.drawn ?? 0;
-    const l = p.lost ?? 0;
-
-    const { pre, post } = getBestEloForPlayerEvent(p);
-    let eloLine = "Elo: —";
-    if (Number.isFinite(pre) && Number.isFinite(post)) {
-      const delta = post - pre;
-      eloLine = `Elo:${fmt(pre)}→${fmt(post)} (${fmt(delta)})`;
-    } else if (Number.isFinite(post)) {
-      eloLine = `Elo:→${fmt(post)}`;
-    }
+    const w = Number(p.won) || 0;
+    const d = Number(p.drawn) || 0;
+    const l = Number(p.lost) || 0;
 
     lines.push("---");
     lines.push(`**${player}** — ${faction}`);
-    lines.push(`**${w}-${d}-${l}** ${eloLine}`);
+    lines.push(`**${w}-${d}-${l}** ${buildEloLine(p)}`);
   }
   lines.push("---");
 
@@ -246,4 +245,7 @@ export async function run(interaction, { engine }) {
   await interaction.reply({ embeds: [embed] });
 }
 
+// ==================================================
+// EXPORT
+// ==================================================
 export default { data, run, autocomplete };
