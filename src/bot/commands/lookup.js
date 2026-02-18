@@ -3,7 +3,7 @@
 // PURPOSE: Unified lookup + analysis for anything that appears in a list
 //          (warscrolls, terrain, artefacts, heroic traits, manifestations,
 //           spell lores, prayer lores, battle tactics, regiments of renown)
-//          Output style: /warscroll-like stats + analysis blurb + Elo context
+//          Output style: /warscroll-like stats + richer analysis blurb + Elo context
 // ==================================================
 
 // ==================================================
@@ -14,6 +14,8 @@ import { addChunkedSection } from "../ui/embedSafe.js"; // adjust if your path d
 
 // ==================================================
 // COMMAND DEFINITION
+// NOTE: Discord requires required options before optional options.
+// ALSO: option description max length is 100 chars.
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("lookup")
@@ -161,9 +163,9 @@ function eloSummary(rows) {
   return { avg, med };
 }
 
-// --------------------------------------------------
+// ==================================================
 // FACTION MATCHING
-// --------------------------------------------------
+// ==================================================
 function getFactionChoices({ system, engine }) {
   let choices = system?.lookups?.factions?.map((f) => f.name) ?? [];
   if (choices.length) return choices;
@@ -189,6 +191,7 @@ function findFactionName(system, engine, inputName) {
     }
   }
 
+  // fallback: attempt to match dataset faction keys
   const byFaction = engine?.indexes?.get?.()?.byFaction;
   if (byFaction instanceof Map) {
     if (byFaction.has(q)) {
@@ -206,30 +209,41 @@ function findFactionName(system, engine, inputName) {
   return null;
 }
 
-// --------------------------------------------------
-// TYPE -> LOOKUP ARRAY (matches your aos.js keys)
-// --------------------------------------------------
+// ==================================================
+// TYPE -> LOOKUP ARRAY
+// IMPORTANT: be tolerant of different key names in aos.js
+// ==================================================
 function getLookupArray(system, type) {
-  const lookups = system?.lookups ?? {};
+  const L = system?.lookups ?? {};
+
+  // helper: return first array-like value among keys
+  const firstArr = (...keys) => {
+    for (const k of keys) {
+      const v = L?.[k];
+      if (Array.isArray(v)) return v;
+    }
+    return [];
+  };
+
   switch (type) {
     case "warscroll":
-      return lookups.warscrolls ?? [];
+      return firstArr("warscrolls");
     case "terrain":
-      return lookups.terrain ?? [];
+      return firstArr("terrain");
     case "heroicTrait":
-      return lookups.heroicTraits ?? [];
+      return firstArr("heroicTraits", "heroic", "traits");
     case "artefact":
-      return lookups.artefacts ?? [];
+      return firstArr("artefacts", "artifacts");
     case "manifestation":
-      return lookups.manifestations ?? [];
+      return firstArr("manifestations", "manifestationLores", "manifestationLore");
     case "spellLore":
-      return lookups.spells ?? [];
+      return firstArr("spells", "spellLores", "spellLore");
     case "prayerLore":
-      return lookups.prayers ?? [];
+      return firstArr("prayers", "prayerLores", "prayerLore");
     case "battleTactic":
-      return lookups.battleTactics ?? [];
+      return firstArr("battleTactics", "battle_tactics");
     case "regimentOfRenown":
-      return lookups.regimentsOfRenown ?? [];
+      return firstArr("regimentsOfRenown", "regiments_of_renown");
     default:
       return [];
   }
@@ -266,9 +280,11 @@ function findLookupItem(system, type, inputName, factionName = null) {
   return null;
 }
 
-// --------------------------------------------------
-// Phrase regex (supports bullets/pipes + trailing decorations)
-// --------------------------------------------------
+// ==================================================
+// Phrase regex
+// Allow optional trailing "(...)" or ": ..." or "- ..." after matched phrase.
+// Fixes "(190)" and list decorations.
+// ==================================================
 function buildAnyPhraseRegex(item) {
   const phrases = [item?.name, ...(item?.aliases ?? [])]
     .filter(Boolean)
@@ -311,9 +327,9 @@ function countOccurrencesInText(item, text) {
   return n;
 }
 
-// --------------------------------------------------
+// ==================================================
 // Slice rows for faction (+ optional formation)
-// --------------------------------------------------
+// ==================================================
 function sliceRows(engine, factionName, formationName = null) {
   if (formationName && engine?.indexes?.factionRowsInFormation) {
     const rows = engine.indexes.factionRowsInFormation(factionName, formationName);
@@ -323,9 +339,9 @@ function sliceRows(engine, factionName, formationName = null) {
   return { rows: rows ?? [], scopeLabel: "Overall" };
 }
 
-// --------------------------------------------------
-// Compute included/without stats via regex matching
-// --------------------------------------------------
+// ==================================================
+// Compute included/without stats via regex-text matching
+// ==================================================
 function computeItemStats({ rows, item }) {
   const re = buildAnyPhraseRegex(item);
 
@@ -384,9 +400,9 @@ function computeItemStats({ rows, item }) {
   };
 }
 
-// --------------------------------------------------
-// Co-includes (warscrolls) from included rows
-// --------------------------------------------------
+// ==================================================
+// Co-includes (warscrolls only, from included rows)
+// ==================================================
 function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN = 3 } = {}) {
   const ws = system?.lookups?.warscrolls ?? [];
   if (!ws.length) return [];
@@ -432,16 +448,18 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
     .slice(0, topN);
 }
 
-// --------------------------------------------------
-// Better blurb (includes Elo comparison like your old bot)
-// --------------------------------------------------
+// ==================================================
+// Better analysis blurb (pilot Elo + skew + diagnosis)
+// ==================================================
 function buildLookupBlurb({
   typeLabel,
   itemName,
+
   includedGames,
   includedWR,
   baselineWR,
   withoutWR,
+
   incEloAvg,
   incEloMed,
   baseEloAvg,
@@ -449,24 +467,32 @@ function buildLookupBlurb({
 }) {
   const paragraphs = [];
 
-  if (!Number.isFinite(includedGames) || includedGames <= 0 || !Number.isFinite(includedWR)) {
+  // Para 1: sample + performance
+  if (Number.isFinite(includedGames) && includedGames > 0 && Number.isFinite(includedWR)) {
+    const vsBase = Number.isFinite(baselineWR) ? includedWR - baselineWR : null;
+    const vsWithout = Number.isFinite(withoutWR) ? includedWR - withoutWR : null;
+
+    let line =
+      `Based on **${fmtInt(includedGames)} games** where **${itemName}** is included (${typeLabel}), ` +
+      `those lists are winning **${pct(includedWR)}**.`;
+
+    if (Number.isFinite(vsBase)) {
+      line += ` That’s **${pp(vsBase)}** versus the faction baseline (**${pct(baselineWR)}**).`;
+    }
+    if (Number.isFinite(vsWithout)) {
+      line += ` Compared to lists without it (**${pct(withoutWR)}**), that’s **${pp(vsWithout)}**.`;
+    }
+
+    paragraphs.push(line);
+  } else {
     paragraphs.push(
-      `There isn’t a usable sample for **${itemName}** in this scope yet, so any “signal” is basically vibes.`
+      `There isn’t a usable sample for **${itemName}** in this scope yet, so any “signal” here is basically vibes.`
     );
     paragraphs.push(`**Confidence:** Very low confidence: zero (or near-zero) sample.`);
     return paragraphs.join("\n\n");
   }
 
-  const vsBase = Number.isFinite(baselineWR) ? includedWR - baselineWR : null;
-  const vsWithout = Number.isFinite(withoutWR) ? includedWR - withoutWR : null;
-
-  let p1 =
-    `Based on **${fmtInt(includedGames)} games**, lists using **${itemName}** (${typeLabel}) ` +
-    `are winning **${pct(includedWR)}**.`;
-  if (Number.isFinite(vsBase)) p1 += ` That’s **${pp(vsBase)}** vs the faction baseline (**${pct(baselineWR)}**).`;
-  if (Number.isFinite(vsWithout)) p1 += ` Compared to lists without it (**${pct(withoutWR)}**), that’s **${pp(vsWithout)}**.`;
-  paragraphs.push(p1);
-
+  // Para 2: Elo interpretation
   const haveElo =
     Number.isFinite(incEloAvg) &&
     Number.isFinite(incEloMed) &&
@@ -474,59 +500,71 @@ function buildLookupBlurb({
     Number.isFinite(baseEloMed);
 
   if (haveElo) {
+    const incGap = incEloAvg - incEloMed;
+    const baseGap = baseEloAvg - baseEloMed;
+
     const avgDelta = incEloAvg - baseEloAvg;
     const medDelta = incEloMed - baseEloMed;
-    const incGap = incEloAvg - incEloMed;
 
-    let playerbaseRead;
-    if (avgDelta >= 40) playerbaseRead = "well above";
-    else if (avgDelta >= 20) playerbaseRead = "above";
-    else if (avgDelta >= 8) playerbaseRead = "a little above";
-    else if (avgDelta > -8) playerbaseRead = "about the same as";
-    else if (avgDelta > -20) playerbaseRead = "a little below";
-    else playerbaseRead = "well below";
+    let pilotRead;
+    if (avgDelta >= 40) pilotRead = "well above";
+    else if (avgDelta >= 20) pilotRead = "above";
+    else if (avgDelta >= 8) pilotRead = "a little above";
+    else if (avgDelta > -8) pilotRead = "about the same as";
+    else if (avgDelta > -20) pilotRead = "a little below";
+    else pilotRead = "well below";
 
-    let spreadRead;
-    const absGap = Math.abs(incGap);
-    if (absGap < 10) spreadRead = "most pilots sit in a similar skill band";
-    else if (incGap > 0) spreadRead = "results are being pulled up by a smaller group of strong players";
-    else spreadRead = "the mid-skill core is doing okay, with fewer extreme spikes at the top";
+    function spreadRead(gap) {
+      if (!Number.isFinite(gap)) return "";
+      const abs = Math.abs(gap);
+      if (abs < 10) return "most pilots sit in a similar skill band.";
+      if (gap > 0) return "results are being pulled up by a smaller group of strong pilots.";
+      return "the median is doing well, with fewer extreme spikes at the top.";
+    }
 
     paragraphs.push(
-      `Pilot skill is **${playerbaseRead}** the faction baseline: included avg/med ` +
-        `**${fmt(incEloAvg, 1)} / ${fmt(incEloMed, 1)}** vs baseline **${fmt(baseEloAvg, 1)} / ${fmt(baseEloMed, 1)}** ` +
-        `(≈${fmtInt(avgDelta)} / ${fmtInt(medDelta)} Elo). The included Elo gap is **${fmt(incGap, 1)}**, suggesting ${spreadRead}.`
+      `Pilot skill looks **${pilotRead}** the faction baseline: ` +
+        `included avg/med **${fmt(incEloAvg, 1)} / ${fmt(incEloMed, 1)}** ` +
+        `vs baseline **${fmt(baseEloAvg, 1)} / ${fmt(baseEloMed, 1)}** ` +
+        `(≈${fmtInt(avgDelta)} / ${fmtInt(medDelta)} Elo). ` +
+        `The included Elo spread (avg–med) is **${fmt(incGap, 1)}**, suggesting ${spreadRead(incGap)}`
     );
 
-    // quick diagnosis
-    if (includedGames >= 30 && Number.isFinite(vsWithout)) {
-      const wrBig = Math.abs(vsWithout) >= 0.03;
-      const eloBig = Math.abs(avgDelta) >= 20;
+    // Para 3: diagnosis
+    const vsWithout = Number.isFinite(withoutWR) ? includedWR - withoutWR : null;
+    const bigWR = (x) => Number.isFinite(x) && Math.abs(x) >= 0.03; // 3pp+
+    const bigElo = (x) => Number.isFinite(x) && Math.abs(x) >= 20;
 
-      if (wrBig && eloBig && avgDelta > 0) {
-        paragraphs.push(
-          "There’s uplift, but pilots are also stronger — so some of this may be *good players choosing good tools*, not pure power."
-        );
-      } else if (wrBig && (!eloBig || avgDelta <= 0)) {
-        paragraphs.push(
-          "The uplift shows up without a major pilot-skill advantage, which makes it more likely this choice is genuinely helping performance."
-        );
-      } else {
-        paragraphs.push(
-          "Net effect looks modest — more “part of a plan” than “this wins games by itself”."
-        );
-      }
+    let diagnosis = "";
+    if (includedGames < 30) {
+      diagnosis = "This is still a small sample — treat it as a hint, not a verdict.";
+    } else if (bigWR(vsWithout) && bigElo(avgDelta) && avgDelta > 0) {
+      diagnosis =
+        "There’s uplift, but the pilots are also stronger — so some of this may be **good players choosing good tools**, not pure item power.";
+    } else if (bigWR(vsWithout) && (!bigElo(avgDelta) || avgDelta <= 0)) {
+      diagnosis =
+        "The uplift shows up without a big pilot-skill advantage, which makes it more likely the choice is genuinely helping performance.";
+    } else if (!bigWR(vsWithout) && bigElo(avgDelta) && avgDelta > 0) {
+      diagnosis =
+        "Win rate isn’t moving much, but the pilots are stronger — this looks more like player preference than a performance driver.";
+    } else {
+      diagnosis =
+        "Net effect looks modest — more “nice in a plan” than “this single-handedly wins games”.";
     }
+
+    paragraphs.push(diagnosis);
   }
 
   paragraphs.push(`**Confidence:** ${confidenceFromGames(includedGames)}`);
   return paragraphs.join("\n\n");
 }
 
-// --------------------------------------------------
-// Autocomplete filtering: only suggest items actually used in lists (for lores etc)
-// --------------------------------------------------
+// ==================================================
+// Autocomplete filtering: only show items that appear in lists (for lores etc)
+// ==================================================
 function shouldOnlySuggestUsed(type) {
+  // You asked specifically for Spell/Prayer (and this helps Manifestations too).
+  // You can add/remove types here whenever you like.
   return (
     type === "spellLore" ||
     type === "prayerLore" ||
@@ -536,7 +574,7 @@ function shouldOnlySuggestUsed(type) {
   );
 }
 
-// cache: faction|type -> Set(norm(name))
+// cache: faction|type -> Set of used item keys (norm(name))
 const USED_CACHE = new Map();
 const USED_CACHE_TTL_MS = 10 * 60 * 1000;
 
@@ -556,7 +594,8 @@ function getUsedCache(factionName, type) {
 }
 
 function setUsedCache(factionName, type, set) {
-  USED_CACHE.set(cacheKey(factionName, type), { at: Date.now(), set });
+  const k = cacheKey(factionName, type);
+  USED_CACHE.set(k, { at: Date.now(), set });
 }
 
 function computeUsedSetForType({ system, engine, factionName, type }) {
@@ -566,6 +605,7 @@ function computeUsedSetForType({ system, engine, factionName, type }) {
 
   if (!arr.length || !rows.length) return used;
 
+  // precompile regex for each item (but only for items that might be suggested)
   const compiled = arr
     .filter(Boolean)
     .map((it) => {
@@ -575,6 +615,7 @@ function computeUsedSetForType({ system, engine, factionName, type }) {
     })
     .filter(Boolean);
 
+  // scan rows once
   for (const r of rows) {
     const text = String(getListText(r) ?? "");
     if (!text) continue;
@@ -595,6 +636,7 @@ export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
   const q = norm(focused.value);
 
+  // faction autocomplete
   if (focused.name === "faction") {
     const choices = getFactionChoices(ctx);
     await interaction.respond(
@@ -606,6 +648,7 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
+  // formation autocomplete
   if (focused.name === "formation") {
     const { engine, system } = ctx;
     const factionInput = (interaction.options.getString("faction") ?? "").trim();
@@ -629,6 +672,7 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
+  // name autocomplete (depends on type + faction)
   if (focused.name === "name") {
     const { system, engine } = ctx;
 
@@ -637,17 +681,20 @@ export async function autocomplete(interaction, ctx) {
     const factionName = factionInput ? findFactionName(system, engine, factionInput) : null;
 
     if (!factionName) {
+      // if faction isn't resolved yet, avoid lying — show nothing until it is
       await interaction.respond([]);
       return;
     }
 
     const arr = getLookupArray(system, type);
 
+    // faction-scoped filtering (for warscroll/terrain/traits/artefacts)
     const scoped =
       isFactionScopedType(type) && factionName
         ? arr.filter((it) => !it?.faction || norm(it.faction) === norm(factionName))
         : arr;
 
+    // fast filter by query first (name + aliases)
     const fast = scoped.filter((it) => {
       const name = String(it?.name ?? "");
       if (!q) return true;
@@ -658,18 +705,22 @@ export async function autocomplete(interaction, ctx) {
       return false;
     });
 
+    // only-suggest-used: compute used set (cached)
     let usedSet = null;
     if (shouldOnlySuggestUsed(type)) {
       const cached = getUsedCache(factionName, type);
-      if (cached) usedSet = cached.set;
-      else {
+      if (cached) {
+        usedSet = cached.set;
+      } else {
         const set = computeUsedSetForType({ system, engine, factionName, type });
         setUsedCache(factionName, type, set);
         usedSet = set;
       }
     }
 
-    const filtered = usedSet ? fast.filter((it) => usedSet.has(norm(it?.name))) : fast;
+    const filtered = usedSet
+      ? fast.filter((it) => usedSet.has(norm(it?.name)))
+      : fast;
 
     const choices = filtered
       .map((it) => it?.name)
@@ -703,6 +754,7 @@ export async function run(interaction, { system, engine }) {
 
   let item = findLookupItem(system, type, inputName, factionName);
 
+  // eligibility filtering for Regiments of Renown (allowedFactions)
   if (type === "regimentOfRenown" && item) {
     const allowed = item.allowedFactions ?? item.allowed_factions ?? null;
     if (Array.isArray(allowed) && allowed.length) {
@@ -736,7 +788,9 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  // Baseline
+  // --------------------------------------------------
+  // Baseline (same scope)
+  // --------------------------------------------------
   let baselineGames = 0;
   let baselineWins = 0;
   for (const r of rows) {
@@ -745,7 +799,11 @@ export async function run(interaction, { system, engine }) {
   }
   const factionWinRate = baselineGames > 0 ? baselineWins / baselineGames : 0;
 
-  // Stats
+  // --------------------------------------------------
+  // STATS
+  // Warscroll: use engine indexes (matches /warscroll)
+  // Other types: regex match in refined list text
+  // --------------------------------------------------
   let stats = null;
   let reinforcedPct = null;
   let engineCo = null;
@@ -753,6 +811,7 @@ export async function run(interaction, { system, engine }) {
   if (type === "warscroll" && engine?.indexes?.warscrollSummaryInFaction) {
     const sum = engine.indexes.warscrollSummaryInFaction(item.name, factionName, coN);
 
+    // Included rows for Elo: use warscrollRows filtered to faction
     const wsRowsAll = engine.indexes.warscrollRows ? engine.indexes.warscrollRows(item.name) : [];
     const wsRowsFaction = (wsRowsAll ?? []).filter(
       (r) => norm(r.Faction ?? r.faction) === norm(factionName)
@@ -761,7 +820,7 @@ export async function run(interaction, { system, engine }) {
     stats = {
       totalRows: (rows || []).length,
       includedRows: wsRowsFaction ?? [],
-      withoutRows: [],
+      withoutRows: [], // not needed for Elo; we use rows baseline anyway
       included: {
         rows: sum?.included?.lists ?? sum?.included?.rows ?? (wsRowsFaction?.length ?? 0),
         games: sum?.included?.games ?? 0,
@@ -793,10 +852,11 @@ export async function run(interaction, { system, engine }) {
       ? (stats.includedRows?.length ?? 0) / stats.totalRows
       : 0;
 
+  // Elo layer
   const eloAll = eloSummary(rows);
   const eloInc = eloSummary(stats.includedRows);
 
-  // Co-includes
+  // Co-includes (warscrolls only; prefer engine co-includes)
   let coText = "—";
   if (coN > 0) {
     if (type === "warscroll" && Array.isArray(engineCo) && engineCo.length) {
@@ -817,23 +877,38 @@ export async function run(interaction, { system, engine }) {
     }
   }
 
+  // Labels
   const typeLabel = (() => {
     switch (type) {
-      case "warscroll": return "Warscroll";
-      case "terrain": return "Faction Terrain";
-      case "heroicTrait": return "Heroic Trait";
-      case "artefact": return "Artefact";
-      case "manifestation": return "Manifestation Lore";
-      case "spellLore": return "Spell Lore";
-      case "prayerLore": return "Prayer Lore";
-      case "battleTactic": return "Battle Tactic";
-      case "regimentOfRenown": return "Regiment of Renown";
-      default: return type;
+      case "warscroll":
+        return "Warscroll";
+      case "terrain":
+        return "Faction Terrain";
+      case "heroicTrait":
+        return "Heroic Trait";
+      case "artefact":
+        return "Artefact";
+      case "manifestation":
+        return "Manifestation Lore";
+      case "spellLore":
+        return "Spell Lore";
+      case "prayerLore":
+        return "Prayer Lore";
+      case "battleTactic":
+        return "Battle Tactic";
+      case "regimentOfRenown":
+        return "Regiment of Renown";
+      default:
+        return type;
     }
   })();
 
-  const impactVsFaction = Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
+  const impactVsFaction =
+    Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
 
+  // --------------------------------------------------
+  // ANALYSIS BLURB (richer; includes Elo interpretation)
+  // --------------------------------------------------
   const meaning = buildLookupBlurb({
     typeLabel,
     itemName: item.name,
@@ -847,6 +922,9 @@ export async function run(interaction, { system, engine }) {
     baseEloMed: eloAll.med,
   });
 
+  // --------------------------------------------------
+  // RENDER
+  // --------------------------------------------------
   const header =
     `Scope: **${factionName}** — **${scopeLabel}**\n` +
     `Lookup: **${typeLabel}** • **${item.name}**`;
@@ -858,7 +936,9 @@ export async function run(interaction, { system, engine }) {
     `Used in: **${pct(usedPct)}** (*${fmtInt(stats?.included?.rows ?? stats?.includedRows?.length ?? 0)}/${fmtInt(stats?.totalRows ?? rows.length)} lists*)`,
     `Games: **${fmtInt(stats?.included?.games ?? 0)}**`,
     `Win rate: **${pct(includedWR)}**`,
-    `Avg occurrences (per list): **${Number.isFinite(stats?.included?.avgOcc) ? fmt(stats.included.avgOcc, 2) : "—"}**`,
+    `Avg occurrences (per list): **${
+      Number.isFinite(stats?.included?.avgOcc) ? fmt(stats.included.avgOcc, 2) : "—"
+    }**`,
     ...(Number.isFinite(reinforcedPct) ? [`Reinforced in: **${pct(reinforcedPct)}** of lists`] : []),
     HR,
     `**Faction baseline (same scope)**`,
@@ -874,8 +954,16 @@ export async function run(interaction, { system, engine }) {
     coText,
     HR,
     `**Player Elo Context**`,
-    `Players using this (avg/med): **${Number.isFinite(eloInc.avg) ? fmt(eloInc.avg, 1) : "—"} / ${Number.isFinite(eloInc.med) ? fmt(eloInc.med, 1) : "—"}**`,
-    `Faction baseline (avg/med): **${Number.isFinite(eloAll.avg) ? fmt(eloAll.avg, 1) : "—"} / ${Number.isFinite(eloAll.med) ? fmt(eloAll.med, 1) : "—"}**`,
+    `Players using this (avg/med): **${
+      Number.isFinite(eloInc.avg) ? fmt(eloInc.avg, 1) : "—"
+    } / ${
+      Number.isFinite(eloInc.med) ? fmt(eloInc.med, 1) : "—"
+    }**`,
+    `Faction baseline (avg/med): **${
+      Number.isFinite(eloAll.avg) ? fmt(eloAll.avg, 1) : "—"
+    } / ${
+      Number.isFinite(eloAll.med) ? fmt(eloAll.med, 1) : "—"
+    }**`,
     HR,
     `**What this means**`,
     meaning
