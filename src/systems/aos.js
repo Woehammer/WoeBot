@@ -36,8 +36,8 @@ export const SYSTEMS = {
       artefacts: ARTEFACTS_AOS,
       heroicTraits: HEROIC_TRAITS_AOS,
       terrain: TERRAIN_AOS,
-      spells: SPELLS_AOS
-      prayers: PRAYERS_AOS
+      spells: SPELLS_AOS,
+      prayers: PRAYERS_AOS,
       battleTactics: BATTLE_TACTICS,
       regimentsOfRenown: REGIMENTS_OF_RENOWN,
     },
