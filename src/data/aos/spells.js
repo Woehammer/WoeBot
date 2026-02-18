@@ -265,6 +265,7 @@ export const SPELLS_AOS = [
     aliases: [
       "scions of nulahmia spell lore",
     ],
+  },
   {
     name: "Knights of the Crimson Keep Spell Lore",
     aliases: [
@@ -282,6 +283,7 @@ export const SPELLS_AOS = [
     aliases: [
       "draconith skywing spell lore",
     ],
+  },
   {
     name: "Heroes of the First-Forged Spell Lore",
     aliases: [
