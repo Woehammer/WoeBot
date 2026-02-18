@@ -4,13 +4,22 @@
 //          (warscrolls, terrain, artefacts, heroic traits, manifestations,
 //           spell lores, prayer lores, battle tactics, regiments of renown)
 //          Output style: /warscroll-like stats + analysis blurb + Elo context
+//
+// REVISION NOTES (what changed):
+// - Spell/Prayer Lore autocomplete now shows ONLY items actually USED in lists
+//   for the selected faction (+ optional formation). Cached per scope.
+// - Fixed "re.test" statefulness bug by compiling regex WITHOUT /g for checks.
+// - Fixed /lookup warscroll path: included/without rows now derived via list text
+//   so "Used in % (x/y lists)" is correct (no more 0/55 nonsense).
+// - getLookupArray keys updated to match your aos.js registration
+//   (manifestationLore, spellLore, prayerLore, battleTactics, regimentsOfRenown).
 // ==================================================
 
 // ==================================================
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { addChunkedSection } from "../ui/embedSafe.js"; // adjust if your path differs
+import { addChunkedSection } from "../ui/embedSafe.js";
 
 // ==================================================
 // COMMAND DEFINITION
@@ -211,6 +220,7 @@ function findFactionName(system, engine, inputName) {
 // --------------------------------------------------
 // TYPE -> LOOKUP ARRAY
 // IMPORTANT: these keys must match what you register in aos.js
+// (you showed: battleTactics + regimentsOfRenown, plus your existing ones)
 // --------------------------------------------------
 function getLookupArray(system, type) {
   const lookups = system?.lookups ?? {};
@@ -224,11 +234,11 @@ function getLookupArray(system, type) {
     case "artefact":
       return lookups.artefacts ?? [];
     case "manifestation":
-      return lookups.manifestations ?? [];
+      return lookups.manifestations ?? lookups.manifestationLore ?? [];
     case "spellLore":
-      return lookups.spells ?? []; // if you use different key, update this
+      return lookups.spellLore ?? lookups.spells ?? [];
     case "prayerLore":
-      return lookups.prayers ?? []; // if you use different key, update this
+      return lookups.prayerLore ?? lookups.prayers ?? [];
     case "battleTactic":
       return lookups.battleTactics ?? [];
     case "regimentOfRenown":
@@ -271,8 +281,8 @@ function findLookupItem(system, type, inputName, factionName = null) {
 
 // --------------------------------------------------
 // Phrase regex
-// KEY CHANGE: allow optional trailing "(...)" or ": ..." after the matched phrase.
-// This is what fixes "(190)" and similar list decorations.
+// - allow optional trailing "(...)" or ": ..." / "- ..." after phrase
+// - IMPORTANT: returned regex MUST NOT be /g (stateful); use /gi only when counting.
 // --------------------------------------------------
 function buildAnyPhraseRegex(item) {
   const phrases = [item?.name, ...(item?.aliases ?? [])]
@@ -284,14 +294,10 @@ function buildAnyPhraseRegex(item) {
 
   const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
 
-  // Start boundary: start or pipe/newline
-  // Optional bullet
-  // Phrase
-  // Optional trailing decorations: "(...)" or ": ..." or " - ..." before pipe/newline/end
   return new RegExp(
     `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
-      `(?:\\s*\\([^|\\n\\r]*\\))?` + // optional "(190)" etc
-      `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` + // optional ": foo" / "- foo"
+      `(?:\\s*\\([^|\\n\\r]*\\))?` +
+      `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` +
       `\\s*(?=$|[|\\n\\r])`,
     "i"
   );
@@ -333,7 +339,9 @@ function sliceRows(engine, factionName, formationName = null) {
 }
 
 // --------------------------------------------------
-// Compute included/without stats via regex-text matching
+// Compute included/without stats via regex-text matching (list-level)
+// (This is the reliable way to get "Used in x/y lists" for EVERYTHING,
+// including warscrolls, because it matches what is actually in Refined List.)
 // --------------------------------------------------
 function computeItemStats({ rows, item }) {
   const re = buildAnyPhraseRegex(item);
@@ -405,6 +413,7 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
     .map((w) => {
       const phrases = [w.name, ...(w.aliases ?? [])].filter(Boolean);
       if (!phrases.length) return null;
+
       const alts = phrases.map((p) => escapeRegExp(String(p).toLowerCase())).join("|");
       const re = new RegExp(
         `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
@@ -413,6 +422,7 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
           `\\s*(?=$|[|\\n\\r])`,
         "i"
       );
+
       return { name: w.name, key: norm(w.name), re };
     })
     .filter(Boolean);
@@ -484,7 +494,14 @@ function analysisBlurbWarscroll({
   return [p1, p2, p3, `**Confidence:** ${confidence}`].filter(Boolean).join("\n\n");
 }
 
-function analysisBlurbGeneric({ typeLabel, itemName, includedWR, withoutWR, factionWR, includedGames }) {
+function analysisBlurbGeneric({
+  typeLabel,
+  itemName,
+  includedWR,
+  withoutWR,
+  factionWR,
+  includedGames,
+}) {
   const vsFaction = includedWR - factionWR;
   const vsWithout = includedWR - withoutWR;
   const confidence = confidenceFromGames(includedGames);
@@ -498,6 +515,65 @@ function analysisBlurbGeneric({ typeLabel, itemName, includedWR, withoutWR, fact
     `suggestive, not proof.`;
 
   return [p1, p2, `**Confidence:** ${confidence}`].join("\n\n");
+}
+
+// ==================================================
+// USED-ONLY AUTOCOMPLETE (Spell/Prayer)
+// ==================================================
+const USED_CACHE = new Map();
+// key: `${type}|${faction}|${formation||""}` -> Set(norm(item.name))
+
+function usedCacheKey(type, factionName, formationName) {
+  return `${type}|${norm(factionName)}|${norm(formationName ?? "")}`;
+}
+
+function shouldFilterToUsedOnly(type) {
+  return type === "spellLore" || type === "prayerLore";
+}
+
+function buildUsedSetForType({ system, engine, type, factionName, formationName }) {
+  const key = usedCacheKey(type, factionName, formationName);
+  const cached = USED_CACHE.get(key);
+  if (cached) return cached;
+
+  const arr = getLookupArray(system, type);
+  if (!arr?.length) {
+    const empty = new Set();
+    USED_CACHE.set(key, empty);
+    return empty;
+  }
+
+  const { rows } = sliceRows(engine, factionName, formationName);
+  if (!rows?.length) {
+    const empty = new Set();
+    USED_CACHE.set(key, empty);
+    return empty;
+  }
+
+  const compiled = arr
+    .map((it) => {
+      const re = buildAnyPhraseRegex(it);
+      if (!re) return null;
+      return { key: norm(it.name), re };
+    })
+    .filter(Boolean);
+
+  const used = new Set();
+
+  for (const r of rows) {
+    const text = String(getListText(r) ?? "");
+    if (!text) continue;
+
+    for (const it of compiled) {
+      if (used.has(it.key)) continue;
+      if (it.re.test(text)) used.add(it.key);
+    }
+
+    if (used.size === compiled.length) break;
+  }
+
+  USED_CACHE.set(key, used);
+  return used;
 }
 
 // ==================================================
@@ -543,16 +619,33 @@ export async function autocomplete(interaction, ctx) {
 
   if (focused.name === "name") {
     const { system, engine } = ctx;
+
     const type = interaction.options.getString("type", true);
     const factionInput = (interaction.options.getString("faction") ?? "").trim();
     const factionName = factionInput ? findFactionName(system, engine, factionInput) : null;
 
+    const formationName =
+      interaction.options.getString("formation", false)?.trim() || null;
+
     const arr = getLookupArray(system, type);
 
-    const filtered =
+    // base filtering (faction-scoped types)
+    let filtered =
       isFactionScopedType(type) && factionName
         ? arr.filter((it) => !it?.faction || norm(it.faction) === norm(factionName))
         : arr;
+
+    // NEW: used-only filtering for Spell/Prayer Lore
+    if (factionName && shouldFilterToUsedOnly(type)) {
+      const usedSet = buildUsedSetForType({
+        system,
+        engine,
+        type,
+        factionName,
+        formationName,
+      });
+      filtered = filtered.filter((it) => usedSet.has(norm(it?.name)));
+    }
 
     const choices = filtered
       .map((it) => it?.name)
@@ -634,51 +727,39 @@ export async function run(interaction, { system, engine }) {
 
   // --------------------------------------------------
   // STATS
-  // KEY CHANGE: warscroll uses engine indexes, everything else uses regex list matching.
+  // - warscroll: use engine for win rates (proven)
+  // - BUT still compute list-level included/without via regex for "Used in x/y lists"
   // --------------------------------------------------
   let stats = null;
+  let reinforcedPct = null;
+  let engineCo = null;
+
+  // Always compute list-level included/without rows (fixes the 0/55 bug)
+  const listLevelStats = computeItemStats({ rows, item });
 
   if (type === "warscroll" && engine?.indexes?.warscrollSummaryInFaction) {
-    // Use the same proven engine path as /warscroll.
     const sum = engine.indexes.warscrollSummaryInFaction(item.name, factionName, coN);
 
-    // Build a stats object in the same shape our renderer expects.
-    // includedRows/withoutRows are only needed for Elo + co-includes; we can derive them via warscrollRows().
-    const wsRowsAll = engine.indexes.warscrollRows(item.name) ?? [];
-    const wsRowsFaction = wsRowsAll.filter(
-      (r) => norm(r.Faction ?? r.faction) === norm(factionName)
-    );
+    reinforcedPct = sum?.included?.reinforcedPct ?? null;
+    engineCo = sum?.included?.topCoIncludes ?? null;
 
-    const includedRows = wsRowsFaction;
-    // Without rows = faction rows excluding those that include this warscroll.
-    // If your dataset has duplicates, this is "good enough" for Elo context.
-    const includedSet = new Set(includedRows);
-    const withoutRows = (rows ?? []).filter((r) => !includedSet.has(r));
-
+    // merge: use engine win rates/games, but keep list-level rows + avgOcc
     stats = {
-      totalRows: (rows || []).length,
-      includedRows,
-      withoutRows,
+      ...listLevelStats,
       included: {
-        rows: sum?.included?.lists ?? sum?.included?.rows ?? includedRows.length,
-        games: sum?.included?.games ?? 0,
-        wins: sum?.included?.wins ?? null,
-        winRate: sum?.included?.winRate ?? null,
-        avgOcc: sum?.included?.avgOccurrencesPerList ?? null,
+        ...listLevelStats.included,
+        games: sum?.included?.games ?? listLevelStats.included.games,
+        winRate: sum?.included?.winRate ?? listLevelStats.included.winRate,
+        avgOcc: sum?.included?.avgOccurrencesPerList ?? listLevelStats.included.avgOcc,
       },
       without: {
-        rows: sum?.without?.lists ?? sum?.without?.rows ?? withoutRows.length,
-        games: sum?.without?.games ?? 0,
-        wins: sum?.without?.wins ?? null,
-        winRate: sum?.without?.winRate ?? null,
+        ...listLevelStats.without,
+        games: sum?.without?.games ?? listLevelStats.without.games,
+        winRate: sum?.without?.winRate ?? listLevelStats.without.winRate,
       },
-      // allow co-includes from engine if present
-      _engineCo: sum?.included?.topCoIncludes ?? null,
-      _reinforcedPct: sum?.included?.reinforcedPct ?? null,
     };
   } else {
-    // Everything else: regex match in refined list text.
-    stats = computeItemStats({ rows, item });
+    stats = listLevelStats;
   }
 
   const includedWR = stats.included.winRate ?? null;
@@ -690,14 +771,12 @@ export async function run(interaction, { system, engine }) {
   const eloAll = eloSummary(rows);
   const eloInc = eloSummary(stats.includedRows);
 
-  // Co-includes:
-  // - warscroll: prefer engine co-includes if available, else regex scan.
-  // - other types: still show warscroll co-includes from included rows.
+  // Co-includes
   let coText = "—";
   if (coN > 0) {
-    if (type === "warscroll" && Array.isArray(stats._engineCo) && stats._engineCo.length) {
+    if (type === "warscroll" && Array.isArray(engineCo) && engineCo.length) {
       coText =
-        stats._engineCo
+        engineCo
           .slice(0, coN)
           .map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`)
           .join("\n") || "—";
@@ -706,6 +785,7 @@ export async function run(interaction, { system, engine }) {
         excludeName: type === "warscroll" ? item.name : null,
         topN: coN,
       });
+
       coText =
         co.length > 0
           ? co.map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`).join("\n")
@@ -739,7 +819,6 @@ export async function run(interaction, { system, engine }) {
     }
   })();
 
-  // Impact vs faction (only meaningful if we have included WR)
   const impactVsFaction =
     Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
 
@@ -792,9 +871,8 @@ export async function run(interaction, { system, engine }) {
     `Avg occurrences (per list): **${
       Number.isFinite(stats.included.avgOcc) ? fmt(stats.included.avgOcc, 2) : "—"
     }**`,
-    // Optional reinforced line if engine provided it
-    ...(type === "warscroll" && Number.isFinite(stats._reinforcedPct)
-      ? [`Reinforced in: **${pct(stats._reinforcedPct)}** of lists`]
+    ...(type === "warscroll" && Number.isFinite(reinforcedPct)
+      ? [`Reinforced in: **${pct(reinforcedPct)}** of lists`]
       : []),
     HR,
     `**Faction baseline (same scope)**`,
