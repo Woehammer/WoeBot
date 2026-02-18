@@ -22,6 +22,7 @@ import battleplan from "./commands/battleplan.js";
 import event from "./commands/event.js";
 import list from "./commands/list.js";
 import lookup from "./commands/lookup.js";
+import help from "./commands/help.js";
 
 // ==================================================
 // COMMAND REGISTRY
@@ -41,6 +42,7 @@ export const COMMANDS = [
   event,
   list,
   lookup,
+  help,
 ];
 
 // ==================================================
