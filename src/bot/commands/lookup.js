@@ -19,7 +19,9 @@ import { addChunkedSection } from "../ui/embedSafe.js"; // adjust if your path d
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("lookup")
-  .setDescription("Lookup + analysis for list elements (warscrolls, traits, artefacts, lores, tactics, RoR)")
+  .setDescription(
+    "Lookup + analysis for list elements (warscrolls, traits, artefacts, lores, tactics, RoR)"
+  )
   .addStringOption((opt) =>
     opt
       .setName("faction")
@@ -267,9 +269,11 @@ function findLookupItem(system, type, inputName, factionName = null) {
   return null;
 }
 
-// Build a regex that matches any of the phrases (name + aliases)
-// NOTE: warscroll parser seems to work best with the “soft boundary” OR bullet approach.
-// We support both: line/pipe boundaries + optional bullet prefix.
+// --------------------------------------------------
+// Phrase regex
+// KEY CHANGE: allow optional trailing "(...)" or ": ..." after the matched phrase.
+// This is what fixes "(190)" and similar list decorations.
+// --------------------------------------------------
 function buildAnyPhraseRegex(item) {
   const phrases = [item?.name, ...(item?.aliases ?? [])]
     .filter(Boolean)
@@ -280,13 +284,15 @@ function buildAnyPhraseRegex(item) {
 
   const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
 
-  // Match:
-  // - start of string OR after | or newline
-  // - optional bullet prefix
-  // - phrase
-  // - then end OR before | or newline
+  // Start boundary: start or pipe/newline
+  // Optional bullet
+  // Phrase
+  // Optional trailing decorations: "(...)" or ": ..." or " - ..." before pipe/newline/end
   return new RegExp(
-    `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})\\s*(?=$|[|\\n\\r])`,
+    `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
+      `(?:\\s*\\([^|\\n\\r]*\\))?` + // optional "(190)" etc
+      `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` + // optional ": foo" / "- foo"
+      `\\s*(?=$|[|\\n\\r])`,
     "i"
   );
 }
@@ -301,7 +307,10 @@ function countOccurrencesInText(item, text) {
 
   const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
   const re = new RegExp(
-    `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})\\s*(?=$|[|\\n\\r])`,
+    `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
+      `(?:\\s*\\([^|\\n\\r]*\\))?` +
+      `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` +
+      `\\s*(?=$|[|\\n\\r])`,
     "ig"
   );
 
@@ -324,7 +333,7 @@ function sliceRows(engine, factionName, formationName = null) {
 }
 
 // --------------------------------------------------
-// Compute included/without stats for arbitrary “item matched in list text”
+// Compute included/without stats via regex-text matching
 // --------------------------------------------------
 function computeItemStats({ rows, item }) {
   const re = buildAnyPhraseRegex(item);
@@ -398,7 +407,10 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
       if (!phrases.length) return null;
       const alts = phrases.map((p) => escapeRegExp(String(p).toLowerCase())).join("|");
       const re = new RegExp(
-        `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})\\s*(?=$|[|\\n\\r])`,
+        `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
+          `(?:\\s*\\([^|\\n\\r]*\\))?` +
+          `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` +
+          `\\s*(?=$|[|\\n\\r])`,
         "i"
       );
       return { name: w.name, key: norm(w.name), re };
@@ -406,7 +418,7 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
     .filter(Boolean);
 
   const excludeKey = excludeName ? norm(excludeName) : null;
-  const counts = new Map(); // key -> { name, listsTogether }
+  const counts = new Map();
 
   for (const r of includedRows || []) {
     const text = String(getListText(r) ?? "");
@@ -430,7 +442,7 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
 }
 
 // --------------------------------------------------
-// /warscroll-style analysis blurb for warscroll-type lookups
+// /warscroll-like analysis blurb
 // --------------------------------------------------
 function analysisBlurbWarscroll({
   includedWR,
@@ -472,7 +484,6 @@ function analysisBlurbWarscroll({
   return [p1, p2, p3, `**Confidence:** ${confidence}`].filter(Boolean).join("\n\n");
 }
 
-// Generic “meaning” for non-warscroll things (still useful, less dramatic)
 function analysisBlurbGeneric({ typeLabel, itemName, includedWR, withoutWR, factionWR, includedGames }) {
   const vsFaction = includedWR - factionWR;
   const vsWithout = includedWR - withoutWR;
@@ -496,7 +507,6 @@ export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
   const q = norm(focused.value);
 
-  // faction autocomplete
   if (focused.name === "faction") {
     const choices = getFactionChoices(ctx);
     await interaction.respond(
@@ -508,7 +518,6 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // formation autocomplete (scoped if possible)
   if (focused.name === "formation") {
     const { engine, system } = ctx;
     const factionInput = (interaction.options.getString("faction") ?? "").trim();
@@ -532,7 +541,6 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // name autocomplete (depends on type + faction)
   if (focused.name === "name") {
     const { system, engine } = ctx;
     const type = interaction.options.getString("type", true);
@@ -577,7 +585,6 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  // eligibility filtering for Regiments of Renown (allowedFactions)
   let item = findLookupItem(system, type, inputName, factionName);
 
   if (type === "regimentOfRenown" && item) {
@@ -613,7 +620,9 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  // Faction baseline (same scope as rows)
+  // --------------------------------------------------
+  // Baseline
+  // --------------------------------------------------
   let baselineGames = 0;
   let baselineWins = 0;
 
@@ -623,8 +632,54 @@ export async function run(interaction, { system, engine }) {
   }
   const factionWinRate = baselineGames > 0 ? baselineWins / baselineGames : 0;
 
-  // Item stats
-  const stats = computeItemStats({ rows, item });
+  // --------------------------------------------------
+  // STATS
+  // KEY CHANGE: warscroll uses engine indexes, everything else uses regex list matching.
+  // --------------------------------------------------
+  let stats = null;
+
+  if (type === "warscroll" && engine?.indexes?.warscrollSummaryInFaction) {
+    // Use the same proven engine path as /warscroll.
+    const sum = engine.indexes.warscrollSummaryInFaction(item.name, factionName, coN);
+
+    // Build a stats object in the same shape our renderer expects.
+    // includedRows/withoutRows are only needed for Elo + co-includes; we can derive them via warscrollRows().
+    const wsRowsAll = engine.indexes.warscrollRows(item.name) ?? [];
+    const wsRowsFaction = wsRowsAll.filter(
+      (r) => norm(r.Faction ?? r.faction) === norm(factionName)
+    );
+
+    const includedRows = wsRowsFaction;
+    // Without rows = faction rows excluding those that include this warscroll.
+    // If your dataset has duplicates, this is "good enough" for Elo context.
+    const includedSet = new Set(includedRows);
+    const withoutRows = (rows ?? []).filter((r) => !includedSet.has(r));
+
+    stats = {
+      totalRows: (rows || []).length,
+      includedRows,
+      withoutRows,
+      included: {
+        rows: sum?.included?.lists ?? sum?.included?.rows ?? includedRows.length,
+        games: sum?.included?.games ?? 0,
+        wins: sum?.included?.wins ?? null,
+        winRate: sum?.included?.winRate ?? null,
+        avgOcc: sum?.included?.avgOccurrencesPerList ?? null,
+      },
+      without: {
+        rows: sum?.without?.lists ?? sum?.without?.rows ?? withoutRows.length,
+        games: sum?.without?.games ?? 0,
+        wins: sum?.without?.wins ?? null,
+        winRate: sum?.without?.winRate ?? null,
+      },
+      // allow co-includes from engine if present
+      _engineCo: sum?.included?.topCoIncludes ?? null,
+      _reinforcedPct: sum?.included?.reinforcedPct ?? null,
+    };
+  } else {
+    // Everything else: regex match in refined list text.
+    stats = computeItemStats({ rows, item });
+  }
 
   const includedWR = stats.included.winRate ?? null;
   const withoutWR = stats.without.winRate ?? null;
@@ -635,19 +690,28 @@ export async function run(interaction, { system, engine }) {
   const eloAll = eloSummary(rows);
   const eloInc = eloSummary(stats.includedRows);
 
-  // Co-includes (warscrolls only)
-  const co =
-    coN > 0
-      ? coIncludesWarscrolls(system, stats.includedRows, {
-          excludeName: type === "warscroll" ? item.name : null,
-          topN: coN,
-        })
-      : [];
-
-  const coText =
-    co.length > 0
-      ? co.map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`).join("\n")
-      : "—";
+  // Co-includes:
+  // - warscroll: prefer engine co-includes if available, else regex scan.
+  // - other types: still show warscroll co-includes from included rows.
+  let coText = "—";
+  if (coN > 0) {
+    if (type === "warscroll" && Array.isArray(stats._engineCo) && stats._engineCo.length) {
+      coText =
+        stats._engineCo
+          .slice(0, coN)
+          .map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`)
+          .join("\n") || "—";
+    } else {
+      const co = coIncludesWarscrolls(system, stats.includedRows, {
+        excludeName: type === "warscroll" ? item.name : null,
+        topN: coN,
+      });
+      coText =
+        co.length > 0
+          ? co.map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`).join("\n")
+          : "—";
+    }
+  }
 
   // Labels
   const typeLabel = (() => {
@@ -675,11 +739,9 @@ export async function run(interaction, { system, engine }) {
     }
   })();
 
-  // If no included games, don’t pretend we learned anything
-  const safeIncludedWR = Number.isFinite(includedWR) ? includedWR : 0;
-  const safeWithoutWR = Number.isFinite(withoutWR) ? withoutWR : 0;
-
-  const impactVsFaction = safeIncludedWR - factionWinRate;
+  // Impact vs faction (only meaningful if we have included WR)
+  const impactVsFaction =
+    Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
 
   // --------------------------------------------------
   // ANALYSIS BLURB
@@ -727,12 +789,18 @@ export async function run(interaction, { system, engine }) {
     `Used in: **${pct(usedPct)}** (*${stats.included.rows}/${stats.totalRows} lists*)`,
     `Games: **${fmtInt(stats.included.games)}**`,
     `Win rate: **${pct(stats.included.winRate)}**`,
-    `Avg occurrences (per list): **${Number.isFinite(stats.included.avgOcc) ? fmt(stats.included.avgOcc, 2) : "—"}**`,
+    `Avg occurrences (per list): **${
+      Number.isFinite(stats.included.avgOcc) ? fmt(stats.included.avgOcc, 2) : "—"
+    }**`,
+    // Optional reinforced line if engine provided it
+    ...(type === "warscroll" && Number.isFinite(stats._reinforcedPct)
+      ? [`Reinforced in: **${pct(stats._reinforcedPct)}** of lists`]
+      : []),
     HR,
     `**Faction baseline (same scope)**`,
     `Games: **${fmtInt(baselineGames)}**`,
     `Win rate: **${pct(factionWinRate)}**`,
-    `Impact (vs faction): **${pp(impactVsFaction)}**`,
+    `Impact (vs faction): **${Number.isFinite(impactVsFaction) ? pp(impactVsFaction) : "—"}**`,
     HR,
     `**Without (same scope)**`,
     `Games: **${fmtInt(stats.without.games)}**`,
@@ -742,8 +810,16 @@ export async function run(interaction, { system, engine }) {
     coText,
     HR,
     `**Player Elo Context**`,
-    `Players using this (avg/med): **${Number.isFinite(eloInc.avg) ? fmt(eloInc.avg, 1) : "—"} / ${Number.isFinite(eloInc.med) ? fmt(eloInc.med, 1) : "—"}**`,
-    `Faction baseline (avg/med): **${Number.isFinite(eloAll.avg) ? fmt(eloAll.avg, 1) : "—"} / ${Number.isFinite(eloAll.med) ? fmt(eloAll.med, 1) : "—"}**`,
+    `Players using this (avg/med): **${
+      Number.isFinite(eloInc.avg) ? fmt(eloInc.avg, 1) : "—"
+    } / ${
+      Number.isFinite(eloInc.med) ? fmt(eloInc.med, 1) : "—"
+    }**`,
+    `Faction baseline (avg/med): **${
+      Number.isFinite(eloAll.avg) ? fmt(eloAll.avg, 1) : "—"
+    } / ${
+      Number.isFinite(eloAll.med) ? fmt(eloAll.med, 1) : "—"
+    }**`,
     HR,
     `**What this means**`,
     meaning
