@@ -5,26 +5,18 @@
 //           spell lores, prayer lores, battle tactics, regiments of renown)
 //          Output style: /warscroll-like stats + analysis blurb + Elo context
 //
-// REVISION NOTES (what changed):
-// - Spell/Prayer Lore autocomplete now shows ONLY items actually USED in lists
-//   for the selected faction (+ optional formation). Cached per scope.
-// - Fixed "re.test" statefulness bug by compiling regex WITHOUT /g for checks.
-// - Fixed /lookup warscroll path: included/without rows now derived via list text
-//   so "Used in % (x/y lists)" is correct (no more 0/55 nonsense).
-// - getLookupArray keys updated to match your aos.js registration
-//   (manifestationLore, spellLore, prayerLore, battleTactics, regimentsOfRenown).
+// FIXES:
+// - Lores/tactics/RoR are often embedded like "Spell Lore - X" not on their own line.
+//   So we use a looser "anywhere" matcher for those types.
+// - "Used-only" filtering for lores now fails-open if matching finds nothing.
+// - Avoids RegExp state bugs by NEVER using /g for boolean tests.
 // ==================================================
 
-// ==================================================
-// IMPORTS
-// ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { addChunkedSection } from "../ui/embedSafe.js";
 
 // ==================================================
 // COMMAND DEFINITION
-// NOTE: Discord requires required options before optional options.
-// ALSO: option description max length is 100 chars.
 // ==================================================
 export const data = new SlashCommandBuilder()
   .setName("lookup")
@@ -219,8 +211,7 @@ function findFactionName(system, engine, inputName) {
 
 // --------------------------------------------------
 // TYPE -> LOOKUP ARRAY
-// IMPORTANT: these keys must match what you register in aos.js
-// (you showed: battleTactics + regimentsOfRenown, plus your existing ones)
+// IMPORTANT: match what you register in aos.js
 // --------------------------------------------------
 function getLookupArray(system, type) {
   const lookups = system?.lookups ?? {};
@@ -257,6 +248,18 @@ function isFactionScopedType(type) {
   );
 }
 
+// --------------------------------------------------
+// Matching mode per type
+// --------------------------------------------------
+function matchModeForType(type) {
+  // These usually appear as standalone list entries (bullets)
+  if (type === "warscroll" || type === "terrain" || type === "heroicTrait" || type === "artefact") {
+    return "line";
+  }
+  // These are usually embedded like "Spell Lore - X"
+  return "anywhere";
+}
+
 function findLookupItem(system, type, inputName, factionName = null) {
   const q = norm(inputName);
   const arr = getLookupArray(system, type);
@@ -280,19 +283,22 @@ function findLookupItem(system, type, inputName, factionName = null) {
 }
 
 // --------------------------------------------------
-// Phrase regex
-// - allow optional trailing "(...)" or ": ..." / "- ..." after phrase
-// - IMPORTANT: returned regex MUST NOT be /g (stateful); use /gi only when counting.
+// Phrase regex builders
 // --------------------------------------------------
-function buildAnyPhraseRegex(item) {
+function phraseAlternation(item) {
   const phrases = [item?.name, ...(item?.aliases ?? [])]
     .filter(Boolean)
     .map((x) => String(x).trim())
     .filter(Boolean);
 
   if (!phrases.length) return null;
+  return phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
+}
 
-  const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
+// LINE mode: expects the phrase to be a "thing on a line" with list decorations allowed.
+function buildLinePhraseRegex(item) {
+  const alts = phraseAlternation(item);
+  if (!alts) return null;
 
   return new RegExp(
     `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
@@ -303,22 +309,44 @@ function buildAnyPhraseRegex(item) {
   );
 }
 
-function countOccurrencesInText(item, text) {
-  const phrases = [item?.name, ...(item?.aliases ?? [])]
-    .filter(Boolean)
-    .map((x) => String(x).trim())
-    .filter(Boolean);
+// ANYWHERE mode: match inside "Spell Lore - X" and similar.
+// Still tries not to match substrings in the middle of words.
+function buildAnywherePhraseRegex(item) {
+  const alts = phraseAlternation(item);
+  if (!alts) return null;
 
-  if (!phrases.length) return 0;
-
-  const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
-  const re = new RegExp(
-    `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
-      `(?:\\s*\\([^|\\n\\r]*\\))?` +
-      `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` +
-      `\\s*(?=$|[|\\n\\r])`,
-    "ig"
+  // word-ish boundaries: start, whitespace, punctuation
+  // then phrase
+  // then allow trailing decorations like "(...)" etc
+  return new RegExp(
+    `(?:^|[\\s|\\n\\r:>\\-])(?:${alts})` +
+      `(?:\\s*\\([^\\n\\r|]*\\))?` +
+      `(?:\\s*[:\\-]\\s*[^\\n\\r|]*)?`,
+    "i"
   );
+}
+
+function buildAnyPhraseRegex(item, mode = "line") {
+  return mode === "anywhere" ? buildAnywherePhraseRegex(item) : buildLinePhraseRegex(item);
+}
+
+function countOccurrencesInText(item, text, mode = "line") {
+  const alts = phraseAlternation(item);
+  if (!alts) return 0;
+
+  const re =
+    mode === "anywhere"
+      ? new RegExp(
+          `(?:^|[\\s|\\n\\r:>\\-])(?:${alts})(?:\\s*\\([^\\n\\r|]*\\))?(?:\\s*[:\\-]\\s*[^\\n\\r|]*)?`,
+          "ig"
+        )
+      : new RegExp(
+          `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
+            `(?:\\s*\\([^|\\n\\r]*\\))?` +
+            `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` +
+            `\\s*(?=$|[|\\n\\r])`,
+          "ig"
+        );
 
   let n = 0;
   const s = String(text ?? "");
@@ -340,11 +368,10 @@ function sliceRows(engine, factionName, formationName = null) {
 
 // --------------------------------------------------
 // Compute included/without stats via regex-text matching (list-level)
-// (This is the reliable way to get "Used in x/y lists" for EVERYTHING,
-// including warscrolls, because it matches what is actually in Refined List.)
 // --------------------------------------------------
-function computeItemStats({ rows, item }) {
-  const re = buildAnyPhraseRegex(item);
+function computeItemStats({ rows, item, type }) {
+  const mode = matchModeForType(type);
+  const re = buildAnyPhraseRegex(item, mode);
 
   const includedRows = [];
   const withoutRows = [];
@@ -367,7 +394,7 @@ function computeItemStats({ rows, item }) {
       includedRows.push(r);
       incGames += g;
       incWins += w;
-      incOccTotal += countOccurrencesInText(item, text);
+      incOccTotal += countOccurrencesInText(item, text, mode);
     } else {
       withoutRows.push(r);
       wGames += g;
@@ -411,10 +438,9 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
   const compiled = ws
     .filter(Boolean)
     .map((w) => {
-      const phrases = [w.name, ...(w.aliases ?? [])].filter(Boolean);
-      if (!phrases.length) return null;
+      const alts = phraseAlternation(w);
+      if (!alts) return null;
 
-      const alts = phrases.map((p) => escapeRegExp(String(p).toLowerCase())).join("|");
       const re = new RegExp(
         `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
           `(?:\\s*\\([^|\\n\\r]*\\))?` +
@@ -422,7 +448,6 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
           `\\s*(?=$|[|\\n\\r])`,
         "i"
       );
-
       return { name: w.name, key: norm(w.name), re };
     })
     .filter(Boolean);
@@ -452,7 +477,7 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
 }
 
 // --------------------------------------------------
-// /warscroll-like analysis blurb
+// Analysis blurbs
 // --------------------------------------------------
 function analysisBlurbWarscroll({
   includedWR,
@@ -518,7 +543,7 @@ function analysisBlurbGeneric({
 }
 
 // ==================================================
-// USED-ONLY AUTOCOMPLETE (Spell/Prayer)
+// USED-ONLY AUTOCOMPLETE (lores)
 // ==================================================
 const USED_CACHE = new Map();
 // key: `${type}|${faction}|${formation||""}` -> Set(norm(item.name))
@@ -528,7 +553,9 @@ function usedCacheKey(type, factionName, formationName) {
 }
 
 function shouldFilterToUsedOnly(type) {
-  return type === "spellLore" || type === "prayerLore";
+  // you asked specifically for spell/prayer to only show used
+  // (manifestation lore has the same problem so we include it)
+  return type === "spellLore" || type === "prayerLore" || type === "manifestation";
 }
 
 function buildUsedSetForType({ system, engine, type, factionName, formationName }) {
@@ -537,28 +564,23 @@ function buildUsedSetForType({ system, engine, type, factionName, formationName 
   if (cached) return cached;
 
   const arr = getLookupArray(system, type);
-  if (!arr?.length) {
-    const empty = new Set();
-    USED_CACHE.set(key, empty);
-    return empty;
+  const { rows } = sliceRows(engine, factionName, formationName);
+
+  const used = new Set();
+  if (!arr?.length || !rows?.length) {
+    USED_CACHE.set(key, used);
+    return used;
   }
 
-  const { rows } = sliceRows(engine, factionName, formationName);
-  if (!rows?.length) {
-    const empty = new Set();
-    USED_CACHE.set(key, empty);
-    return empty;
-  }
+  const mode = matchModeForType(type);
 
   const compiled = arr
     .map((it) => {
-      const re = buildAnyPhraseRegex(it);
+      const re = buildAnyPhraseRegex(it, mode);
       if (!re) return null;
       return { key: norm(it.name), re };
     })
     .filter(Boolean);
-
-  const used = new Set();
 
   for (const r of rows) {
     const text = String(getListText(r) ?? "");
@@ -629,13 +651,12 @@ export async function autocomplete(interaction, ctx) {
 
     const arr = getLookupArray(system, type);
 
-    // base filtering (faction-scoped types)
     let filtered =
       isFactionScopedType(type) && factionName
         ? arr.filter((it) => !it?.faction || norm(it.faction) === norm(factionName))
         : arr;
 
-    // NEW: used-only filtering for Spell/Prayer Lore
+    // Used-only filtering for lores (FAIL OPEN if we detect nothing)
     if (factionName && shouldFilterToUsedOnly(type)) {
       const usedSet = buildUsedSetForType({
         system,
@@ -644,7 +665,11 @@ export async function autocomplete(interaction, ctx) {
         factionName,
         formationName,
       });
-      filtered = filtered.filter((it) => usedSet.has(norm(it?.name)));
+
+      // If matching finds nothing (common when data format shifts), don't hide everything.
+      if (usedSet.size > 0) {
+        filtered = filtered.filter((it) => usedSet.has(norm(it?.name)));
+      }
     }
 
     const choices = filtered
@@ -713,9 +738,7 @@ export async function run(interaction, { system, engine }) {
     return;
   }
 
-  // --------------------------------------------------
   // Baseline
-  // --------------------------------------------------
   let baselineGames = 0;
   let baselineWins = 0;
 
@@ -725,17 +748,12 @@ export async function run(interaction, { system, engine }) {
   }
   const factionWinRate = baselineGames > 0 ? baselineWins / baselineGames : 0;
 
-  // --------------------------------------------------
-  // STATS
-  // - warscroll: use engine for win rates (proven)
-  // - BUT still compute list-level included/without via regex for "Used in x/y lists"
-  // --------------------------------------------------
+  // Stats (warscroll uses engine for WR if available, but list-level rows for usage%)
   let stats = null;
   let reinforcedPct = null;
   let engineCo = null;
 
-  // Always compute list-level included/without rows (fixes the 0/55 bug)
-  const listLevelStats = computeItemStats({ rows, item });
+  const listLevelStats = computeItemStats({ rows, item, type });
 
   if (type === "warscroll" && engine?.indexes?.warscrollSummaryInFaction) {
     const sum = engine.indexes.warscrollSummaryInFaction(item.name, factionName, coN);
@@ -743,7 +761,6 @@ export async function run(interaction, { system, engine }) {
     reinforcedPct = sum?.included?.reinforcedPct ?? null;
     engineCo = sum?.included?.topCoIncludes ?? null;
 
-    // merge: use engine win rates/games, but keep list-level rows + avgOcc
     stats = {
       ...listLevelStats,
       included: {
@@ -764,10 +781,8 @@ export async function run(interaction, { system, engine }) {
 
   const includedWR = stats.included.winRate ?? null;
   const withoutWR = stats.without.winRate ?? null;
-
   const usedPct = stats.totalRows > 0 ? stats.included.rows / stats.totalRows : 0;
 
-  // Elo layer
   const eloAll = eloSummary(rows);
   const eloInc = eloSummary(stats.includedRows);
 
@@ -785,7 +800,6 @@ export async function run(interaction, { system, engine }) {
         excludeName: type === "warscroll" ? item.name : null,
         topN: coN,
       });
-
       coText =
         co.length > 0
           ? co.map((x, i) => `${i + 1}) ${x.name} (${x.listsTogether} lists)`).join("\n")
@@ -793,7 +807,6 @@ export async function run(interaction, { system, engine }) {
     }
   }
 
-  // Labels
   const typeLabel = (() => {
     switch (type) {
       case "warscroll":
@@ -822,9 +835,7 @@ export async function run(interaction, { system, engine }) {
   const impactVsFaction =
     Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
 
-  // --------------------------------------------------
-  // ANALYSIS BLURB
-  // --------------------------------------------------
+  // Analysis
   let meaning = "";
   if (stats.included.games > 0 && Number.isFinite(includedWR) && Number.isFinite(withoutWR)) {
     if (type === "warscroll") {
@@ -852,9 +863,7 @@ export async function run(interaction, { system, engine }) {
       `**Confidence:** Very low confidence: zero (or near-zero) sample.`;
   }
 
-  // --------------------------------------------------
-  // RENDER
-  // --------------------------------------------------
+  // Render
   const header =
     `Scope: **${factionName}** — **${scopeLabel}**\n` +
     `Lookup: **${typeLabel}** • **${item.name}**`;
@@ -915,7 +924,4 @@ export async function run(interaction, { system, engine }) {
   await interaction.reply({ embeds: [embed] });
 }
 
-// ==================================================
-// EXPORTS
-// ==================================================
 export default { data, run, autocomplete };
