@@ -81,7 +81,7 @@ export const PRAYERS_AOS = [
     ],
   },
 {
-    name: " Lofnir Drothkeepers Prayer Lore",
+    name: "Lofnir Drothkeepers Prayer Lore",
     aliases: [
       "lofnir drothkeepers prayer lore",
     ],
