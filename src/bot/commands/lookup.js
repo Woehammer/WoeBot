@@ -12,6 +12,14 @@
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { addChunkedSection } from "../ui/embedSafe.js"; // adjust if your path differs
 
+// Use your existing shared prose helpers (keeps tone consistent across commands)
+import {
+  explainSampleSize,
+  explainEloBaseline,
+  explainEloSkew,
+  explainWinRateVsElo,
+} from "../../engine/format/explain.js"; // <-- adjust path if your commands folder differs
+
 // ==================================================
 // COMMAND DEFINITION
 // NOTE: Discord requires required options before optional options.
@@ -119,6 +127,16 @@ function confidenceFromGames(games) {
   return "High confidence: large sample, reasonably stable.";
 }
 
+function signLabel(x) {
+  if (!Number.isFinite(x) || x === 0) return "neutral";
+  return x > 0 ? "positive" : "negative";
+}
+
+function absPP(x) {
+  if (!Number.isFinite(x)) return "—";
+  return `${Math.abs(x * 100).toFixed(1)}pp`;
+}
+
 // --------------------------------------------------
 // DATA ACCESS
 // --------------------------------------------------
@@ -216,7 +234,6 @@ function findFactionName(system, engine, inputName) {
 function getLookupArray(system, type) {
   const L = system?.lookups ?? {};
 
-  // helper: return first array-like value among keys
   const firstArr = (...keys) => {
     for (const k of keys) {
       const v = L?.[k];
@@ -449,7 +466,7 @@ function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN =
 }
 
 // ==================================================
-// Better analysis blurb (pilot Elo + skew + diagnosis)
+// Deeper analysis blurb (correct prose + Elo context like /warscroll)
 // ==================================================
 function buildLookupBlurb({
   typeLabel,
@@ -467,24 +484,8 @@ function buildLookupBlurb({
 }) {
   const paragraphs = [];
 
-  // Para 1: sample + performance
-  if (Number.isFinite(includedGames) && includedGames > 0 && Number.isFinite(includedWR)) {
-    const vsBase = Number.isFinite(baselineWR) ? includedWR - baselineWR : null;
-    const vsWithout = Number.isFinite(withoutWR) ? includedWR - withoutWR : null;
-
-    let line =
-      `Based on **${fmtInt(includedGames)} games** where **${itemName}** is included (${typeLabel}), ` +
-      `those lists are winning **${pct(includedWR)}**.`;
-
-    if (Number.isFinite(vsBase)) {
-      line += ` That’s **${pp(vsBase)}** versus the faction baseline (**${pct(baselineWR)}**).`;
-    }
-    if (Number.isFinite(vsWithout)) {
-      line += ` Compared to lists without it (**${pct(withoutWR)}**), that’s **${pp(vsWithout)}**.`;
-    }
-
-    paragraphs.push(line);
-  } else {
+  // Guard: no usable sample
+  if (!Number.isFinite(includedGames) || includedGames <= 0 || !Number.isFinite(includedWR)) {
     paragraphs.push(
       `There isn’t a usable sample for **${itemName}** in this scope yet, so any “signal” here is basically vibes.`
     );
@@ -492,70 +493,141 @@ function buildLookupBlurb({
     return paragraphs.join("\n\n");
   }
 
-  // Para 2: Elo interpretation
+  const vsBase = Number.isFinite(baselineWR) ? includedWR - baselineWR : null;
+  const vsWithout = Number.isFinite(withoutWR) ? includedWR - withoutWR : null;
+
+  // --------------------------------------------------
+  // Paragraph 1: results summary (sign-aware language)
+  // --------------------------------------------------
+  let p1 =
+    `Based on **${fmtInt(includedGames)} games** where **${itemName}** is included (${typeLabel}), ` +
+    `those lists are winning **${pct(includedWR)}**.`;
+
+  if (Number.isFinite(vsBase)) {
+    const d = signLabel(vsBase);
+    p1 += ` That’s **${pp(vsBase)}** versus the faction baseline (**${pct(baselineWR)}**).`;
+    if (d === "negative") {
+      p1 += " (So: below baseline.)";
+    } else if (d === "positive") {
+      p1 += " (So: above baseline.)";
+    }
+  }
+
+  if (Number.isFinite(vsWithout)) {
+    p1 += ` Compared to lists without it (**${pct(withoutWR)}**), that’s **${pp(vsWithout)}**.`;
+  }
+
+  paragraphs.push(p1);
+
+  // sample-size context (re-uses your shared wording)
+  const sampleTxt = explainSampleSize({ games: includedGames });
+  if (sampleTxt) paragraphs.push(sampleTxt);
+
+  // --------------------------------------------------
+  // Paragraph 2: Elo context (baseline + skew, item vs faction)
+  // --------------------------------------------------
   const haveElo =
     Number.isFinite(incEloAvg) &&
     Number.isFinite(incEloMed) &&
     Number.isFinite(baseEloAvg) &&
     Number.isFinite(baseEloMed);
 
+  let avgDelta = null;
+  let medDelta = null;
+
   if (haveElo) {
+    avgDelta = incEloAvg - baseEloAvg;
+    medDelta = incEloMed - baseEloMed;
+
     const incGap = incEloAvg - incEloMed;
-    const baseGap = baseEloAvg - baseEloMed;
 
-    const avgDelta = incEloAvg - baseEloAvg;
-    const medDelta = incEloMed - baseEloMed;
+    // who is taking it? (item pilots vs faction pilots)
+    let pilotBand = "about the same as";
+    if (avgDelta >= 40) pilotBand = "well above";
+    else if (avgDelta >= 20) pilotBand = "above";
+    else if (avgDelta >= 8) pilotBand = "a little above";
+    else if (avgDelta <= -40) pilotBand = "well below";
+    else if (avgDelta <= -20) pilotBand = "below";
+    else if (avgDelta <= -8) pilotBand = "a little below";
 
-    let pilotRead;
-    if (avgDelta >= 40) pilotRead = "well above";
-    else if (avgDelta >= 20) pilotRead = "above";
-    else if (avgDelta >= 8) pilotRead = "a little above";
-    else if (avgDelta > -8) pilotRead = "about the same as";
-    else if (avgDelta > -20) pilotRead = "a little below";
-    else pilotRead = "well below";
+    let p2 =
+      `Pilot skill looks **${pilotBand}** the faction baseline: ` +
+      `included avg/med **${fmt(incEloAvg, 1)} / ${fmt(incEloMed, 1)}** ` +
+      `vs baseline **${fmt(baseEloAvg, 1)} / ${fmt(baseEloMed, 1)}** ` +
+      `(≈${fmtInt(avgDelta)} / ${fmtInt(medDelta)} Elo).`;
 
-    function spreadRead(gap) {
-      if (!Number.isFinite(gap)) return "";
-      const abs = Math.abs(gap);
-      if (abs < 10) return "most pilots sit in a similar skill band.";
-      if (gap > 0) return "results are being pulled up by a smaller group of strong pilots.";
-      return "the median is doing well, with fewer extreme spikes at the top.";
-    }
+    // add skew explanation (your shared helper expects avg/median)
+    const skewTxt = explainEloSkew({ average: incEloAvg, median: incEloMed });
+    if (skewTxt) p2 += ` ${skewTxt}`;
 
-    paragraphs.push(
-      `Pilot skill looks **${pilotRead}** the faction baseline: ` +
-        `included avg/med **${fmt(incEloAvg, 1)} / ${fmt(incEloMed, 1)}** ` +
-        `vs baseline **${fmt(baseEloAvg, 1)} / ${fmt(baseEloMed, 1)}** ` +
-        `(≈${fmtInt(avgDelta)} / ${fmtInt(medDelta)} Elo). ` +
-        `The included Elo spread (avg–med) is **${fmt(incGap, 1)}**, suggesting ${spreadRead(incGap)}`
-    );
+    paragraphs.push(p2);
 
-    // Para 3: diagnosis
-    const vsWithout = Number.isFinite(withoutWR) ? includedWR - withoutWR : null;
-    const bigWR = (x) => Number.isFinite(x) && Math.abs(x) >= 0.03; // 3pp+
-    const bigElo = (x) => Number.isFinite(x) && Math.abs(x) >= 20;
-
-    let diagnosis = "";
-    if (includedGames < 30) {
-      diagnosis = "This is still a small sample — treat it as a hint, not a verdict.";
-    } else if (bigWR(vsWithout) && bigElo(avgDelta) && avgDelta > 0) {
-      diagnosis =
-        "There’s uplift, but the pilots are also stronger — so some of this may be **good players choosing good tools**, not pure item power.";
-    } else if (bigWR(vsWithout) && (!bigElo(avgDelta) || avgDelta <= 0)) {
-      diagnosis =
-        "The uplift shows up without a big pilot-skill advantage, which makes it more likely the choice is genuinely helping performance.";
-    } else if (!bigWR(vsWithout) && bigElo(avgDelta) && avgDelta > 0) {
-      diagnosis =
-        "Win rate isn’t moving much, but the pilots are stronger — this looks more like player preference than a performance driver.";
-    } else {
-      diagnosis =
-        "Net effect looks modest — more “nice in a plan” than “this single-handedly wins games”.";
-    }
-
-    paragraphs.push(diagnosis);
+    // Optional deeper: how the WR + Elo story reads (shared helper)
+    const wrEloTxt = explainWinRateVsElo({
+      winRate: includedWR,
+      avgElo: incEloAvg,
+      medianElo: incEloMed,
+      games: includedGames,
+    });
+    if (wrEloTxt) paragraphs.push(wrEloTxt);
   }
 
+  // --------------------------------------------------
+  // Paragraph 3: diagnosis (SIGN-AWARE, fixes your bug)
+  // --------------------------------------------------
+  const bigWR = (x) => Number.isFinite(x) && Math.abs(x) >= 0.03; // 3pp+
+  const bigElo = (x) => Number.isFinite(x) && Math.abs(x) >= 20;
+
+  let diagnosis = "";
+
+  // If we don't have withoutWR, fall back to vs baseline
+  const primaryDelta =
+    Number.isFinite(vsWithout) ? vsWithout : Number.isFinite(vsBase) ? vsBase : null;
+
+  if (includedGames < 30) {
+    diagnosis = "Small sample — treat this as a hint, not a verdict.";
+  } else if (!Number.isFinite(primaryDelta) || !bigWR(primaryDelta)) {
+    diagnosis = "Net effect looks modest — more “nice in a plan” than “this wins or loses games by itself”.";
+  } else {
+    const dir = primaryDelta > 0 ? "up" : "down";
+
+    // With Elo context
+    if (haveElo && bigElo(avgDelta)) {
+      if (dir === "up" && avgDelta > 0) {
+        diagnosis =
+          "Results are up, but pilots are also stronger — this could be **good players choosing good tools**, not pure item power.";
+      } else if (dir === "down" && avgDelta < 0) {
+        diagnosis =
+          "Results are down, and pilots are weaker — this could be more about **who is taking it** than the item being a trap.";
+      } else if (dir === "up" && avgDelta <= 0) {
+        diagnosis =
+          "The uplift shows up without a big pilot-skill advantage, which is a stronger hint the choice is genuinely helping performance.";
+      } else if (dir === "down" && avgDelta >= 0) {
+        diagnosis =
+          "The drop shows up even without a pilot-skill disadvantage — that’s a stronger hint this choice may be costing wins (or signals a suboptimal plan).";
+      } else {
+        diagnosis =
+          "There’s a clear shift, but the pilot profile is mixed — treat this as *directional*, and sanity-check with matchups/formation context.";
+      }
+    } else {
+      // No Elo context: still sign-aware
+      if (dir === "up") {
+        diagnosis =
+          "There’s a meaningful uplift versus comparable lists — likely a real performance driver (or a strong signal of a good sub-package).";
+      } else {
+        diagnosis =
+          "There’s a meaningful drop versus comparable lists — could be a trap pick, or it’s chosen in harder games / worse matchups.";
+      }
+    }
+  }
+
+  if (diagnosis) paragraphs.push(diagnosis);
+
+  // --------------------------------------------------
+  // Confidence (keep your existing scale)
+  // --------------------------------------------------
   paragraphs.push(`**Confidence:** ${confidenceFromGames(includedGames)}`);
+
   return paragraphs.join("\n\n");
 }
 
@@ -563,8 +635,6 @@ function buildLookupBlurb({
 // Autocomplete filtering: only show items that appear in lists (for lores etc)
 // ==================================================
 function shouldOnlySuggestUsed(type) {
-  // You asked specifically for Spell/Prayer (and this helps Manifestations too).
-  // You can add/remove types here whenever you like.
   return (
     type === "spellLore" ||
     type === "prayerLore" ||
@@ -605,7 +675,6 @@ function computeUsedSetForType({ system, engine, factionName, type }) {
 
   if (!arr.length || !rows.length) return used;
 
-  // precompile regex for each item (but only for items that might be suggested)
   const compiled = arr
     .filter(Boolean)
     .map((it) => {
@@ -615,7 +684,6 @@ function computeUsedSetForType({ system, engine, factionName, type }) {
     })
     .filter(Boolean);
 
-  // scan rows once
   for (const r of rows) {
     const text = String(getListText(r) ?? "");
     if (!text) continue;
@@ -636,7 +704,6 @@ export async function autocomplete(interaction, ctx) {
   const focused = interaction.options.getFocused(true);
   const q = norm(focused.value);
 
-  // faction autocomplete
   if (focused.name === "faction") {
     const choices = getFactionChoices(ctx);
     await interaction.respond(
@@ -648,7 +715,6 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // formation autocomplete
   if (focused.name === "formation") {
     const { engine, system } = ctx;
     const factionInput = (interaction.options.getString("faction") ?? "").trim();
@@ -672,7 +738,6 @@ export async function autocomplete(interaction, ctx) {
     return;
   }
 
-  // name autocomplete (depends on type + faction)
   if (focused.name === "name") {
     const { system, engine } = ctx;
 
@@ -681,20 +746,17 @@ export async function autocomplete(interaction, ctx) {
     const factionName = factionInput ? findFactionName(system, engine, factionInput) : null;
 
     if (!factionName) {
-      // if faction isn't resolved yet, avoid lying — show nothing until it is
       await interaction.respond([]);
       return;
     }
 
     const arr = getLookupArray(system, type);
 
-    // faction-scoped filtering (for warscroll/terrain/traits/artefacts)
     const scoped =
       isFactionScopedType(type) && factionName
         ? arr.filter((it) => !it?.faction || norm(it.faction) === norm(factionName))
         : arr;
 
-    // fast filter by query first (name + aliases)
     const fast = scoped.filter((it) => {
       const name = String(it?.name ?? "");
       if (!q) return true;
@@ -705,7 +767,6 @@ export async function autocomplete(interaction, ctx) {
       return false;
     });
 
-    // only-suggest-used: compute used set (cached)
     let usedSet = null;
     if (shouldOnlySuggestUsed(type)) {
       const cached = getUsedCache(factionName, type);
@@ -718,9 +779,7 @@ export async function autocomplete(interaction, ctx) {
       }
     }
 
-    const filtered = usedSet
-      ? fast.filter((it) => usedSet.has(norm(it?.name)))
-      : fast;
+    const filtered = usedSet ? fast.filter((it) => usedSet.has(norm(it?.name))) : fast;
 
     const choices = filtered
       .map((it) => it?.name)
@@ -754,7 +813,6 @@ export async function run(interaction, { system, engine }) {
 
   let item = findLookupItem(system, type, inputName, factionName);
 
-  // eligibility filtering for Regiments of Renown (allowedFactions)
   if (type === "regimentOfRenown" && item) {
     const allowed = item.allowedFactions ?? item.allowed_factions ?? null;
     if (Array.isArray(allowed) && allowed.length) {
@@ -811,7 +869,6 @@ export async function run(interaction, { system, engine }) {
   if (type === "warscroll" && engine?.indexes?.warscrollSummaryInFaction) {
     const sum = engine.indexes.warscrollSummaryInFaction(item.name, factionName, coN);
 
-    // Included rows for Elo: use warscrollRows filtered to faction
     const wsRowsAll = engine.indexes.warscrollRows ? engine.indexes.warscrollRows(item.name) : [];
     const wsRowsFaction = (wsRowsAll ?? []).filter(
       (r) => norm(r.Faction ?? r.faction) === norm(factionName)
@@ -820,7 +877,7 @@ export async function run(interaction, { system, engine }) {
     stats = {
       totalRows: (rows || []).length,
       includedRows: wsRowsFaction ?? [],
-      withoutRows: [], // not needed for Elo; we use rows baseline anyway
+      withoutRows: [],
       included: {
         rows: sum?.included?.lists ?? sum?.included?.rows ?? (wsRowsFaction?.length ?? 0),
         games: sum?.included?.games ?? 0,
@@ -907,7 +964,7 @@ export async function run(interaction, { system, engine }) {
     Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
 
   // --------------------------------------------------
-  // ANALYSIS BLURB (richer; includes Elo interpretation)
+  // ANALYSIS BLURB (deeper; fixes uplift/downtick prose)
   // --------------------------------------------------
   const meaning = buildLookupBlurb({
     typeLabel,
