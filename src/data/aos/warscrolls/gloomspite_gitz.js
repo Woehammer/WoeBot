@@ -191,10 +191,10 @@ const GLOOMSPITE_GITZ = [
     ],
   },
 {
-    name: "Snarlfang Cavalry",
+    name: "Snarlpack Cavalry",
     faction: "Gloomspite Gitz",
     aliases: [
-      "snarlfang cavalry",
+      "snarlpack cavalry",
     ],
   },
 {
