@@ -87,13 +87,13 @@ export const PRAYERS_AOS = [
     ],
   },
 {
-    name: "Prayers of the Scorched Sect”,
+    name: "Prayers of the Scorched Sect",
     aliases: [
       "prayers of the scorched sect",
     ],
   },
   {
-    name: "Taar’s Grand Forgehost Prayer Lore”,
+    name: "Taar’s Grand Forgehost Prayer Lore",
     aliases: [
       "taar’s grand forgehost prayer lore",
     ],
