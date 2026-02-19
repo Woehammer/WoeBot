@@ -12,6 +12,7 @@ export const PRAYERS_AOS = [
     name: "Blood Blessings of Khorne",
     aliases: [
       "blood blessings of khorne",
+      "blood blesssings of khorne",
     ],
   },
   {
