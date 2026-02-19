@@ -10,6 +10,9 @@ const LIMITS = {
   EMBED_TOTAL: 6000,
 };
 
+// Discord "blank" that actually renders blank (can't be truly empty)
+const BLANK = "\u200B";
+
 function clampStr(s, max) {
   const str = String(s ?? "");
   if (str.length <= max) return str;
@@ -17,12 +20,17 @@ function clampStr(s, max) {
 }
 
 function safeFieldName(name) {
-  const n = String(name ?? "\u200B") || "\u200B";
+  // Preserve BLANK exactly
+  if (name === BLANK) return BLANK;
+
+  const n = String(name ?? BLANK);
+  if (!n.length) return BLANK;
+
   return clampStr(n, LIMITS.FIELD_NAME);
 }
 
 function safeFieldValue(value) {
-  const v = String(value ?? "\u200B") || "\u200B";
+  const v = String(value ?? BLANK) || BLANK;
   return clampStr(v, LIMITS.FIELD_VALUE);
 }
 
@@ -40,14 +48,14 @@ function estimateEmbedSize(embed) {
 }
 
 // Split lines into <=1024 field values
-export function chunkLinesToFields(lines, { fieldName = "Results" } = {}) {
+export function chunkLinesToFields(lines, { fieldName = BLANK } = {}) {
   const out = [];
   let buf = "";
 
-  const pushBuf = (name) => {
+  const pushBuf = () => {
     if (!buf) return;
     out.push({
-      name: safeFieldName(name),
+      name: safeFieldName(fieldName), // always blank by default
       value: safeFieldValue(buf),
       inline: false,
     });
@@ -63,13 +71,13 @@ export function chunkLinesToFields(lines, { fieldName = "Results" } = {}) {
       continue;
     }
 
-    // flush existing buffer
-    pushBuf(out.length === 0 ? fieldName : "Results (cont.)");
+    // flush existing buffer (blank header)
+    pushBuf();
 
     // single line too big? hard cut
     if (line.length > LIMITS.FIELD_VALUE) {
       out.push({
-        name: safeFieldName(out.length === 0 ? fieldName : "Results (cont.)"),
+        name: safeFieldName(fieldName), // blank header
         value: safeFieldValue(clampStr(line, LIMITS.FIELD_VALUE)),
         inline: false,
       });
@@ -78,7 +86,7 @@ export function chunkLinesToFields(lines, { fieldName = "Results" } = {}) {
     }
   }
 
-  pushBuf(out.length === 0 ? fieldName : "Results (cont.)");
+  pushBuf();
   return out;
 }
 
@@ -95,7 +103,8 @@ export function addChunkedSection(embed, { headerField = null, lines = [] } = {}
   const existing = embed.data?.fields?.length ?? 0;
   const remainingFieldSlots = Math.max(0, LIMITS.FIELDS_PER_EMBED - existing);
 
-  const fields = chunkLinesToFields(lines, { fieldName: "Results" }).slice(
+  // force blank field headers for all chunks
+  const fields = chunkLinesToFields(lines, { fieldName: BLANK }).slice(
     0,
     remainingFieldSlots
   );
