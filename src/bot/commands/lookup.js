@@ -15,7 +15,7 @@ import { addChunkedSection } from "../ui/embedSafe.js"; // adjust if your path d
 // Use your existing shared prose helpers (keeps tone consistent across commands)
 import {
   explainSampleSize,
-  explainEloBaseline,
+  explainEloBaseline, // (kept imported in case you want it later)
   explainEloSkew,
   explainWinRateVsElo,
 } from "../../engine/format/explain.js"; // <-- adjust path if your commands folder differs
@@ -132,11 +132,6 @@ function signLabel(x) {
   return x > 0 ? "positive" : "negative";
 }
 
-function absPP(x) {
-  if (!Number.isFinite(x)) return "—";
-  return `${Math.abs(x * 100).toFixed(1)}pp`;
-}
-
 // --------------------------------------------------
 // DATA ACCESS
 // --------------------------------------------------
@@ -209,7 +204,6 @@ function findFactionName(system, engine, inputName) {
     }
   }
 
-  // fallback: attempt to match dataset faction keys
   const byFaction = engine?.indexes?.get?.()?.byFaction;
   if (byFaction instanceof Map) {
     if (byFaction.has(q)) {
@@ -298,9 +292,9 @@ function findLookupItem(system, type, inputName, factionName = null) {
 }
 
 // ==================================================
-// Phrase regex
-// Allow optional trailing "(...)" or ": ..." or "- ..." after matched phrase.
-// Fixes "(190)" and list decorations.
+// REGEX MATCHING
+// - Generic item line matching (warscrolls/traits/etc)
+// - Lore-aware matching (Prayer/Spell/Manifestation lore lines)
 // ==================================================
 function buildAnyPhraseRegex(item) {
   const phrases = [item?.name, ...(item?.aliases ?? [])]
@@ -321,7 +315,51 @@ function buildAnyPhraseRegex(item) {
   );
 }
 
-function countOccurrencesInText(item, text) {
+// Lore formats we want to catch:
+//  - "Prayer Lore - X"
+//  - "Prayer Lore: X"
+//  - "Prayer Lore – X" (en dash)
+//  - "Prayer Lore — X" (em dash)
+//  - "Spell Lore - X" etc
+//  - "Manifestation Lore - X" etc
+function buildLorePhraseRegex(type, item) {
+  const phrases = [item?.name, ...(item?.aliases ?? [])]
+    .filter(Boolean)
+    .map((x) => String(x).trim())
+    .filter(Boolean);
+
+  if (!phrases.length) return null;
+
+  const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
+  const SEP = "[-:–—=]";
+
+  const prefix =
+    type === "prayerLore"
+      ? `prayer\\s*lore\\s*${SEP}\\s*`
+      : type === "spellLore"
+      ? `spell\\s*lore\\s*${SEP}\\s*`
+      : type === "manifestation"
+      ? `manifestation\\s*lore\\s*${SEP}\\s*`
+      : "";
+
+  if (!prefix) return null;
+
+  // Anchor to field boundaries the same way your refined-list matching works
+  return new RegExp(
+    `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?${prefix}(?:${alts})\\b`,
+    "i"
+  );
+}
+
+function buildRegexForType(type, item) {
+  // Lore types: prefer lore-aware matching (fixes Prayer/Spell/Manifestation autocompletes)
+  if (type === "prayerLore" || type === "spellLore" || type === "manifestation") {
+    return buildLorePhraseRegex(type, item) || buildAnyPhraseRegex(item);
+  }
+  return buildAnyPhraseRegex(item);
+}
+
+function countOccurrencesInText(type, item, text) {
   const phrases = [item?.name, ...(item?.aliases ?? [])]
     .filter(Boolean)
     .map((x) => String(x).trim())
@@ -330,13 +368,31 @@ function countOccurrencesInText(item, text) {
   if (!phrases.length) return 0;
 
   const alts = phrases.map((p) => escapeRegExp(p.toLowerCase())).join("|");
-  const re = new RegExp(
-    `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
-      `(?:\\s*\\([^|\\n\\r]*\\))?` +
-      `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` +
-      `\\s*(?=$|[|\\n\\r])`,
-    "ig"
-  );
+  const SEP = "[-:–—=]";
+
+  // For lore types, count occurrences in lore-lines too (usually 0 or 1, but keep it honest)
+  let re = null;
+  if (type === "prayerLore" || type === "spellLore" || type === "manifestation") {
+    const prefix =
+      type === "prayerLore"
+        ? `prayer\\s*lore\\s*${SEP}\\s*`
+        : type === "spellLore"
+        ? `spell\\s*lore\\s*${SEP}\\s*`
+        : `manifestation\\s*lore\\s*${SEP}\\s*`;
+
+    re = new RegExp(
+      `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?${prefix}(?:${alts})\\b`,
+      "ig"
+    );
+  } else {
+    re = new RegExp(
+      `(^|[|\\n\\r])\\s*(?:[•*\\-]\\s*)?(?:${alts})` +
+        `(?:\\s*\\([^|\\n\\r]*\\))?` +
+        `(?:\\s*[:\\-]\\s*[^|\\n\\r]*)?` +
+        `\\s*(?=$|[|\\n\\r])`,
+      "ig"
+    );
+  }
 
   let n = 0;
   const s = String(text ?? "");
@@ -352,15 +408,17 @@ function sliceRows(engine, factionName, formationName = null) {
     const rows = engine.indexes.factionRowsInFormation(factionName, formationName);
     return { rows: rows ?? [], scopeLabel: formationName };
   }
-  const rows = engine?.indexes?.factionRows ? engine.indexes.factionRows(factionName) : [];
+  const rows = engine?.indexes?.factionRows
+    ? engine.indexes.factionRows(factionName)
+    : [];
   return { rows: rows ?? [], scopeLabel: "Overall" };
 }
 
 // ==================================================
 // Compute included/without stats via regex-text matching
 // ==================================================
-function computeItemStats({ rows, item }) {
-  const re = buildAnyPhraseRegex(item);
+function computeItemStats({ rows, type, item }) {
+  const re = buildRegexForType(type, item);
 
   const includedRows = [];
   const withoutRows = [];
@@ -383,7 +441,7 @@ function computeItemStats({ rows, item }) {
       includedRows.push(r);
       incGames += g;
       incWins += w;
-      incOccTotal += countOccurrencesInText(item, text);
+      incOccTotal += countOccurrencesInText(type, item, text);
     } else {
       withoutRows.push(r);
       wGames += g;
@@ -420,7 +478,11 @@ function computeItemStats({ rows, item }) {
 // ==================================================
 // Co-includes (warscrolls only, from included rows)
 // ==================================================
-function coIncludesWarscrolls(system, includedRows, { excludeName = null, topN = 3 } = {}) {
+function coIncludesWarscrolls(
+  system,
+  includedRows,
+  { excludeName = null, topN = 3 } = {}
+) {
   const ws = system?.lookups?.warscrolls ?? [];
   if (!ws.length) return [];
 
@@ -485,7 +547,11 @@ function buildLookupBlurb({
   const paragraphs = [];
 
   // Guard: no usable sample
-  if (!Number.isFinite(includedGames) || includedGames <= 0 || !Number.isFinite(includedWR)) {
+  if (
+    !Number.isFinite(includedGames) ||
+    includedGames <= 0 ||
+    !Number.isFinite(includedWR)
+  ) {
     paragraphs.push(
       `There isn’t a usable sample for **${itemName}** in this scope yet, so any “signal” here is basically vibes.`
     );
@@ -496,9 +562,7 @@ function buildLookupBlurb({
   const vsBase = Number.isFinite(baselineWR) ? includedWR - baselineWR : null;
   const vsWithout = Number.isFinite(withoutWR) ? includedWR - withoutWR : null;
 
-  // --------------------------------------------------
-  // Paragraph 1: results summary (sign-aware language)
-  // --------------------------------------------------
+  // Paragraph 1: results summary (sign-aware)
   let p1 =
     `Based on **${fmtInt(includedGames)} games** where **${itemName}** is included (${typeLabel}), ` +
     `those lists are winning **${pct(includedWR)}**.`;
@@ -506,11 +570,8 @@ function buildLookupBlurb({
   if (Number.isFinite(vsBase)) {
     const d = signLabel(vsBase);
     p1 += ` That’s **${pp(vsBase)}** versus the faction baseline (**${pct(baselineWR)}**).`;
-    if (d === "negative") {
-      p1 += " (So: below baseline.)";
-    } else if (d === "positive") {
-      p1 += " (So: above baseline.)";
-    }
+    if (d === "negative") p1 += " (So: below baseline.)";
+    else if (d === "positive") p1 += " (So: above baseline.)";
   }
 
   if (Number.isFinite(vsWithout)) {
@@ -519,13 +580,11 @@ function buildLookupBlurb({
 
   paragraphs.push(p1);
 
-  // sample-size context (re-uses your shared wording)
+  // sample-size context (shared wording)
   const sampleTxt = explainSampleSize({ games: includedGames });
   if (sampleTxt) paragraphs.push(sampleTxt);
 
-  // --------------------------------------------------
-  // Paragraph 2: Elo context (baseline + skew, item vs faction)
-  // --------------------------------------------------
+  // Paragraph 2: Elo context
   const haveElo =
     Number.isFinite(incEloAvg) &&
     Number.isFinite(incEloMed) &&
@@ -533,15 +592,12 @@ function buildLookupBlurb({
     Number.isFinite(baseEloMed);
 
   let avgDelta = null;
-  let medDelta = null;
 
   if (haveElo) {
     avgDelta = incEloAvg - baseEloAvg;
-    medDelta = incEloMed - baseEloMed;
-
+    const medDelta = incEloMed - baseEloMed;
     const incGap = incEloAvg - incEloMed;
 
-    // who is taking it? (item pilots vs faction pilots)
     let pilotBand = "about the same as";
     if (avgDelta >= 40) pilotBand = "well above";
     else if (avgDelta >= 20) pilotBand = "above";
@@ -556,13 +612,17 @@ function buildLookupBlurb({
       `vs baseline **${fmt(baseEloAvg, 1)} / ${fmt(baseEloMed, 1)}** ` +
       `(≈${fmtInt(avgDelta)} / ${fmtInt(medDelta)} Elo).`;
 
-    // add skew explanation (your shared helper expects avg/median)
-    const skewTxt = explainEloSkew({ average: incEloAvg, median: incEloMed });
-    if (skewTxt) p2 += ` ${skewTxt}`;
+    // IMPORTANT: soften “well above median” for tiny gaps (10–14 is not dramatic)
+    if (Number.isFinite(incGap) && Math.abs(incGap) < 15) {
+      p2 +=
+        " The average and median are **pretty close**, so this doesn’t look heavily skewed by a tiny elite subset.";
+    } else {
+      const skewTxt = explainEloSkew({ average: incEloAvg, median: incEloMed });
+      if (skewTxt) p2 += ` ${skewTxt}`;
+    }
 
     paragraphs.push(p2);
 
-    // Optional deeper: how the WR + Elo story reads (shared helper)
     const wrEloTxt = explainWinRateVsElo({
       winRate: includedWR,
       avgElo: incEloAvg,
@@ -572,60 +632,49 @@ function buildLookupBlurb({
     if (wrEloTxt) paragraphs.push(wrEloTxt);
   }
 
-  // --------------------------------------------------
-  // Paragraph 3: diagnosis (SIGN-AWARE, fixes your bug)
-  // --------------------------------------------------
+  // Paragraph 3: diagnosis (SIGN-AWARE, fixes the uplift/downtick contradiction)
   const bigWR = (x) => Number.isFinite(x) && Math.abs(x) >= 0.03; // 3pp+
   const bigElo = (x) => Number.isFinite(x) && Math.abs(x) >= 20;
 
-  let diagnosis = "";
-
-  // If we don't have withoutWR, fall back to vs baseline
   const primaryDelta =
     Number.isFinite(vsWithout) ? vsWithout : Number.isFinite(vsBase) ? vsBase : null;
+
+  let diagnosis = "";
 
   if (includedGames < 30) {
     diagnosis = "Small sample — treat this as a hint, not a verdict.";
   } else if (!Number.isFinite(primaryDelta) || !bigWR(primaryDelta)) {
-    diagnosis = "Net effect looks modest — more “nice in a plan” than “this wins or loses games by itself”.";
+    diagnosis =
+      "Net effect looks modest — more “nice in a plan” than “this wins or loses games by itself”.";
   } else {
-    const dir = primaryDelta > 0 ? "up" : "down";
+    const dirUp = primaryDelta > 0;
 
-    // With Elo context
     if (haveElo && bigElo(avgDelta)) {
-      if (dir === "up" && avgDelta > 0) {
+      if (dirUp && avgDelta > 0) {
         diagnosis =
           "Results are up, but pilots are also stronger — this could be **good players choosing good tools**, not pure item power.";
-      } else if (dir === "down" && avgDelta < 0) {
+      } else if (!dirUp && avgDelta < 0) {
         diagnosis =
           "Results are down, and pilots are weaker — this could be more about **who is taking it** than the item being a trap.";
-      } else if (dir === "up" && avgDelta <= 0) {
+      } else if (dirUp && avgDelta <= 0) {
         diagnosis =
           "The uplift shows up without a big pilot-skill advantage, which is a stronger hint the choice is genuinely helping performance.";
-      } else if (dir === "down" && avgDelta >= 0) {
+      } else if (!dirUp && avgDelta >= 0) {
         diagnosis =
           "The drop shows up even without a pilot-skill disadvantage — that’s a stronger hint this choice may be costing wins (or signals a suboptimal plan).";
       } else {
         diagnosis =
-          "There’s a clear shift, but the pilot profile is mixed — treat this as *directional*, and sanity-check with matchups/formation context.";
+          "There’s a clear shift, but the pilot profile is mixed — treat this as directional and sanity-check matchups/formation context.";
       }
     } else {
-      // No Elo context: still sign-aware
-      if (dir === "up") {
-        diagnosis =
-          "There’s a meaningful uplift versus comparable lists — likely a real performance driver (or a strong signal of a good sub-package).";
-      } else {
-        diagnosis =
-          "There’s a meaningful drop versus comparable lists — could be a trap pick, or it’s chosen in harder games / worse matchups.";
-      }
+      diagnosis = dirUp
+        ? "There’s a meaningful uplift versus comparable lists — likely a real performance driver (or a strong signal of a good sub-package)."
+        : "There’s a meaningful drop versus comparable lists — could be a trap pick, or it’s chosen into harder games / worse matchups.";
     }
   }
 
   if (diagnosis) paragraphs.push(diagnosis);
 
-  // --------------------------------------------------
-  // Confidence (keep your existing scale)
-  // --------------------------------------------------
   paragraphs.push(`**Confidence:** ${confidenceFromGames(includedGames)}`);
 
   return paragraphs.join("\n\n");
@@ -678,7 +727,7 @@ function computeUsedSetForType({ system, engine, factionName, type }) {
   const compiled = arr
     .filter(Boolean)
     .map((it) => {
-      const re = buildAnyPhraseRegex(it);
+      const re = buildRegexForType(type, it);
       if (!re) return null;
       return { key: norm(it.name), re };
     })
@@ -718,7 +767,9 @@ export async function autocomplete(interaction, ctx) {
   if (focused.name === "formation") {
     const { engine, system } = ctx;
     const factionInput = (interaction.options.getString("faction") ?? "").trim();
-    const factionName = factionInput ? findFactionName(system, engine, factionInput) : null;
+    const factionName = factionInput
+      ? findFactionName(system, engine, factionInput)
+      : null;
 
     let formations = [];
     if (factionName && engine?.indexes?.formationsForFaction) {
@@ -743,7 +794,9 @@ export async function autocomplete(interaction, ctx) {
 
     const type = interaction.options.getString("type", true);
     const factionInput = (interaction.options.getString("faction") ?? "").trim();
-    const factionName = factionInput ? findFactionName(system, engine, factionInput) : null;
+    const factionName = factionInput
+      ? findFactionName(system, engine, factionInput)
+      : null;
 
     if (!factionName) {
       await interaction.respond([]);
@@ -799,7 +852,8 @@ export async function run(interaction, { system, engine }) {
   const inputFaction = interaction.options.getString("faction", true).trim();
   const type = interaction.options.getString("type", true);
   const inputName = interaction.options.getString("name", true).trim();
-  const inputFormation = interaction.options.getString("formation", false)?.trim() || null;
+  const inputFormation =
+    interaction.options.getString("formation", false)?.trim() || null;
   const coN = interaction.options.getInteger("co", false) ?? 3;
 
   const factionName = findFactionName(system, engine, inputFaction);
@@ -869,7 +923,9 @@ export async function run(interaction, { system, engine }) {
   if (type === "warscroll" && engine?.indexes?.warscrollSummaryInFaction) {
     const sum = engine.indexes.warscrollSummaryInFaction(item.name, factionName, coN);
 
-    const wsRowsAll = engine.indexes.warscrollRows ? engine.indexes.warscrollRows(item.name) : [];
+    const wsRowsAll = engine.indexes.warscrollRows
+      ? engine.indexes.warscrollRows(item.name)
+      : [];
     const wsRowsFaction = (wsRowsAll ?? []).filter(
       (r) => norm(r.Faction ?? r.faction) === norm(factionName)
     );
@@ -896,7 +952,7 @@ export async function run(interaction, { system, engine }) {
     reinforcedPct = sum?.included?.reinforcedPct ?? null;
     engineCo = sum?.included?.topCoIncludes ?? null;
   } else {
-    stats = computeItemStats({ rows, item });
+    stats = computeItemStats({ rows, type, item }); // <-- type-aware now
   }
 
   const includedWR = stats?.included?.winRate ?? null;
@@ -960,11 +1016,10 @@ export async function run(interaction, { system, engine }) {
     }
   })();
 
-  const impactVsFaction =
-    Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
+  const impactVsFaction = Number.isFinite(includedWR) ? includedWR - factionWinRate : null;
 
   // --------------------------------------------------
-  // ANALYSIS BLURB (deeper; fixes uplift/downtick prose)
+  // ANALYSIS BLURB
   // --------------------------------------------------
   const meaning = buildLookupBlurb({
     typeLabel,
@@ -990,13 +1045,17 @@ export async function run(interaction, { system, engine }) {
 
   lines.push(
     `**Included**`,
-    `Used in: **${pct(usedPct)}** (*${fmtInt(stats?.included?.rows ?? stats?.includedRows?.length ?? 0)}/${fmtInt(stats?.totalRows ?? rows.length)} lists*)`,
+    `Used in: **${pct(usedPct)}** (*${fmtInt(
+      stats?.included?.rows ?? stats?.includedRows?.length ?? 0
+    )}/${fmtInt(stats?.totalRows ?? rows.length)} lists*)`,
     `Games: **${fmtInt(stats?.included?.games ?? 0)}**`,
     `Win rate: **${pct(includedWR)}**`,
     `Avg occurrences (per list): **${
       Number.isFinite(stats?.included?.avgOcc) ? fmt(stats.included.avgOcc, 2) : "—"
     }**`,
-    ...(Number.isFinite(reinforcedPct) ? [`Reinforced in: **${pct(reinforcedPct)}** of lists`] : []),
+    ...(Number.isFinite(reinforcedPct)
+      ? [`Reinforced in: **${pct(reinforcedPct)}** of lists`]
+      : []),
     HR,
     `**Faction baseline (same scope)**`,
     `Games: **${fmtInt(baselineGames)}**`,
