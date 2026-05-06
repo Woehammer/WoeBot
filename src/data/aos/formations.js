@@ -108,32 +108,31 @@ export const FORMATIONS_AOS = [
     ],
   },
 {
-    name: "Cauldron Guard",
+    name: "Cold-Hearted Murderers",
     faction: "Daughters of Khaine",
     aliases: [
-      "cauldron guard",
+      "cold-hearted murderers",
     ],
   },
 {
-    name: "Scáthcoven",
+    name: "Coven of Blood",
     faction: "Daughters of Khaine",
     aliases: [
-      "scáthcoven",
-      "scathcoven",
+      "coven of blood",
     ],
   },
 {
-    name: "Shadow Patrol",
+    name: "Fervent Ritualists",
     faction: "Daughters of Khaine",
     aliases: [
-      "shadow patrol",
+      "fervent ritualists",
     ],
   },
 {
-    name: "Slaughter Troupe",
+    name: "Frenzied Devotees",
     faction: "Daughters of Khaine",
     aliases: [
-      "slaughter troupe",
+      "frenzied devotees",
     ],
   },
 {
@@ -159,6 +158,34 @@ export const FORMATIONS_AOS = [
     ],
   },
 {
+    name: "Denizens of the Silver Towers",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "denizens of the silver towers",
+    ],
+  },
+{
+    name: "Fated Blades",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "fated blades",
+    ],
+  },
+{
+    name: "Malevolent Schemers",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "malevolent schemers",
+    ],
+  },
+{
+    name: "Mutants and Mad Things",
+    faction: "Disciples of Tzeentch",
+    aliases: [
+      "mutants and mad things",
+    ],
+  },
+{
     name: "Masters of Fate",
     faction: "Disciples of Tzeentch",
     aliases: [
@@ -170,34 +197,6 @@ export const FORMATIONS_AOS = [
     faction: "Disciples of Tzeentch",
     aliases: [
       "spellweaver coven",
-    ],
-  },
-{
-    name: "Arcanite Cabal",
-    faction: "Disciples of Tzeentch",
-    aliases: [
-      "arcanite cabal",
-    ],
-  },
-{
-    name: "Change Host",
-    faction: "Disciples of Tzeentch",
-    aliases: [
-      "change host",
-    ],
-  },
-{
-    name: "Tzaangor Coven",
-    faction: "Disciples of Tzeentch",
-    aliases: [
-      "tzaangor coven",
-    ],
-  },
-{
-    name: "Wyrdflame Host",
-    faction: "Disciples of Tzeentch",
-    aliases: [
-      "wyrdflame host",
     ],
   },
 {
@@ -1195,17 +1194,17 @@ export const FORMATIONS_AOS = [
     ],
   },
 {	
-    name: "Forest Folk",
+    name: "Followers of Kurnoth",
     faction: "Sylvaneth",
     aliases: [
-      "forest folk",
+      "followers of kurnoth",
     ],
   },
   {
-    name: "Free Spirits",
+    name: "Glade Defenders",
     faction: "Sylvaneth",
     aliases: [
-      "free spirits",
+      "glade defenders",
     ],
   },
   {
