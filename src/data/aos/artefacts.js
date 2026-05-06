@@ -79,31 +79,38 @@ export const ARTEFACTS_AOS = [
     ],
   },
 {
+    name: "Crimson Draught",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "crimson draught",
+    ],
+  },
+{
+    name: "Darkling Elixir",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "darkling elixir",
+    ],
+  },
+{
+    name: "Witchbrew",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "witchbrew",
+    ],
+  },
+{
+    name: "Death Razor",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "death razor",
+    ],
+  },
+  {
     name: "Blade of Prophetic Doom",
     faction: "Daughters of Khaine",
     aliases: [
       "blade of prophetic doom",
-    ],
-  },
-{
-    name: "Crown of Woe",
-    faction: "Daughters of Khaine",
-    aliases: [
-      "crown of woe",
-    ],
-  },
-{
-    name: "Khainite Pendant",
-    faction: "Daughters of Khaine",
-    aliases: [
-      "khainite pendant",
-    ],
-  },
-{
-    name: "Sevenfold Shadow",
-    faction: "Daughters of Khaine",
-    aliases: [
-      "sevenfold shadow",
     ],
   },
 {
@@ -1078,17 +1085,17 @@ export const ARTEFACTS_AOS = [
     ],
   },
  {
-    name: "Crown of Fell Bowers",
+    name: "Amberglade Nectar",
     faction: "Sylvaneth",
     aliases: [
-      "crown of fell bowers",
+      "amberglade nectar",
     ],
   },
   {
-    name: "Greenwood Gladius",
+    name: "Wychwood Glaive",
     faction: "Sylvaneth",
     aliases: [
-      "greenwood gladius",
+      "wychwood glaive",
     ],
   },
   {
@@ -1124,6 +1131,20 @@ export const ARTEFACTS_AOS = [
     faction: "Sylvaneth",
     aliases: [
       "heartwood hunting horn",
+    ],
+  },
+  {
+    name: "Rejuvenating Companions",
+    faction: "Sylvaneth",
+    aliases: [
+      "rejuvenating companions",
+    ],
+  },
+  {
+    name: "Clarionbuds",
+    faction: "Sylvaneth",
+    aliases: [
+      "clarionbuds",
     ],
   },
 ];
