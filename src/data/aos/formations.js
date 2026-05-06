@@ -149,6 +149,13 @@ export const FORMATIONS_AOS = [
       "coven zealots",
     ],
   },
+  {
+    name: "Champions of the Arena",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "champions of the arena",
+    ],
+  },
 {
     name: "The Croneseer's Pariahs",
     faction: "Daughters of Khaine",
@@ -1233,6 +1240,20 @@ export const FORMATIONS_AOS = [
     faction: "Sylvaneth",
     aliases: [
       "wargrove of the burgeoning",
+    ],
+  },
+  {
+    name: "Lords of the Clan",
+    faction: "Sylvaneth",
+    aliases: [
+      "lords of the clan",
+    ],
+  },
+  {
+    name: "Soulpod Guardians",
+    faction: "Sylvaneth",
+    aliases: [
+      "soulpod guardians",
     ],
   },
   {
