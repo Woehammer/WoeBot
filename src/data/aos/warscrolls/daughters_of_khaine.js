@@ -127,40 +127,11 @@ const DAUGHTERS_OF_KHAINE = [
       "khinerai lifetakers",
     ],
   },
-{
-    name: "Sisters of Slaughter with Bladed Bucklers",
-    faction: "Daughters of Khaine",
-    aliases: [
-      "sisters of slaughter with bladed bucklers",
-    ],
-  },
-{
-    name: "Sisters of Slaughter with Sacrificial Knives",
-    faction: "Daughters of Khaine",
-    aliases: [
-      "sisters of slaughter with sacrifical knives",
-    ],
-  },
           {
     name: "Sisters of Slaughter",
     faction: "Daughters of Khaine",
     aliases: [
       "sisters of slaughter",
-    ],
-  },
-{
-    name: "Witch Aelves with Bladed Bucklers",
-    faction: "Daughters of Khaine",
-    aliases: [
-      "witch aelves with bladed bucklers",
-    ],
-  },
-{
-    name: "Witch Aelves with Paired Sciansá",
-    faction: "Daughters of Khaine",
-    aliases: [
-      "witch aelves with paired sciansá",
-      "witch aelves with paired sciansa",
     ],
   },
           {
@@ -175,13 +146,6 @@ const DAUGHTERS_OF_KHAINE = [
     faction: "Daughters of Khaine",
     aliases: [
       "doomfire warlocks",
-    ],
-  },
-{
-    name: "Avatar of Khaine",
-    faction: "Daughters of Khaine",
-    aliases: [
-      "avatar of khaine",
     ],
   },
           {
