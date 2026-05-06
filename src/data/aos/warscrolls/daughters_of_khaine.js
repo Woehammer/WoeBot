@@ -86,6 +86,13 @@ const DAUGHTERS_OF_KHAINE = [
     ],
   },
 {
+    name: "Blood Hags",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "blood hags",
+    ],
+  },
+{
     name: "Blood Sisters",
     faction: "Daughters of Khaine",
     aliases: [
@@ -131,7 +138,14 @@ const DAUGHTERS_OF_KHAINE = [
     name: "Sisters of Slaughter with Sacrificial Knives",
     faction: "Daughters of Khaine",
     aliases: [
-      "sisters of slaughter with aacrificial knives",
+      "sisters of slaughter with sacrifical knives",
+    ],
+  },
+          {
+    name: "Sisters of Slaughter",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "sisters of slaughter",
     ],
   },
 {
@@ -149,6 +163,13 @@ const DAUGHTERS_OF_KHAINE = [
       "witch aelves with paired sciansa",
     ],
   },
+          {
+    name: "Witch Aelves",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "witch aelves",
+    ],
+  },
 {
     name: "Doomfire Warlocks",
     faction: "Daughters of Khaine",
@@ -161,6 +182,13 @@ const DAUGHTERS_OF_KHAINE = [
     faction: "Daughters of Khaine",
     aliases: [
       "avatar of khaine",
+    ],
+  },
+          {
+    name: "Shrine of Dark Tribute",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "shrine of dark tribute",
     ],
   },
 {
