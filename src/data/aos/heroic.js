@@ -86,24 +86,31 @@ export const HEROIC_TRAITS_AOS = [
     ],
   },
 {
-    name: "Bathed in Blood",
+    name: "Shadow-Blooded",
     faction: "Daughters of Khaine",
     aliases: [
-      "bathed in blood",
+      "shadow-blooded",
     ],
   },
 {
-    name: "Master of Poisons",
+    name: "Murderous Duelist",
     faction: "Daughters of Khaine",
     aliases: [
-      "master of poisons",
+      "murderous duelist",
     ],
   },
 {
-    name: "Zealous Orator",
+    name: "Hand of Khaine",
     faction: "Daughters of Khaine",
     aliases: [
-      "zealous orator",
+      "hand of khaine",
+    ],
+  },
+  {
+    name: "Hero of the Killing Games",
+    faction: "Daughters of Khaine",
+    aliases: [
+      "hero of the killing games",
     ],
   },
 {
@@ -1229,10 +1236,38 @@ export const HEROIC_TRAITS_AOS = [
     ],
   },
   {
+    name: "Spirit of the Dark Forest",
+    faction: "Sylvaneth",
+    aliases: [
+      "spirit of the dark forest",
+    ],
+  },
+  {
     name: "Spellsinger",
     faction: "Sylvaneth",
     aliases: [
       "spellsinger",
+    ],
+  },
+  {
+    name: "Realmroot Guide",
+    faction: "Sylvaneth",
+    aliases: [
+      "realmroot guide",
+    ],
+  },
+  {
+    name: "Ancient Might",
+    faction: "Sylvaneth",
+    aliases: [
+      "ancient might",
+    ],
+  },
+   {
+    name: "Devoted Protector",
+    faction: "Sylvaneth",
+    aliases: [
+      "devoted protector",
     ],
   },
   {
