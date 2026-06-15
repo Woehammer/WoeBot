@@ -85,6 +85,34 @@ export const HEROIC_TRAITS_AOS = [
       "draw steel!",
     ],
   },
+  {
+    name: "Stentorian General",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "stentorian general",
+    ],
+  },
+  {
+    name: "Beloved Leader",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "beloved leader",
+    ],
+  },
+  {
+    name: "Grizzled Drillmaster",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "grizzled drillmaster",
+    ],
+  },
+  {
+    name: "Respected Commander",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "respected commander",
+    ],
+  },
 {
     name: "Shadow-Blooded",
     faction: "Daughters of Khaine",
