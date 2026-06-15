@@ -107,6 +107,48 @@ export const FORMATIONS_AOS = [
       "veteran cannoneers",
     ],
   },
+  {
+    name: "Stalwart Guardians",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "stalwart guardians",
+    ],
+  },
+  {
+    name: "Collegiate Exemplars",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "collegiate exemplars",
+    ],
+  },
+  {
+    name: "Zealous Hordes",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "zelaous hordes",
+    ],
+  },
+  {
+    name: "Swift Reinforcements",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "swift reinforcements",
+    ],
+  },
+  {
+    name: "Thrall Warhost",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "thrall warhost",
+    ],
+  },
+  {
+    name: "Grudgebound War Throng",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "grudgebound war throng",
+    ],
+  },
 {
     name: "Cold-Hearted Murderers",
     faction: "Daughters of Khaine",
