@@ -113,6 +113,69 @@ export const HEROIC_TRAITS_AOS = [
       "respected commander",
     ],
   },
+  {
+    name: "Castellan-Captain Vyan Philsin",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "castellan-captain vyan philsin",
+    ],
+  },
+  {
+    name: "Commodore De Gracon",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "commodore de gracon",
+    ],
+  },
+  {
+    name: "Castellan-Captain Regan Vandercloud",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "castellan-captain regan candercloud",
+    ],
+  },
+  {
+    name: "Engineer Kirsta Loudren",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "engineer kirsta loudren",
+    ],
+  },
+  {
+    name: "Engineer Gurren Ashbrow",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "engineer gurren ashbrow",
+    ],
+  },
+  {
+    name: "Engineer Bartel Holst",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "engineer bartel holst",
+    ],
+  },
+  {
+    name: "Battle-Priest Solantra Whyl",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "battle-priest solantra whyl",
+    ],
+  },
+  {
+    name: "Broadmoore and Louse",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "broadmore and louse",
+    ],
+  },
+  {
+    name: "Master Sapper Gavelock Fiske",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "master sapper gavelock fiske",
+    ],
+  },
 {
     name: "Shadow-Blooded",
     faction: "Daughters of Khaine",
