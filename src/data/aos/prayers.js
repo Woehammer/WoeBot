@@ -33,6 +33,12 @@ export const PRAYERS_AOS = [
       "scriptures of sigmar",
     ],
   },
+  {
+    name: "The Chant of Iron",
+    aliases: [
+      "the chant of iron",
+    ],
+  },
 {
     name: "Prayers of the Khainite Cult",
     aliases: [
