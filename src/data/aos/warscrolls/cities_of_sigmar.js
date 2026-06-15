@@ -29,6 +29,20 @@ const CITIES_OF_SIGMAR = [
       "assassin",
     ],
   },
+          {
+    name: "Amethyst Knellmage",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "amethyst knellmage",
+    ],
+  },
+          {
+    name: "Aqshian Pyrocaster",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "aqshian pyrocaster",
+    ],
+  },
   {
     name: "Battlemage on Celestial Hurricanum",
     faction: "Cities of Sigmar",
@@ -57,6 +71,41 @@ const CITIES_OF_SIGMAR = [
       "battlemage on griffon",
     ],
   },
+          {
+    name: "Bren Tylis, the Renegade Saint",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "bren tylis, the renegade saint",
+    ],
+  },
+          {
+    name: "Drasher Vorn, the Rampaging Beast",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "drasher vorn, the rampaging beast",
+    ],
+  },
+          {
+    name: "Drolf Ironhead, the Grizzled Explorer",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "drolf ironhead, the grizzled explorer",
+    ],
+  },
+          {
+    name: "Inara Sion, the Cleansing Blade",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "inara sion, the cleansing blade",
+    ],
+  },
+          {
+    name: "Jacobus Vyne, the Jade Wizard",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "jacobus wyne, the jade wizard",
+    ],
+  },
   {
     name: "Callis and Toll",
     faction: "Cities of Sigmar",
@@ -71,6 +120,41 @@ const CITIES_OF_SIGMAR = [
       "cogsmith",
     ],
   },
+          {
+    name: "Cannonade Cogfort",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "cannonade cogfort",
+    ],
+  },
+           {
+    name: "Conqueror Cogfort",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "conqueror cogfort",
+    ],
+  },
+           {
+    name: "Immolator Cogfort",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "immolator cogfort",
+    ],
+  },
+           {
+    name: "Linebreaker Cogfort",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "linebreaker cogfort",
+    ],
+  },
+           {
+    name: "Gate Gargants",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "gate gargants",
+    ],
+  },
   {
     name: "Doralia ven Denst",
     faction: "Cities of Sigmar",
@@ -83,6 +167,13 @@ const CITIES_OF_SIGMAR = [
     faction: "Cities of Sigmar",
     aliases: [
       "dreadlord on black dragon",
+    ],
+  },
+          {
+    name: "Erasmus Zonn, the Enlightened One",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "erasmus zonn, the enlightened one",
     ],
   },
 {
@@ -118,6 +209,20 @@ const CITIES_OF_SIGMAR = [
     faction: "Cities of Sigmar",
     aliases: [
       "galen ven denst",
+    ],
+  },
+          {
+    name: "Jorvan Kreel, Heir of the Kraken",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "jorvan kreel, heir of the kraken",
+    ],
+  },
+          {
+    name: "Mallus Forgepriest",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "mallus forgepriest",
     ],
   },
 {
@@ -239,6 +344,20 @@ const CITIES_OF_SIGMAR = [
     faction: "Cities of Sigmar",
     aliases: [
       "freeguild steelhelms",
+    ],
+  },
+           {
+    name: "Freeguild Gallants",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild gallants",
+    ],
+  },
+           {
+    name: "Freeguild Grenadiers",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "freeguild grenadiers",
     ],
   },
 {
@@ -386,6 +505,13 @@ const CITIES_OF_SIGMAR = [
     faction: "Cities of Sigmar",
     aliases: [
       "scourge of ghyran freeguild cavaliers",
+    ],
+  },
+           {
+    name: "Dawners Triumph",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "dawners triumph",
     ],
   },
 ];
