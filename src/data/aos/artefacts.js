@@ -78,6 +78,34 @@ export const ARTEFACTS_AOS = [
       "sacred tome",
     ],
   },
+  {
+    name: "The Last Blade of Embergard",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "the last blade of embergard",
+    ],
+  },
+  {
+    name: "Bones of Saint Ignifus",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "bones of saint ignifus",
+    ],
+  },
+  {
+    name: "The Sphere Celestial",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "the sphere celestial",
+    ],
+  },
+  {
+    name: "Signet of the City",
+    faction: "Cities of Sigmar",
+    aliases: [
+      "signet of the city",
+    ],
+  },
 {
     name: "Crimson Draught",
     faction: "Daughters of Khaine",
