@@ -11,6 +11,7 @@
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { RATE_KEY, periodLabel, rateBand, signedPP, statsUrl } from "../ui/brand.js";
 
 // ==================================================
 // COMMAND DEFINITION
@@ -289,59 +290,37 @@ export async function run(interaction, { system, engine }) {
   // BUILD EMBED (TEXT ONLY)
   // --------------------------------------------------
   const embed = new EmbedBuilder()
+    .setColor(rateBand(includedWR).color)
     .setTitle(warscroll.name)
-    .setDescription("Stats from Woehammer GT Database") // <-- the “missing description”
+    .setURL(statsUrl("warscrolls.html", { warscroll: warscroll.name, faction: factionName }))
+    .setDescription(`${factionName} · ${periodLabel(engine)}\n${RATE_KEY}`)
     .setFooter({
-      text: "Woehammer GT Database • Co-includes weighted by lists • Avg occurrences per list",
+      text: "Current battlescroll · association is not proof of causation · Woehammer Stats",
     });
 
   // Overview block (with separators)
   embed.addFields({
-    name: "Overview",
+    name: "Performance",
     value:
-      `Faction: **${factionName}**\n\n` +
-      `**Included**\n` +
-      `Games: **${includedGames}**\n` +
-      `Win rate: **${pct(includedWR)}**\n` +
-      `Avg occurrences (per list): **${fmt(avgOcc, 2)}**\n` +
-      `Reinforced in: **${pct(reinforcedPct)}** of lists\n` +
-      `${HR}\n\n` +
-      `**Faction baseline**\n` +
-      `Games: **${factionGames}**\n` +
-      `Win rate: **${pct(factionWR)}**\n` +
-      `Impact (vs faction): **${pp(vsFaction)}**\n` +
-      `${HR}\n\n` +
-      `**Without (same faction)**\n` +
-      `Games: **${withoutGames}**\n` +
-      `Win rate: **${pct(withoutWR)}**\n` +
-      `${HR}\n\n` +
-      `**Commonly included with (Top 3)**\n` +
-      `${coText}\n` +
-      `${HR}`,
+      `${rateBand(includedWR).emoji} With warscroll: **${pct(includedWR)}** · ${includedGames} games\n` +
+      `Without warscroll: **${pct(withoutWR)}** · ${withoutGames} games\n` +
+      `Faction baseline: **${pct(factionWR)}** · ${factionGames} games\n` +
+      `Impact versus faction: **${signedPP(vsFaction)}**`,
     inline: false,
   });
 
-  // Elo block
   embed.addFields({
-    name: "Player Elo Context",
+    name: "Usage",
     value:
-      `Players using this warscroll (Closing Elo)\n` +
-      `Average: **${Number.isFinite(wsElo.average) ? fmt(wsElo.average, 1) : "—"}**\n` +
-      `Median: **${Number.isFinite(wsElo.median) ? fmt(wsElo.median, 1) : "—"}**\n` +
-      `Gap: **${Number.isFinite(wsElo.gap) ? fmt(wsElo.gap, 1) : "—"}**\n\n` +
-      `Faction Elo baseline (Closing Elo)\n` +
-      `Average: **${
-        Number.isFinite(factionElo.average) ? fmt(factionElo.average, 1) : "—"
-      }**\n` +
-      `Median: **${
-        Number.isFinite(factionElo.median) ? fmt(factionElo.median, 1) : "—"
-      }**\n` +
-      `${HR}`,
+      `Average copies per list: **${fmt(avgOcc, 2)}**\n` +
+      `Reinforced in: **${pct(reinforcedPct)}** of lists`,
     inline: false,
   });
+
+  embed.addFields({ name: "Frequently paired with", value: coText, inline: false });
 
   // What this means
-  const meaningParas = [p1, p2, p3, `**Confidence:** ${confidence}`].filter(Boolean);
+  const meaningParas = [p1, p2, `**Confidence:** ${confidence}`].filter(Boolean);
 
   embed.addFields({
     name: "What this means",
