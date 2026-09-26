@@ -221,6 +221,16 @@ export async function run(interaction, { system, engine }) {
   const factionGames = faction?.games ?? 0;
   const factionWR = faction?.winRate ?? 0;
 
+    // A lookup entry does not guarantee that the current dataset contains the
+  // unit. Never turn missing observations into a misleading 0% result.
+  if (!includedGames) {
+    await interaction.reply({
+      content: `I found **${warscroll.name}**, but it has no recorded lists in the ${periodLabel(engine)} data.`,
+      ephemeral: true,
+    });
+    return;
+  }
+
   // --------------------------------------------------
   // CO-INCLUDES
   // --------------------------------------------------
