@@ -46,8 +46,9 @@ function absoluteUrl(baseUrl, path) {
   return new URL(path, baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`).toString();
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url, { method: "GET", cache: "no-store" });
+async function fetchJson(url, token) {
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const response = await fetch(url, { method: "GET", cache: "no-store", headers });
   if (!response.ok) {
     throw new Error(`[dataset] JSON fetch failed: ${response.status} ${response.statusText} (${url})`);
   }
@@ -169,16 +170,16 @@ export function websiteGamesToLegacyRows(games, lists = [], battlescrollLabel = 
   );
 }
 
-async function fetchWebsiteGames(baseUrl, gamesPath) {
+async function fetchWebsiteGames(baseUrl, gamesPath, token) {
   const manifestUrl = absoluteUrl(baseUrl, gamesPath);
-  const payload = await fetchJson(manifestUrl);
+  const payload = await fetchJson(manifestUrl, token);
   if (Array.isArray(payload)) return { games: payload, period: "" };
 
   const chunks = Array.isArray(payload?.chunks) ? payload.chunks : [];
   if (!chunks.length) throw new Error("[dataset] Website games manifest contains no chunks");
 
   const chunkRows = await Promise.all(
-    chunks.map((chunk) => fetchJson(new URL(chunk, manifestUrl).toString()))
+    chunks.map((chunk) => fetchJson(new URL(chunk, manifestUrl).toString(), token))
   );
   return {
     games: chunkRows.flat(),
@@ -186,13 +187,13 @@ async function fetchWebsiteGames(baseUrl, gamesPath) {
   };
 }
 
-async function fetchWebsiteRows({ websiteBaseUrl, gamesPath, listsPath, battlescrollLabel }) {
-  const { games, period } = await fetchWebsiteGames(websiteBaseUrl, gamesPath);
+async function fetchWebsiteRows({ websiteBaseUrl, websiteToken, gamesPath, listsPath, battlescrollLabel }) {
+  const { games, period } = await fetchWebsiteGames(websiteBaseUrl, gamesPath, websiteToken);
   let lists = [];
 
   if (listsPath) {
     try {
-      const payload = await fetchJson(absoluteUrl(websiteBaseUrl, listsPath));
+      const payload = await fetchJson(absoluteUrl(websiteBaseUrl, listsPath), websiteToken);
       lists = Array.isArray(payload) ? payload : [];
     } catch (error) {
       console.warn(`[dataset] Lists unavailable; warscroll commands will be limited: ${error.message}`);
@@ -210,6 +211,7 @@ async function fetchWebsiteRows({ websiteBaseUrl, gamesPath, listsPath, battlesc
 function createService({
   source = "website",
   websiteBaseUrl = "https://raw.githubusercontent.com/Woehammer/woehammer-stats/main/public",
+  websiteToken,
   gamesPath = "aos/games.json",
   listsPath = "aos/lists/july-2026.json",
   battlescrollLabel = "",
@@ -251,6 +253,7 @@ function createService({
       try {
         const website = await fetchWebsiteRows({
           websiteBaseUrl,
+          websiteToken,
           gamesPath,
           listsPath,
           battlescrollLabel,
