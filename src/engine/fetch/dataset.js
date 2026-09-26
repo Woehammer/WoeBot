@@ -209,9 +209,9 @@ async function fetchWebsiteRows({ websiteBaseUrl, gamesPath, listsPath, battlesc
 
 function createService({
   source = "website",
-  websiteBaseUrl = "https://woehammer-stats.pages.dev",
-  gamesPath = "/aos/games.json",
-  listsPath = "/aos/lists/july-2026.json",
+  websiteBaseUrl = "https://raw.githubusercontent.com/Woehammer/woehammer-stats/main/public",
+  gamesPath = "aos/games.json",
+  listsPath = "aos/lists/july-2026.json",
   battlescrollLabel = "",
   csvUrl,
   ttlSeconds = DEFAULT_TTL_SECONDS,
