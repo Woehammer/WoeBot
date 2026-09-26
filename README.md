@@ -8,7 +8,7 @@ WoeBot now uses the same current-battlescroll dataset as the Woehammer Stats web
 
 - match data: `/aos/games.json` and its chunk files
 - army lists: `/aos/lists/july-2026.json`
-- default website: `https://woehammer-stats.pages.dev`
+- default website: `https://raw.githubusercontent.com/Woehammer/woehammer-stats/main/public`
 
 The adapter groups the website's match rows into tournament runs so the existing faction, player, event, battleplan and warscroll commands continue to use one canonical dataset.
 
@@ -22,8 +22,8 @@ DISCORD_TOKEN=...
 
 ```env
 AOS_DATA_SOURCE=website
-AOS_STATS_BASE_URL=https://woehammer-stats.pages.dev
-AOS_CURRENT_GAMES_PATH=/aos/games.json
+AOS_STATS_BASE_URL=https://raw.githubusercontent.com/Woehammer/woehammer-stats/main/public
+AOS_CURRENT_GAMES_PATH=aos/games.json
 AOS_CURRENT_LISTS_PATH=/aos/lists/july-2026.json
 AOS_BATTLESCROLL_LABEL=July 2026 Battlescroll
 CACHE_TTL_SECONDS=900
