@@ -121,9 +121,10 @@ function parseRowUnits(row, aliasIndex) {
     row?.["Refined List"] ?? row?.RefinedList ?? row?.refinedList ?? "";
   const raw = String(refined ?? "");
 
-  // Your format is "|" delimited
+  // Accept both the legacy pipe-delimited export and the website's
+  // human-readable newline-delimited army lists.
   const tokens = raw
-    .split("|")
+    .split(/\\||\\r?\\n/)
     .map((x) => String(x ?? "").trim())
     .filter((x) => x.length > 0);
 
