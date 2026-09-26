@@ -23,6 +23,13 @@ import event from "./commands/event.js";
 import list from "./commands/list.js";
 import lookup from "./commands/lookup.js";
 import help from "./commands/help.js";
+import winrates from "./commands/winrates.js";
+import popularity from "./commands/popularity.js";
+import matchup from "./commands/matchup.js";
+import player from "./commands/player.js";
+import compare from "./commands/compare.js";
+import combination from "./commands/combination.js";
+import { checkAccess } from "./access.js";
 
 // ==================================================
 // COMMAND REGISTRY
@@ -43,6 +50,12 @@ export const COMMANDS = [
   list,
   lookup,
   help,
+  winrates,
+  popularity,
+  matchup,
+  player,
+  compare,
+  combination,
 ];
 
 // ==================================================
@@ -57,7 +70,7 @@ function buildClient() {
 // ==================================================
 // PUBLIC API
 // ==================================================
-export function createDiscordClient({ system, engine }) {
+export function createDiscordClient({ system, engine, accessConfig }) {
   const client = buildClient();
 
   // --------------------------------------------------
@@ -71,7 +84,7 @@ export function createDiscordClient({ system, engine }) {
   // --------------------------------------------------
   // SHARED CONTEXT
   // --------------------------------------------------
-  client.woebot = { system, engine };
+  client.woebot = { system, engine, accessConfig };
 
   // --------------------------------------------------
   // INTERACTION ROUTER
@@ -83,6 +96,12 @@ export function createDiscordClient({ system, engine }) {
     if (interaction.isAutocomplete()) {
       const cmd = client.commands.get(interaction.commandName);
       if (!cmd?.autocomplete) return;
+
+      const access = checkAccess(interaction, cmd, accessConfig);
+      if (!access.allowed) {
+        await interaction.respond([]);
+        return;
+      }
 
       try {
         await cmd.autocomplete(interaction, client.woebot);
@@ -103,6 +122,12 @@ export function createDiscordClient({ system, engine }) {
     const cmd = client.commands.get(interaction.commandName);
     if (!cmd) {
       await interaction.reply({ content: "Unknown command.", ephemeral: true });
+      return;
+    }
+
+    const access = checkAccess(interaction, cmd, accessConfig);
+    if (!access.allowed) {
+      await interaction.reply({ content: access.reason, ephemeral: true });
       return;
     }
 

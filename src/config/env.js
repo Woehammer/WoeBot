@@ -41,6 +41,8 @@ function buildEnv() {
     DISCORD_TOKEN: required("DISCORD_TOKEN"),
     DISCORD_CLIENT_ID: optional("DISCORD_CLIENT_ID"),
     DISCORD_GUILD_ID: optional("DISCORD_GUILD_ID"),
+    WOEHAMMER_GUILD_ID: optional("WOEHAMMER_GUILD_ID", optional("DISCORD_GUILD_ID")),
+    PATREON_ROLE_IDS: optional("PATREON_ROLE_IDS", ""),
 
     AOS_DATA_SOURCE: optional("AOS_DATA_SOURCE", "website").toLowerCase(),
     AOS_STATS_BASE_URL: optional("AOS_STATS_BASE_URL", "https://raw.githubusercontent.com/Woehammer/woehammer-stats/main/public"),

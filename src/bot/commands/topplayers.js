@@ -9,6 +9,9 @@
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { ACCESS } from "../access.js";
+
+export const access = ACCESS.PATREON;
 
 // ==================================================
 // COMMAND DEFINITION
@@ -315,4 +318,4 @@ export async function run(interaction, { engine }) {
 // ==================================================
 // EXPORTS
 // ==================================================
-export default { data, run, autocomplete };
+export default { data, run, autocomplete, access };

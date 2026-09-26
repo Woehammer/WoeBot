@@ -104,6 +104,8 @@ function getListText(row) {
   const candidates = [
     row.List,
     row.list,
+    row["Refined List"],
+    row.RefinedList,
     row["Army List"],
     row["army list"],
     row["Roster"],
@@ -329,6 +331,10 @@ function createService({ dataset }) {
     return indexes;
   }
 
+  function allRows() {
+    return rowsCache;
+  }
+
   // --------------------------------------------------
   // ROW LOOKUPS
   // --------------------------------------------------
@@ -340,6 +346,10 @@ function createService({ dataset }) {
   function factionRows(factionName) {
     const key = safeKey(factionName);
     return indexes.byFaction.get(key) || [];
+  }
+
+  function playerRows(playerName) {
+    return indexes.byPlayer.get(safeKey(playerName)) || [];
   }
 
   function formationRows(formationName) {
@@ -566,10 +576,12 @@ function createService({ dataset }) {
   return {
     refresh,
     get,
+    allRows,
 
     // rows
     warscrollRows,
     factionRows,
+    playerRows,
     formationRows,
     factionRowsInFormation,
     eventRows,

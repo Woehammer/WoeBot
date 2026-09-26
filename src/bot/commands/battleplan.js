@@ -63,12 +63,6 @@ export const data = new SlashCommandBuilder()
       .setRequired(false)
       .setAutocomplete(true)
   )
-  .addStringOption((opt) =>
-    opt
-      .setName("battlescroll")
-      .setDescription("Optional battlescroll filter (exact text match)")
-      .setRequired(false)
-  )
   .addIntegerOption((opt) =>
     opt
       .setName("mingames")
@@ -131,7 +125,7 @@ export async function run(interaction, { system, engine }) {
   const inputFaction = interaction.options.getString("faction", true).trim();
   const inputFormation = interaction.options.getString("formation", false)?.trim() ?? null;
 
-  const battlescroll = interaction.options.getString("battlescroll", false)?.trim() ?? null;
+  const battlescroll = null;
   const minGames = interaction.options.getInteger("mingames", false) ?? 5;
   const limit = interaction.options.getInteger("limit", false) ?? 12;
 
@@ -216,7 +210,7 @@ export async function run(interaction, { system, engine }) {
 
   const overviewLines = [
     `Scope: **${formationName ? "formation" : "faction"}**`,
-    battlescroll ? `Battlescroll: **${battlescroll}**` : `Battlescroll: **All**`,
+    `Battlescroll: **Current**`,
     `Min games per battleplan: **${minGames}**`,
   ].join("\n");
 

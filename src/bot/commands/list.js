@@ -8,6 +8,9 @@
 
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
 import { addChunkedSection } from "../ui/embedSafe.js";
+import { ACCESS } from "../access.js";
+
+export const access = ACCESS.PATREON;
 
 // ==================================================
 // HELPERS
@@ -229,4 +232,4 @@ export async function run(interaction, { engine }) {
   await interaction.reply({ embeds: [embed] });
 }
 
-export default { data, run, autocomplete };
+export default { data, run, autocomplete, access };

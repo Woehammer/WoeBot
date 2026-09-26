@@ -12,6 +12,7 @@ import { loadEnv } from "./config/env.js";
 import { SYSTEMS } from "./systems/aos.js";
 
 import { createDiscordClient } from "./bot/client.js";
+import { buildAccessConfig } from "./bot/access.js";
 import { registerCommands } from "../scripts/register-commands.js";
 
 import { createDatasetService } from "./engine/fetch/dataset.js";
@@ -60,9 +61,9 @@ async function initEngine(system, env) {
 
 async function initDiscord(system, env, engine) {
   const client = createDiscordClient({
-    token: env.DISCORD_TOKEN,
     system,
     engine,
+    accessConfig: buildAccessConfig(env),
   });
 
   return client;
@@ -112,4 +113,3 @@ async function initCommands(system, env) {
   console.error("[WoeBot] boot failed:", err);
   process.exit(1);
 });
-

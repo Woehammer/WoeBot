@@ -10,7 +10,6 @@
 // IMPORTS
 // ==================================================
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
-import { rankPlayersInFaction } from "../../engine/stats/playerRankings.js";
 
 import {
   explainSampleSize,
@@ -302,14 +301,6 @@ export async function run(interaction, { system, engine }) {
   const elo = closingEloSummary(rows);
   const perf = performanceBuckets(rows);
 
-  const topPlayers = rankPlayersInFaction({
-    rows,
-    topN: 3,
-    minGames: 0,
-    minEvents: 0,
-    mode: "latest",
-  });
-
   // ==================================================
   // BUILD EMBED
   // ==================================================
@@ -342,17 +333,6 @@ export async function run(interaction, { system, engine }) {
           (perf.other ? `\n*Other/unknown results: (${perf.other})*` : "") +
           `\n${HR}`,
       },
-      {
-        name: "Top Players (Current Battlescroll)",
-        value: topPlayers.length
-          ? topPlayers
-              .map(
-                (p, i) =>
-                  `${i + 1}) **${p.player}** — **${fmt(p.latestClosingElo)}**`
-              )
-              .join("\n") + `\n${HR}`
-          : `—\n${HR}`,
-      }
     );
 
   // ==================================================

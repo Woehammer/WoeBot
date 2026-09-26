@@ -40,3 +40,18 @@ AOS_DB_SHEET_JULY_2026_CSV_URL=https://...
 ```
 
 Set `AOS_DATA_SOURCE=csv` only if an explicit rollback is needed.
+
+## Discord access tiers
+
+Public commands always use the current battlescroll. Player rankings, event/player
+details and army lists are restricted to Patreon members inside the official
+Woehammer Discord.
+
+```env
+WOEHAMMER_GUILD_ID=your_discord_server_id
+PATREON_ROLE_IDS=role_id_one,role_id_two
+```
+
+Use Discord role IDs rather than role names. Server administrators are allowed to
+use premium commands for testing. Historical comparison commands will use the same
+premium guard as historical battlescroll datasets are added to the stats source.
