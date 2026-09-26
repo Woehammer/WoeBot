@@ -34,7 +34,13 @@ function pickSystem() {
 
 async function initEngine(system, env) {
   const dataset = createDatasetService({
+    source: env.AOS_DATA_SOURCE,
+    websiteBaseUrl: env.AOS_STATS_BASE_URL,
+    gamesPath: env.AOS_CURRENT_GAMES_PATH,
+    listsPath: env.AOS_CURRENT_LISTS_PATH,
+    battlescrollLabel: env.AOS_BATTLESCROLL_LABEL,
     csvUrl: env.AOS_DB_SHEET_CSV_URL,
+    battlescrollId: env.AOS_BATTLESCROLL_ID,
     ttlSeconds: Number(env.CACHE_TTL_SECONDS ?? 900),
     system,
   });
@@ -98,7 +104,9 @@ async function initCommands(system, env) {
   await initCommands(system, env);
 
   await client.login(env.DISCORD_TOKEN);
-  console.log(`[WoeBot] online | system=${system.id}`);
+  console.log(
+    `[WoeBot] online | system=${system.id} | source=${engine.dataset.getMeta().source} | rows=${engine.dataset.getMeta().rowCount}`
+  );
 })().catch((err) => {
   console.error("[WoeBot] boot failed:", err);
   process.exit(1);
