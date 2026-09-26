@@ -43,9 +43,9 @@ function buildEnv() {
     DISCORD_GUILD_ID: optional("DISCORD_GUILD_ID"),
 
     AOS_DATA_SOURCE: optional("AOS_DATA_SOURCE", "website").toLowerCase(),
-    AOS_STATS_BASE_URL: optional("AOS_STATS_BASE_URL", "https://woehammer-stats.pages.dev"),
-    AOS_CURRENT_GAMES_PATH: optional("AOS_CURRENT_GAMES_PATH", "/aos/games.json"),
-    AOS_CURRENT_LISTS_PATH: optional("AOS_CURRENT_LISTS_PATH", "/aos/lists/july-2026.json"),
+    AOS_STATS_BASE_URL: optional("AOS_STATS_BASE_URL", "https://raw.githubusercontent.com/Woehammer/woehammer-stats/main/public"),
+    AOS_CURRENT_GAMES_PATH: optional("AOS_CURRENT_GAMES_PATH", "aos/games.json"),
+    AOS_CURRENT_LISTS_PATH: optional("AOS_CURRENT_LISTS_PATH", "aos/lists/july-2026.json"),
     AOS_BATTLESCROLL_LABEL: optional("AOS_BATTLESCROLL_LABEL", "July 2026 Battlescroll"),
 
     AOS_BATTLESCROLL_ID,
