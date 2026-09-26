@@ -36,6 +36,7 @@ async function initEngine(system, env) {
   const dataset = createDatasetService({
     source: env.AOS_DATA_SOURCE,
     websiteBaseUrl: env.AOS_STATS_BASE_URL,
+    websiteToken: env.AOS_STATS_TOKEN,
     gamesPath: env.AOS_CURRENT_GAMES_PATH,
     listsPath: env.AOS_CURRENT_LISTS_PATH,
     battlescrollLabel: env.AOS_BATTLESCROLL_LABEL,
