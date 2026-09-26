@@ -23,11 +23,14 @@ DISCORD_TOKEN=...
 ```env
 AOS_DATA_SOURCE=website
 AOS_STATS_BASE_URL=https://raw.githubusercontent.com/Woehammer/woehammer-stats/main/public
+AOS_STATS_TOKEN=github_fine_grained_read_token
 AOS_CURRENT_GAMES_PATH=aos/games.json
 AOS_CURRENT_LISTS_PATH=/aos/lists/july-2026.json
 AOS_BATTLESCROLL_LABEL=July 2026 Battlescroll
 CACHE_TTL_SECONDS=900
 ```
+
+Because the stats repository is private, Railway needs `AOS_STATS_TOKEN` set to a fine-grained GitHub token with read-only access to `Woehammer/woehammer-stats`. Never commit that token.
 
 The former Google Sheet CSV can remain configured temporarily as an automatic fallback:
 
